@@ -1,6 +1,6 @@
 {
   "name": "@kovaai/msteams",
-  "version": "2.0.0-beta.5",
+  "version": "2.0.0-beta.6",
   "description": "Kova Microsoft Teams channel plugin",
   "type": "module",
   "dependencies": {
@@ -46,10 +46,10 @@
       "minHostVersion": ">=2.0.0-beta.3"
     },
     "compat": {
-      "pluginApi": ">=2.0.0-beta.5"
+      "pluginApi": ">=2.0.0-beta.6"
     },
     "build": {
-      "kovaVersion": "2.0.0-beta.5"
+      "kovaVersion": "2.0.0-beta.6"
     },
     "bundle": {
       "stageRuntimeDependencies": true

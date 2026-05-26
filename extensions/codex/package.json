@@ -1,6 +1,6 @@
 {
   "name": "@kovaai/codex",
-  "version": "2.0.0-beta.5",
+  "version": "2.0.0-beta.6",
   "description": "Kova Codex harness and model provider plugin",
   "type": "module",
   "dependencies": {

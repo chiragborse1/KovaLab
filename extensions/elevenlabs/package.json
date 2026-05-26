@@ -1,6 +1,6 @@
 {
   "name": "@kovaai/elevenlabs-speech",
-  "version": "2.0.0-beta.5",
+  "version": "2.0.0-beta.6",
   "private": true,
   "description": "Kova ElevenLabs speech plugin",
   "type": "module",

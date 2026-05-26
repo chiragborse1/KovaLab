@@ -1,6 +1,6 @@
 {
   "name": "@kovaai/tlon",
-  "version": "2.0.0-beta.5",
+  "version": "2.0.0-beta.6",
   "description": "Kova Tlon/Urbit channel plugin",
   "type": "module",
   "dependencies": {
@@ -14,7 +14,7 @@
     "getkova": "workspace:*"
   },
   "peerDependencies": {
-    "getkova": ">=2.0.0-beta.5"
+    "getkova": "^2.0.0-beta.6"
   },
   "peerDependenciesMeta": {
     "getkova": {

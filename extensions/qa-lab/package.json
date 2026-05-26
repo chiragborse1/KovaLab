@@ -1,6 +1,6 @@
 {
   "name": "@kovaai/qa-lab",
-  "version": "2.0.0-beta.5",
+  "version": "2.0.0-beta.6",
   "private": true,
   "description": "Kova QA lab plugin with private debugger UI and scenario runner",
   "type": "module",
@@ -16,7 +16,7 @@
     "getkova": "workspace:*"
   },
   "peerDependencies": {
-    "getkova": ">=2.0.0-beta.5"
+    "getkova": "^2.0.0-beta.6"
   },
   "peerDependenciesMeta": {
     "getkova": {
@@ -33,7 +33,7 @@
       "minHostVersion": ">=2.0.0-beta.4"
     },
     "compat": {
-      "pluginApi": ">=2.0.0-beta.5"
+      "pluginApi": ">=2.0.0-beta.6"
     }
   }
 }

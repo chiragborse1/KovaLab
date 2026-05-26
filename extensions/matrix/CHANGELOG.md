@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.0-beta.6
+
+### Changes
+
+- Version alignment with core Kova release numbers.
+
 ## 2.0.0-beta.5
 
 ### Changes

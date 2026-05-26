@@ -1,6 +1,6 @@
 {
   "name": "@kovaai/zalouser",
-  "version": "2.0.0-beta.5",
+  "version": "2.0.0-beta.6",
   "description": "Kova Zalo Personal Account plugin via native zca-js integration",
   "type": "module",
   "dependencies": {
@@ -41,10 +41,10 @@
       "minHostVersion": ">=2.0.0-beta.3"
     },
     "compat": {
-      "pluginApi": ">=2.0.0-beta.5"
+      "pluginApi": ">=2.0.0-beta.6"
     },
     "build": {
-      "kovaVersion": "2.0.0-beta.5"
+      "kovaVersion": "2.0.0-beta.6"
     },
     "release": {
       "publishToNpm": true

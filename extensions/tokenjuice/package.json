@@ -1,6 +1,6 @@
 {
   "name": "@kovaai/tokenjuice",
-  "version": "2.0.0-beta.5",
+  "version": "2.0.0-beta.6",
   "description": "Bundled tokenjuice exec output compaction plugin",
   "type": "module",
   "dependencies": {
