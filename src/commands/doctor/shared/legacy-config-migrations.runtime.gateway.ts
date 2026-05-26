@@ -14,6 +14,13 @@ const GATEWAY_BIND_RULE: LegacyConfigRule = {
   requireSourceLiteral: true,
 };
 
+const GATEWAY_CONTROL_UI_RULE: LegacyConfigRule = {
+  path: ["gateway", "controlUi"],
+  message:
+    'gateway.controlUi was retired with the browser UI; Kova is terminal-first now. Run "kova doctor --fix".',
+  requireSourceLiteral: true,
+};
+
 function isLegacyGatewayBindHostAlias(value: unknown): boolean {
   const normalized = normalizeOptionalLowercaseString(value);
   if (!normalized) {
@@ -45,6 +52,21 @@ function escapeControlForLog(value: string): string {
 }
 
 export const LEGACY_CONFIG_MIGRATIONS_RUNTIME_GATEWAY: LegacyConfigMigrationSpec[] = [
+  defineLegacyConfigMigration({
+    id: "gateway.control-ui->removed",
+    describe: "Remove retired gateway.controlUi browser UI config",
+    legacyRules: [GATEWAY_CONTROL_UI_RULE],
+    apply: (raw, changes) => {
+      const gateway = getRecord(raw.gateway);
+      if (!gateway || !("controlUi" in gateway)) {
+        return;
+      }
+
+      delete gateway.controlUi;
+      raw.gateway = gateway;
+      changes.push("Removed gateway.controlUi; Kova is terminal-first now.");
+    },
+  }),
   defineLegacyConfigMigration({
     id: "gateway.bind.host-alias->bind-mode",
     describe: "Normalize gateway.bind host aliases to supported bind modes",

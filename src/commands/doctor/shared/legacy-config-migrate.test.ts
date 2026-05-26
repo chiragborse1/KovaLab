@@ -89,6 +89,24 @@ describe("legacy migrate audio transcription", () => {
   });
 });
 
+describe("legacy migrate gateway config", () => {
+  it("removes retired gateway.controlUi config", () => {
+    const res = migrateLegacyConfigForTest({
+      gateway: {
+        port: 18789,
+        controlUi: {
+          enabled: true,
+        },
+      },
+    });
+
+    expect(res.changes).toContain("Removed gateway.controlUi; Kova is terminal-first now.");
+    expect(res.config?.gateway).toEqual({
+      port: 18789,
+    });
+  });
+});
+
 describe("legacy migrate mention routing", () => {
   it("does not rewrite removed routing.groupChat.requireMention migrations", () => {
     const res = migrateLegacyConfigForTest({

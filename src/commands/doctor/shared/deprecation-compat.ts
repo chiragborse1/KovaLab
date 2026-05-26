@@ -134,6 +134,17 @@ export const DOCTOR_DEPRECATION_COMPAT_RECORDS = [
     tests: ["src/commands/doctor/shared/legacy-config-migrate.test.ts"],
   }),
   deprecatedCompatRecord({
+    code: "doctor-gateway-control-ui",
+    owner: "gateway",
+    introduced: "2026-05-26",
+    source: "gateway.controlUi",
+    migration: "src/commands/doctor/shared/legacy-config-migrations.runtime.gateway.ts",
+    replacement: "terminal chat, kova settings, and kova gateway commands",
+    docsPath: "/web/tui",
+    tests: ["src/commands/doctor/shared/legacy-config-migrate.test.ts"],
+    notes: "The browser UI was removed from Kova; old local configs may still carry this key.",
+  }),
+  deprecatedCompatRecord({
     code: "doctor-audio-transcription-command",
     owner: "audio",
     introduced: "2026-04-26",
