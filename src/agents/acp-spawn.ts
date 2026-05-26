@@ -316,10 +316,14 @@ function isHeartbeatEnabledForSessionAgent(params: {
   }
 
   const agentEntries = params.cfg.agents?.list ?? [];
-  const hasExplicitHeartbeatAgents = agentEntries.some((entry) => Boolean(entry?.heartbeat));
+  const hasExplicitHeartbeatAgents = agentEntries.some((entry) =>
+    Boolean(entry?.pulse ?? entry?.heartbeat),
+  );
   const enabledByPolicy = hasExplicitHeartbeatAgents
     ? agentEntries.some(
-        (entry) => Boolean(entry?.heartbeat) && normalizeAgentId(entry?.id) === requesterAgentId,
+        (entry) =>
+          Boolean(entry?.pulse ?? entry?.heartbeat) &&
+          normalizeAgentId(entry?.id) === requesterAgentId,
       )
     : requesterAgentId === resolveDefaultAgentId(params.cfg);
   if (!enabledByPolicy) {
@@ -327,7 +331,9 @@ function isHeartbeatEnabledForSessionAgent(params: {
   }
 
   const heartbeatEvery =
+    resolveAgentConfig(params.cfg, requesterAgentId)?.pulse?.every ??
     resolveAgentConfig(params.cfg, requesterAgentId)?.heartbeat?.every ??
+    params.cfg.agents?.defaults?.pulse?.every ??
     params.cfg.agents?.defaults?.heartbeat?.every ??
     DEFAULT_HEARTBEAT_EVERY;
   const trimmedEvery = normalizeOptionalString(heartbeatEvery) ?? "";
@@ -346,13 +352,18 @@ function resolveHeartbeatConfigForAgent(params: {
   agentId: string;
 }): NonNullable<NonNullable<KovaConfig["agents"]>["defaults"]>["heartbeat"] {
   const defaults = params.cfg.agents?.defaults?.heartbeat;
-  const overrides = resolveAgentConfig(params.cfg, params.agentId)?.heartbeat;
-  if (!defaults && !overrides) {
+  const defaultsPulse = params.cfg.agents?.defaults?.pulse;
+  const agentConfig = resolveAgentConfig(params.cfg, params.agentId);
+  const overrides = agentConfig?.heartbeat;
+  const overridesPulse = agentConfig?.pulse;
+  if (!defaults && !defaultsPulse && !overrides && !overridesPulse) {
     return undefined;
   }
   return {
     ...defaults,
+    ...defaultsPulse,
     ...overrides,
+    ...overridesPulse,
   };
 }
 

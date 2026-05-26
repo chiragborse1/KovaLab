@@ -884,18 +884,20 @@ export async function runAgentTurnWithFallback(params: {
         if (params.followupRun.run.silentExpected) {
           return { skip: true };
         }
-        if (!params.isHeartbeat && text?.includes("HEARTBEAT_OK")) {
+        if (!params.isHeartbeat && text) {
           const stripped = stripHeartbeatToken(text, {
             mode: "message",
           });
           if (stripped.didStrip && !didLogHeartbeatStrip) {
             didLogHeartbeatStrip = true;
-            logVerbose("Stripped stray HEARTBEAT_OK token from reply");
+            logVerbose("Stripped stray quiet Pulse token from reply");
           }
           if (stripped.shouldSkip && !reply.hasMedia) {
             return { skip: true };
           }
-          text = stripped.text;
+          if (stripped.didStrip) {
+            text = stripped.text;
+          }
         }
         if (isSilentReplyText(text, SILENT_REPLY_TOKEN)) {
           return { skip: true };

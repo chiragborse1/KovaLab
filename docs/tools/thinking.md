@@ -108,10 +108,10 @@ Malformed local-model reasoning tags are handled conservatively. Closed `<think>
 
 - Elevated mode docs live in [Elevated mode](/tools/elevated).
 
-## Heartbeats
+## Pulse
 
-- Heartbeat probe body is the configured heartbeat prompt (default: `Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.`). Inline directives in a heartbeat message apply as usual (but avoid changing session defaults from heartbeats).
-- Heartbeat delivery defaults to the final payload only. To also send the separate `Thinking` message (when available), set `agents.defaults.heartbeat.includeReasoning: true` or per-agent `agents.list[].heartbeat.includeReasoning: true`.
+- Pulse probe body is the configured Pulse prompt (default: `Read PULSE.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply with ONLY: NO_REPLY.`). Inline directives in a Pulse message apply as usual, but avoid changing session defaults from Pulse.
+- Pulse delivery defaults to the final payload only. To also send the separate `Thinking` message when available, set `agents.defaults.pulse.includeReasoning: true` or per-agent `agents.list[].pulse.includeReasoning: true`.
 
 ## Local chat state
 

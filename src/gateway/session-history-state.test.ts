@@ -148,12 +148,12 @@ describe("SessionHistorySseState", () => {
       rawMessages: [
         {
           role: "user",
-          content: `${HEARTBEAT_PROMPT}\nWhen reading HEARTBEAT.md, use workspace file /tmp/HEARTBEAT.md (exact case). Do not read docs/heartbeat.md.`,
+          content: `${HEARTBEAT_PROMPT}\nWhen reading PULSE.md, use workspace file /tmp/PULSE.md (exact case). If PULSE.md is missing, legacy HEARTBEAT.md may exist at /tmp/HEARTBEAT.md. Do not read docs/heartbeat.md.`,
           __kova: { seq: 1 },
         },
         {
           role: "assistant",
-          content: [{ type: "text", text: "HEARTBEAT_OK" }],
+          content: [{ type: "text", text: "NO_REPLY" }],
           __kova: { seq: 2 },
         },
         {

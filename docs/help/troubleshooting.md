@@ -248,14 +248,14 @@ flowchart TD
 
     - `cron.status` shows enabled with a next wake.
     - `cron runs` shows recent `ok` entries.
-    - Heartbeat is enabled and not outside active hours.
+    - Pulse is enabled and not outside active hours.
 
     Common log signatures:
 
     - `cron: scheduler disabled; jobs will not run automatically` → cron is disabled.
     - `heartbeat skipped` with `reason=quiet-hours` → outside configured active hours.
-    - `heartbeat skipped` with `reason=empty-heartbeat-file` → `HEARTBEAT.md` exists but only contains blank/header-only scaffolding.
-    - `heartbeat skipped` with `reason=no-tasks-due` → `HEARTBEAT.md` task mode is active but none of the task intervals are due yet.
+    - `heartbeat skipped` with `reason=empty-heartbeat-file` → `PULSE.md` exists but only contains blank/header-only scaffolding.
+    - `heartbeat skipped` with `reason=no-tasks-due` → `PULSE.md` task mode is active but none of the task intervals are due yet.
     - `heartbeat skipped` with `reason=alerts-disabled` → all heartbeat visibility is disabled (`showOk`, `showAlerts`, and `useIndicator` are all off).
     - `requests-in-flight` → main lane busy; heartbeat wake was deferred.
     - `unknown accountId` → heartbeat delivery target account does not exist.

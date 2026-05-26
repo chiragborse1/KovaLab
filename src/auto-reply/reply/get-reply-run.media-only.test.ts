@@ -1100,8 +1100,8 @@ describe("runPreparedReply media-only handling", () => {
     const call = vi.mocked(runReplyAgent).mock.calls.at(-1)?.[0];
     expect(call?.commandBody).toContain(heartbeatPrompt);
     expect(call?.followupRun.prompt).toContain(heartbeatPrompt);
-    expect(call?.transcriptCommandBody).toBe("[Kova heartbeat poll]");
-    expect(call?.followupRun.transcriptPrompt).toBe("[Kova heartbeat poll]");
+    expect(call?.transcriptCommandBody).toBe("[Kova Pulse check]");
+    expect(call?.followupRun.transcriptPrompt).toBe("[Kova Pulse check]");
   });
 
   it("keeps bare reset startup instructions out of visible transcript prompt", async () => {

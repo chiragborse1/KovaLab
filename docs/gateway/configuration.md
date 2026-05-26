@@ -52,7 +52,7 @@ field map and defaults.
   <Tab title="CLI (one-liners)">
     ```bash
     kova config get agents.defaults.workspace
-    kova config set agents.defaults.heartbeat.every "2h"
+    kova config set agents.defaults.pulse.every "2h"
     kova config unset plugins.entries.brave.config.webSearch.apiKey
     ```
   </Tab>
@@ -388,7 +388,7 @@ cannot roll back unrelated user settings.
     - `every`: duration string (`30m`, `2h`). Set `0m` to disable.
     - `target`: `last` | `none` | `<channel-id>` (for example `discord`, `matrix`, `telegram`, or `whatsapp`)
     - `directPolicy`: `allow` (default) or `block` for DM-style heartbeat targets
-    - See [Heartbeat](/gateway/heartbeat) for the full guide.
+    - See [Pulse](/gateway/heartbeat) for the full guide.
 
   </Accordion>
 

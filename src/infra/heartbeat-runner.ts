@@ -13,7 +13,7 @@ import {
 import { appendCronStyleCurrentTimeLine } from "../agents/current-time.js";
 import { resolveEffectiveMessagesConfig } from "../agents/identity.js";
 import { resolveEmbeddedSessionLane } from "../agents/pi-embedded-runner/lanes.js";
-import { DEFAULT_HEARTBEAT_FILENAME } from "../agents/workspace.js";
+import { DEFAULT_HEARTBEAT_FILENAME, DEFAULT_PULSE_FILENAME } from "../agents/workspace.js";
 import { resolveHeartbeatReplyPayload } from "../auto-reply/heartbeat-reply-payload.js";
 import {
   DEFAULT_HEARTBEAT_ACK_MAX_CHARS,
@@ -24,7 +24,7 @@ import {
   stripHeartbeatToken,
   type HeartbeatTask,
 } from "../auto-reply/heartbeat.js";
-import { HEARTBEAT_TOKEN } from "../auto-reply/tokens.js";
+import { SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
 import type { ReplyPayload } from "../auto-reply/types.js";
 import { getChannelPlugin } from "../channels/plugins/index.js";
 import type {
@@ -119,7 +119,7 @@ export type HeartbeatDeps = OutboundSendDeps &
     nowMs?: () => number;
   };
 
-const log = createSubsystemLogger("gateway/heartbeat");
+const log = createSubsystemLogger("gateway/pulse");
 let heartbeatRunnerRuntimePromise: Promise<typeof import("./heartbeat-runner.runtime.js")> | null =
   null;
 
@@ -182,26 +182,36 @@ function resolveHeartbeatSchedulerSeed(explicitSeed?: string) {
 
 function hasExplicitHeartbeatAgents(cfg: KovaConfig) {
   const list = cfg.agents?.list ?? [];
-  return list.some((entry) => Boolean(entry?.heartbeat));
+  return list.some((entry) => Boolean(entry?.pulse ?? entry?.heartbeat));
+}
+
+function mergePulseConfig(
+  defaults?: HeartbeatConfig,
+  defaultsPulse?: HeartbeatConfig,
+  overrides?: HeartbeatConfig,
+  overridesPulse?: HeartbeatConfig,
+): HeartbeatConfig | undefined {
+  if (!defaults && !defaultsPulse && !overrides && !overridesPulse) {
+    return undefined;
+  }
+  return { ...defaults, ...defaultsPulse, ...overrides, ...overridesPulse };
 }
 
 function resolveHeartbeatConfig(cfg: KovaConfig, agentId?: string): HeartbeatConfig | undefined {
   const defaults = cfg.agents?.defaults?.heartbeat;
+  const defaultsPulse = cfg.agents?.defaults?.pulse;
   if (!agentId) {
-    return defaults;
+    return mergePulseConfig(defaults, defaultsPulse);
   }
-  const overrides = resolveAgentConfig(cfg, agentId)?.heartbeat;
-  if (!defaults && !overrides) {
-    return overrides;
-  }
-  return { ...defaults, ...overrides };
+  const agentConfig = resolveAgentConfig(cfg, agentId);
+  return mergePulseConfig(defaults, defaultsPulse, agentConfig?.heartbeat, agentConfig?.pulse);
 }
 
 function resolveHeartbeatAgents(cfg: KovaConfig): HeartbeatAgent[] {
   const list = cfg.agents?.list ?? [];
   if (hasExplicitHeartbeatAgents(cfg)) {
     return list
-      .filter((entry) => entry?.heartbeat)
+      .filter((entry) => entry?.pulse ?? entry?.heartbeat)
       .map((entry) => {
         const id = normalizeAgentId(entry.id);
         return { agentId: id, heartbeat: resolveHeartbeatConfig(cfg, id) };
@@ -213,13 +223,18 @@ function resolveHeartbeatAgents(cfg: KovaConfig): HeartbeatAgent[] {
 }
 
 export function resolveHeartbeatPrompt(cfg: KovaConfig, heartbeat?: HeartbeatConfig) {
-  return resolveHeartbeatPromptText(heartbeat?.prompt ?? cfg.agents?.defaults?.heartbeat?.prompt);
+  return resolveHeartbeatPromptText(
+    heartbeat?.prompt ??
+      cfg.agents?.defaults?.pulse?.prompt ??
+      cfg.agents?.defaults?.heartbeat?.prompt,
+  );
 }
 
 function resolveHeartbeatAckMaxChars(cfg: KovaConfig, heartbeat?: HeartbeatConfig) {
   return Math.max(
     0,
     heartbeat?.ackMaxChars ??
+      cfg.agents?.defaults?.pulse?.ackMaxChars ??
       cfg.agents?.defaults?.heartbeat?.ackMaxChars ??
       DEFAULT_HEARTBEAT_ACK_MAX_CHARS,
   );
@@ -534,7 +549,31 @@ type HeartbeatPreflight = HeartbeatReasonFlags & {
   skipReason?: HeartbeatSkipReason;
   tasks?: HeartbeatTask[];
   heartbeatFileContent?: string;
+  heartbeatFileName?: string;
 };
+
+async function readPulseWorkspaceFile(workspaceDir: string): Promise<
+  | {
+      fileName: string;
+      content: string;
+    }
+  | undefined
+> {
+  for (const fileName of [DEFAULT_PULSE_FILENAME, DEFAULT_HEARTBEAT_FILENAME]) {
+    const filePath = path.join(workspaceDir, fileName);
+    try {
+      return { fileName, content: await fs.readFile(filePath, "utf-8") };
+    } catch (err: unknown) {
+      if (hasErrnoCode(err, "ENOENT")) {
+        continue;
+      }
+      // Other read errors should not disable Pulse. Preserve the old
+      // heartbeat behavior: proceed and let the model decide from config.
+      return undefined;
+    }
+  }
+  return undefined;
+}
 
 function resolveHeartbeatReasonFlags(reason?: string): HeartbeatReasonFlags {
   const reasonKind = resolveHeartbeatReasonKind(reason);
@@ -605,36 +644,27 @@ async function resolveHeartbeatPreflight(params: {
   }
 
   const workspaceDir = resolveAgentWorkspaceDir(params.cfg, params.agentId);
-  const heartbeatFilePath = path.join(workspaceDir, DEFAULT_HEARTBEAT_FILENAME);
-  let heartbeatFileContent: string | undefined;
-  try {
-    heartbeatFileContent = await fs.readFile(heartbeatFilePath, "utf-8");
-    const tasks = parseHeartbeatTasks(heartbeatFileContent);
-    if (isHeartbeatContentEffectivelyEmpty(heartbeatFileContent) && tasks.length === 0) {
-      return {
-        ...basePreflight,
-        skipReason: "empty-heartbeat-file",
-        tasks: [],
-        heartbeatFileContent,
-      };
-    }
-    // Return tasks even if file has other content - backward compatible
+  const pulseFile = await readPulseWorkspaceFile(workspaceDir);
+  if (!pulseFile) {
+    return basePreflight;
+  }
+  const tasks = parseHeartbeatTasks(pulseFile.content);
+  if (isHeartbeatContentEffectivelyEmpty(pulseFile.content) && tasks.length === 0) {
     return {
       ...basePreflight,
-      tasks,
-      heartbeatFileContent,
+      skipReason: "empty-heartbeat-file",
+      tasks: [],
+      heartbeatFileContent: pulseFile.content,
+      heartbeatFileName: pulseFile.fileName,
     };
-  } catch (err: unknown) {
-    if (hasErrnoCode(err, "ENOENT")) {
-      // Missing HEARTBEAT.md is intentional in some setups (for example, when
-      // heartbeat instructions live outside the file), so keep the run active.
-      // The heartbeat prompt already says "if it exists".
-      return basePreflight;
-    }
-    // For other read errors, proceed with heartbeat as before.
   }
-
-  return basePreflight;
+  // Return tasks even if file has other content - backward compatible.
+  return {
+    ...basePreflight,
+    tasks,
+    heartbeatFileContent: pulseFile.content,
+    heartbeatFileName: pulseFile.fileName,
+  };
 }
 
 type HeartbeatPromptResolution = {
@@ -644,11 +674,12 @@ type HeartbeatPromptResolution = {
 };
 
 function appendHeartbeatWorkspacePathHint(prompt: string, workspaceDir: string): string {
-  if (!/heartbeat\.md/i.test(prompt)) {
+  if (!/(pulse|heartbeat)\.md/i.test(prompt)) {
     return prompt;
   }
+  const pulseFilePath = path.join(workspaceDir, DEFAULT_PULSE_FILENAME).replace(/\\/g, "/");
   const heartbeatFilePath = path.join(workspaceDir, DEFAULT_HEARTBEAT_FILENAME).replace(/\\/g, "/");
-  const hint = `When reading HEARTBEAT.md, use workspace file ${heartbeatFilePath} (exact case). Do not read docs/heartbeat.md.`;
+  const hint = `When reading PULSE.md, use workspace file ${pulseFilePath} (exact case). If PULSE.md is missing, legacy HEARTBEAT.md may exist at ${heartbeatFilePath}. Do not read docs/heartbeat.md.`;
   if (prompt.includes(hint)) {
     return prompt;
   }
@@ -696,14 +727,15 @@ function resolveHeartbeatRunPrompt(params: {
 
 ${taskList}
 
-After completing all due tasks, reply HEARTBEAT_OK.`;
+After completing all due tasks, reply with ONLY: ${SILENT_REPLY_TOKEN}.`;
 
       if (params.heartbeatFileContent) {
         const directives = params.heartbeatFileContent
           .replace(/^[\s\S]*?^tasks:[\s\S]*?(?=^[^\s]|^$)/m, "")
           .trim();
         if (directives) {
-          prompt += `\n\nAdditional context from HEARTBEAT.md:\n${directives}`;
+          const fileName = params.preflight.heartbeatFileName ?? DEFAULT_PULSE_FILENAME;
+          prompt += `\n\nAdditional context from ${fileName}:\n${directives}`;
         }
       }
       return { prompt, hasExecCompletion: false, hasCronEvents: false };
@@ -757,7 +789,7 @@ export async function runHeartbeatOnce(opts: {
     return { status: "skipped", reason: "requests-in-flight" };
   }
 
-  // Preflight centralizes trigger classification, event inspection, and HEARTBEAT.md gating.
+  // Preflight centralizes trigger classification, event inspection, and Pulse file gating.
   const preflight = await resolveHeartbeatPreflight({
     cfg,
     agentId,
@@ -809,12 +841,12 @@ export async function runHeartbeatOnce(opts: {
   });
   const heartbeatAccountId = heartbeat?.accountId?.trim();
   if (delivery.reason === "unknown-account") {
-    log.warn("heartbeat: unknown accountId", {
+    log.warn("pulse: unknown accountId", {
       accountId: delivery.accountId ?? heartbeatAccountId ?? null,
       target: heartbeat?.target ?? "none",
     });
   } else if (heartbeatAccountId) {
-    log.info("heartbeat: using explicit accountId", {
+    log.info("pulse: using explicit accountId", {
       accountId: delivery.accountId ?? heartbeatAccountId,
       target: heartbeat?.target ?? "none",
       channel: delivery.channel,
@@ -909,7 +941,7 @@ export async function runHeartbeatOnce(opts: {
           restrictToStoreDir: true,
         });
       } catch (err) {
-        log.warn("heartbeat: failed to archive stale isolated session transcript", {
+        log.warn("pulse: failed to archive stale isolated session transcript", {
           err: String(err),
           sessionKey: staleIsolatedSessionKey,
         });
@@ -990,7 +1022,7 @@ export async function runHeartbeatOnce(opts: {
     return { status: "skipped", reason: "alerts-disabled" };
   }
 
-  const heartbeatOkText = responsePrefix ? `${responsePrefix} ${HEARTBEAT_TOKEN}` : HEARTBEAT_TOKEN;
+  const heartbeatOkText = responsePrefix ? `${responsePrefix} Pulse quiet.` : "Pulse quiet.";
   const outboundSession = buildOutboundSessionContext({
     cfg,
     agentId,
@@ -1104,7 +1136,7 @@ export async function runHeartbeatOnce(opts: {
 
     const ackMaxChars = resolveHeartbeatAckMaxChars(cfg, heartbeat);
     const normalized = normalizeHeartbeatReply(replyPayload, responsePrefix, ackMaxChars);
-    // For exec completion events, don't skip even if the response looks like HEARTBEAT_OK.
+    // For exec completion events, don't skip even if the response looks like a quiet Pulse ack.
     // The model should be responding with exec results, not ack tokens.
     // Also, if normalized.text is empty due to token stripping but we have exec completion,
     // fall back to the original reply text.
@@ -1237,7 +1269,7 @@ export async function runHeartbeatOnce(opts: {
           channel: delivery.channel,
           accountId: delivery.accountId,
         });
-        log.info("heartbeat: channel not ready", {
+        log.info("pulse: channel not ready", {
           channel: delivery.channel,
           reason: readiness.reason,
         });
@@ -1303,7 +1335,7 @@ export async function runHeartbeatOnce(opts: {
       accountId: delivery.accountId,
       indicatorType: visibility.useIndicator ? resolveIndicatorType("failed") : undefined,
     });
-    log.error(`heartbeat failed: ${reason}`, { error: reason });
+    log.error(`pulse failed: ${reason}`, { error: reason });
     return { status: "failed", reason };
   } finally {
     heartbeatTyping?.onCleanup?.();
@@ -1386,7 +1418,7 @@ export function startHeartbeatRunner(opts: {
     const rawDelay = Math.max(0, nextDue - now);
     if (rawDelay > MAX_SAFE_TIMEOUT_DELAY_MS && !heartbeatTimeoutOverflowWarned) {
       heartbeatTimeoutOverflowWarned = true;
-      log.warn("heartbeat: scheduled delay exceeds Node setTimeout cap; clamping to ~24.85d", {
+      log.warn("pulse: scheduled delay exceeds Node setTimeout cap; clamping to ~24.85d", {
         rawDelayMs: rawDelay,
         clampedMs: MAX_SAFE_TIMEOUT_DELAY_MS,
       });
@@ -1435,16 +1467,16 @@ export function startHeartbeatRunner(opts: {
     const nextEnabled = nextAgents.size > 0;
     if (!initialized) {
       if (!nextEnabled) {
-        log.info("heartbeat: disabled", { enabled: false });
+        log.info("pulse: disabled", { enabled: false });
       } else {
-        log.info("heartbeat: started", { intervalMs: Math.min(...intervals) });
+        log.info("pulse: started", { intervalMs: Math.min(...intervals) });
       }
       initialized = true;
     } else if (prevEnabled !== nextEnabled) {
       if (!nextEnabled) {
-        log.info("heartbeat: disabled", { enabled: false });
+        log.info("pulse: disabled", { enabled: false });
       } else {
-        log.info("heartbeat: started", { intervalMs: Math.min(...intervals) });
+        log.info("pulse: started", { intervalMs: Math.min(...intervals) });
       }
     }
 
@@ -1507,7 +1539,7 @@ export function startHeartbeatRunner(opts: {
           return res.status === "ran" ? { status: "ran", durationMs: Date.now() - startedAt } : res;
         } catch (err) {
           const errMsg = formatErrorMessage(err);
-          log.error(`heartbeat runner: targeted runOnce threw unexpectedly: ${errMsg}`, {
+          log.error(`pulse runner: targeted runOnce threw unexpectedly: ${errMsg}`, {
             error: errMsg,
           });
           advanceAgentSchedule(targetAgent, now, reason);
@@ -1531,7 +1563,7 @@ export function startHeartbeatRunner(opts: {
           });
         } catch (err) {
           const errMsg = formatErrorMessage(err);
-          log.error(`heartbeat runner: runOnce threw unexpectedly: ${errMsg}`, { error: errMsg });
+          log.error(`pulse runner: runOnce threw unexpectedly: ${errMsg}`, { error: errMsg });
           advanceAgentSchedule(agent, now, reason);
           continue;
         }

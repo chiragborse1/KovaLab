@@ -481,6 +481,14 @@
       "destination": "/gateway/heartbeat"
     },
     {
+      "source": "/pulse",
+      "destination": "/gateway/heartbeat"
+    },
+    {
+      "source": "/gateway/pulse",
+      "destination": "/gateway/heartbeat"
+    },
+    {
       "source": "/hubs",
       "destination": "/start/hubs"
     },
@@ -735,6 +743,10 @@
     {
       "source": "/templates/HEARTBEAT",
       "destination": "/reference/templates/HEARTBEAT"
+    },
+    {
+      "source": "/templates/PULSE",
+      "destination": "/reference/templates/PULSE"
     },
     {
       "source": "/templates/IDENTITY",
@@ -1616,6 +1628,7 @@
                   "reference/templates/BOOTSTRAP",
                   "reference/templates/HEARTBEAT",
                   "reference/templates/IDENTITY",
+                  "reference/templates/PULSE",
                   "reference/templates/SOUL",
                   "reference/templates/TOOLS",
                   "reference/templates/USER"

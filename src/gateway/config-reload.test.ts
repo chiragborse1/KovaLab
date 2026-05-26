@@ -80,15 +80,15 @@ describe("diffConfigPaths", () => {
     expect(diffConfigPaths(prev, next)).toContain("memory.qmd.paths");
   });
 
-  it("collapses changed agents.list heartbeat entries to agents.list", () => {
+  it("collapses changed agents.list Pulse entries to agents.list", () => {
     const prev = {
       agents: {
-        list: [{ id: "ops", heartbeat: { every: "5m", lightContext: false } }],
+        list: [{ id: "ops", pulse: { every: "5m", lightContext: false } }],
       },
     };
     const next = {
       agents: {
-        list: [{ id: "ops", heartbeat: { every: "5m", lightContext: true } }],
+        list: [{ id: "ops", pulse: { every: "5m", lightContext: true } }],
       },
     };
 
@@ -378,6 +378,12 @@ describe("buildGatewayReloadPlan", () => {
       expectHotPath: "hooks.gmail.account",
       expectRestartGmailWatcher: true,
       expectReloadHooks: true,
+    },
+    {
+      path: "agents.defaults.pulse.every",
+      expectRestartGateway: false,
+      expectHotPath: "agents.defaults.pulse.every",
+      expectRestartHeartbeat: true,
     },
     {
       path: "agents.list",

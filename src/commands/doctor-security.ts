@@ -29,22 +29,22 @@ function collectImplicitHeartbeatDirectPolicyWarnings(cfg: KovaConfig): string[]
       return;
     }
     warnings.push(
-      `- ${params.label}: heartbeat delivery is configured while ${params.pathHint} is unset.`,
-      '  Heartbeat now allows direct/DM targets by default. Set it explicitly to "allow" or "block" to pin upgrade behavior.',
+      `- ${params.label}: Pulse delivery is configured while ${params.pathHint} is unset.`,
+      '  Pulse allows direct/DM targets by default. Set it explicitly to "allow" or "block" to pin upgrade behavior.',
     );
   };
 
   maybeWarn({
-    label: "Heartbeat defaults",
-    heartbeat: cfg.agents?.defaults?.heartbeat,
-    pathHint: "agents.defaults.heartbeat.directPolicy",
+    label: "Pulse defaults",
+    heartbeat: cfg.agents?.defaults?.pulse ?? cfg.agents?.defaults?.heartbeat,
+    pathHint: "agents.defaults.pulse.directPolicy",
   });
 
   for (const agent of cfg.agents?.list ?? []) {
     maybeWarn({
-      label: `Heartbeat agent "${agent.id}"`,
-      heartbeat: agent.heartbeat,
-      pathHint: `heartbeat.directPolicy for agent "${agent.id}"`,
+      label: `Pulse agent "${agent.id}"`,
+      heartbeat: agent.pulse ?? agent.heartbeat,
+      pathHint: `pulse.directPolicy for agent "${agent.id}"`,
     });
   }
 

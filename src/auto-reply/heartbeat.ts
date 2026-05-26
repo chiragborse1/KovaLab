@@ -1,7 +1,7 @@
 import { parseDurationMs } from "../cli/parse-duration.js";
 import { escapeRegExp } from "../shared/regexp.js";
 import { normalizeOptionalString } from "../shared/string-coerce.js";
-import { HEARTBEAT_TOKEN } from "./tokens.js";
+import { HEARTBEAT_TOKEN, SILENT_REPLY_TOKEN } from "./tokens.js";
 
 export type HeartbeatTask = {
   name: string;
@@ -9,17 +9,17 @@ export type HeartbeatTask = {
   prompt: string;
 };
 
-// Default heartbeat prompt (used when config.agents.defaults.heartbeat.prompt is unset).
+// Default Pulse prompt (used when config.agents.defaults.pulse/heartbeat.prompt is unset).
 // Keep it tight and avoid encouraging the model to invent/rehash "open loops" from prior chat context.
 export const HEARTBEAT_PROMPT =
-  "Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.";
-export const HEARTBEAT_TRANSCRIPT_PROMPT = "[Kova heartbeat poll]";
+  "Read PULSE.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply with ONLY: NO_REPLY.";
+export const HEARTBEAT_TRANSCRIPT_PROMPT = "[Kova Pulse check]";
 export const DEFAULT_HEARTBEAT_EVERY = "30m";
 export const DEFAULT_HEARTBEAT_ACK_MAX_CHARS = 300;
 
 /**
- * Check if HEARTBEAT.md content is "effectively empty" - meaning it has no actionable tasks.
- * This allows skipping heartbeat API calls when no tasks are configured.
+ * Check if Pulse file content is "effectively empty" - meaning it has no actionable tasks.
+ * This allows skipping Pulse API calls when no tasks are configured.
  *
  * A file is considered effectively empty if it contains only:
  * - Whitespace / empty lines
@@ -74,17 +74,21 @@ export function resolveHeartbeatPrompt(raw?: string): string {
 
 export type StripHeartbeatMode = "heartbeat" | "message";
 
-function stripTokenAtEdges(raw: string): { text: string; didStrip: boolean } {
+function stripTokenAtEdges(
+  raw: string,
+  token = HEARTBEAT_TOKEN,
+): { text: string; didStrip: boolean } {
   let text = raw.trim();
   if (!text) {
     return { text: "", didStrip: false };
   }
 
-  const token = HEARTBEAT_TOKEN;
+  const tokenLower = token.toLowerCase();
   const tokenAtEndWithOptionalTrailingPunctuation = new RegExp(
     `${escapeRegExp(token)}[^\\w]{0,4}$`,
+    "i",
   );
-  if (!text.includes(token)) {
+  if (!text.toLowerCase().includes(tokenLower)) {
     return { text, didStrip: false };
   }
 
@@ -93,7 +97,8 @@ function stripTokenAtEdges(raw: string): { text: string; didStrip: boolean } {
   while (changed) {
     changed = false;
     const next = text.trim();
-    if (next.startsWith(token)) {
+    const nextLower = next.toLowerCase();
+    if (nextLower.startsWith(tokenLower)) {
       const after = next.slice(token.length).trimStart();
       text = after;
       didStrip = true;
@@ -105,7 +110,7 @@ function stripTokenAtEdges(raw: string): { text: string; didStrip: boolean } {
     // (e.g. ".", "!!!", "---"). Keep trailing punctuation only when real
     // sentence text exists before the token.
     if (tokenAtEndWithOptionalTrailingPunctuation.test(next)) {
-      const idx = next.lastIndexOf(token);
+      const idx = nextLower.lastIndexOf(tokenLower);
       const before = next.slice(0, idx).trimEnd();
       if (!before) {
         text = "";
@@ -145,8 +150,8 @@ export function stripHeartbeatToken(
       : DEFAULT_HEARTBEAT_ACK_MAX_CHARS,
   );
 
-  // Normalize lightweight markup so HEARTBEAT_OK wrapped in HTML/Markdown
-  // (e.g., <b>HEARTBEAT_OK</b> or **HEARTBEAT_OK**) still strips.
+  // Normalize lightweight markup so quiet Pulse tokens wrapped in HTML/Markdown
+  // (e.g., <b>NO_REPLY</b> or **NO_REPLY**) still strip.
   const stripMarkup = (text: string) =>
     text
       // Drop HTML tags.
@@ -158,13 +163,22 @@ export function stripHeartbeatToken(
       .replace(/[*`~_]+$/, "");
 
   const trimmedNormalized = stripMarkup(trimmed);
-  const hasToken = trimmed.includes(HEARTBEAT_TOKEN) || trimmedNormalized.includes(HEARTBEAT_TOKEN);
+  const quietTokens = [HEARTBEAT_TOKEN, SILENT_REPLY_TOKEN];
+  const trimmedLower = trimmed.toLowerCase();
+  const trimmedNormalizedLower = trimmedNormalized.toLowerCase();
+  const matchingToken = quietTokens.find(
+    (token) =>
+      trimmedLower.includes(token.toLowerCase()) ||
+      trimmedNormalizedLower.includes(token.toLowerCase()),
+  );
+  const hasToken = Boolean(matchingToken);
   if (!hasToken) {
     return { shouldSkip: false, text: trimmed, didStrip: false };
   }
 
-  const strippedOriginal = stripTokenAtEdges(trimmed);
-  const strippedNormalized = stripTokenAtEdges(trimmedNormalized);
+  const token = matchingToken ?? HEARTBEAT_TOKEN;
+  const strippedOriginal = stripTokenAtEdges(trimmed, token);
+  const strippedNormalized = stripTokenAtEdges(trimmedNormalized, token);
   const picked =
     strippedOriginal.didStrip && strippedOriginal.text ? strippedOriginal : strippedNormalized;
   if (!picked.didStrip) {
@@ -186,7 +200,7 @@ export function stripHeartbeatToken(
 }
 
 /**
- * Parse heartbeat tasks from HEARTBEAT.md content.
+ * Parse Pulse tasks from PULSE.md or legacy HEARTBEAT.md content.
  * Supports YAML-like task definitions:
  *
  * tasks:

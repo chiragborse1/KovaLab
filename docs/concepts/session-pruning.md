@@ -57,10 +57,10 @@ persist raw image blocks or prompt-hydration media markers in history.
 
 Kova auto-enables pruning for Anthropic profiles:
 
-| Profile type                                            | Pruning enabled | Heartbeat |
-| ------------------------------------------------------- | --------------- | --------- |
-| Anthropic OAuth/token auth (including Claude CLI reuse) | Yes             | 1 hour    |
-| API key                                                 | Yes             | 30 min    |
+| Profile type                                            | Pruning enabled | Pulse  |
+| ------------------------------------------------------- | --------------- | ------ |
+| Anthropic OAuth/token auth (including Claude CLI reuse) | Yes             | 1 hour |
+| API key                                                 | Yes             | 30 min |
 
 If you set explicit values, Kova does not override them.
 

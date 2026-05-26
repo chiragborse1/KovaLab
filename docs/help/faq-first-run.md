@@ -63,18 +63,18 @@ and troubleshooting see the main [FAQ](/help/faq).
 
   </Accordion>
 
-  <Accordion title="Heartbeat keeps skipping. What do the skip reasons mean?">
+  <Accordion title="Pulse keeps skipping. What do the skip reasons mean?">
     Common heartbeat skip reasons:
 
     - `quiet-hours`: outside the configured active-hours window
-    - `empty-heartbeat-file`: `HEARTBEAT.md` exists but only contains blank/header-only scaffolding
-    - `no-tasks-due`: `HEARTBEAT.md` task mode is active but none of the task intervals are due yet
+    - `empty-heartbeat-file`: `PULSE.md` exists but only contains blank/header-only scaffolding
+    - `no-tasks-due`: `PULSE.md` task mode is active but none of the task intervals are due yet
     - `alerts-disabled`: all heartbeat visibility is disabled (`showOk`, `showAlerts`, and `useIndicator` are all off)
 
-    In task mode, due timestamps are only advanced after a real heartbeat run
+    In task mode, due timestamps are only advanced after a real Pulse run
     completes. Skipped runs do not mark tasks as completed.
 
-    Docs: [Heartbeat](/gateway/heartbeat), [Automation & Tasks](/automation).
+    Docs: [Pulse](/gateway/heartbeat), [Automation & Tasks](/automation).
 
   </Accordion>
 

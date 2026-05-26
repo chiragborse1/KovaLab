@@ -121,6 +121,7 @@ describe("buildAgentSystemPrompt", () => {
     expect(prompt).not.toContain("## Voice (TTS)");
     expect(prompt).not.toContain("## Silent Replies");
     expect(prompt).not.toContain("## Heartbeats");
+    expect(prompt).not.toContain("## Pulse");
     expect(prompt).toContain("## Safety");
     expect(prompt).toContain(
       "For long waits, avoid rapid poll loops: use exec with enough yieldMs or process(action=poll, timeout=<ms>).",
@@ -181,6 +182,7 @@ describe("buildAgentSystemPrompt", () => {
     });
 
     expect(prompt).not.toContain("## Heartbeats");
+    expect(prompt).not.toContain("## Pulse");
     expect(prompt).not.toContain("HEARTBEAT_OK");
     expect(prompt).not.toContain("Read HEARTBEAT.md");
   });

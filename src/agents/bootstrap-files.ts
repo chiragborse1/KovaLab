@@ -15,6 +15,7 @@ import {
 } from "./pi-embedded-helpers.js";
 import {
   DEFAULT_HEARTBEAT_FILENAME,
+  DEFAULT_PULSE_FILENAME,
   filterBootstrapFilesForSession,
   isWorkspaceBootstrapPending,
   loadWorkspaceBootstrapFiles,
@@ -185,7 +186,13 @@ function applyContextModeFilter(params: {
     return params.files;
   }
   if (runKind === "heartbeat") {
-    return params.files.filter((file) => file.name === "HEARTBEAT.md");
+    const pulseFiles = params.files.filter(
+      (file) => file.name === DEFAULT_PULSE_FILENAME && !file.missing,
+    );
+    if (pulseFiles.length > 0) {
+      return pulseFiles;
+    }
+    return params.files.filter((file) => file.name === DEFAULT_HEARTBEAT_FILENAME && !file.missing);
   }
   // cron/default lightweight mode keeps bootstrap context empty on purpose.
   return [];
@@ -223,7 +230,9 @@ function filterHeartbeatBootstrapFile(
   if (!excludeHeartbeatBootstrapFile) {
     return files;
   }
-  return files.filter((file) => file.name !== DEFAULT_HEARTBEAT_FILENAME);
+  return files.filter(
+    (file) => file.name !== DEFAULT_PULSE_FILENAME && file.name !== DEFAULT_HEARTBEAT_FILENAME,
+  );
 }
 
 export async function resolveBootstrapFilesForRun(params: {

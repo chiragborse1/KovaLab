@@ -26,7 +26,7 @@ kova config schema
 kova config get browser.executablePath
 kova config set browser.executablePath "/usr/bin/google-chrome"
 kova config set browser.profiles.work.executablePath "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-kova config set agents.defaults.heartbeat.every "2h"
+kova config set agents.defaults.pulse.every "2h"
 kova config set agents.list[0].tools.exec.node "node-id-or-name"
 kova config set agents.defaults.models '{"openai/gpt-5.4":{}}' --strict-json --merge
 kova config set channels.discord.token --ref-provider default --ref-source env --ref-id DISCORD_BOT_TOKEN
@@ -86,7 +86,7 @@ kova config set agents.list[1].tools.exec.node "node-id-or-name"
 Values are parsed as JSON5 when possible; otherwise they are treated as strings. Use `--strict-json` to require JSON5 parsing. `--json` remains supported as a legacy alias.
 
 ```bash
-kova config set agents.defaults.heartbeat.every "0m"
+kova config set agents.defaults.pulse.every "0m"
 kova config set gateway.port 19001 --strict-json
 kova config set channels.whatsapp.groups '["*"]' --strict-json
 ```

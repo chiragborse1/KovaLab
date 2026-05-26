@@ -1315,8 +1315,8 @@ describe("runHeartbeatOnce", () => {
 
     if (params.fileState === "empty") {
       await fs.writeFile(
-        path.join(workspaceDir, "HEARTBEAT.md"),
-        "# HEARTBEAT.md\n\n## Tasks\n\n",
+        path.join(workspaceDir, "PULSE.md"),
+        "# PULSE.md\n\n## Tasks\n\n",
         "utf-8",
       );
     } else if (params.fileState === "legacy-comment-only") {
@@ -1332,11 +1332,11 @@ describe("runHeartbeatOnce", () => {
       );
     } else if (params.fileState === "fenced-empty") {
       await fs.writeFile(
-        path.join(workspaceDir, "HEARTBEAT.md"),
-        `# HEARTBEAT.md Template
+        path.join(workspaceDir, "PULSE.md"),
+        `# PULSE.md Template
 
 \`\`\`markdown
-# Keep this file empty (or with only comments) to skip heartbeat API calls.
+# Keep this file empty (or with only comments) to skip Pulse API calls.
 
 # Add tasks below when you want the agent to check something periodically.
 \`\`\`
@@ -1345,13 +1345,13 @@ describe("runHeartbeatOnce", () => {
       );
     } else if (params.fileState === "actionable") {
       await fs.writeFile(
-        path.join(workspaceDir, "HEARTBEAT.md"),
-        "# HEARTBEAT.md\n\n- Check server logs\n- Review pending PRs\n",
+        path.join(workspaceDir, "PULSE.md"),
+        "# PULSE.md\n\n- Check server logs\n- Review pending PRs\n",
         "utf-8",
       );
     } else if (params.fileState === "fenced-actionable") {
       await fs.writeFile(
-        path.join(workspaceDir, "HEARTBEAT.md"),
+        path.join(workspaceDir, "PULSE.md"),
         `\`\`\`markdown
 # Keep this file empty when you want to skip.
 
@@ -1362,7 +1362,7 @@ describe("runHeartbeatOnce", () => {
       );
     } else if (params.fileState === "read-error") {
       // readFile on a directory triggers EISDIR.
-      await fs.mkdir(path.join(workspaceDir, "HEARTBEAT.md"), { recursive: true });
+      await fs.mkdir(path.join(workspaceDir, "PULSE.md"), { recursive: true });
     }
 
     const cfg: KovaConfig = {
@@ -1409,7 +1409,7 @@ describe("runHeartbeatOnce", () => {
     return { res, replySpy, sendWhatsApp, workspaceDir };
   }
 
-  it("adds explicit workspace HEARTBEAT.md path guidance to heartbeat prompts", async () => {
+  it("adds explicit workspace PULSE.md path guidance to Pulse prompts", async () => {
     const { res, replySpy, sendWhatsApp, workspaceDir } = await runHeartbeatFileScenario({
       fileState: "actionable",
       reason: "interval",
@@ -1420,7 +1420,7 @@ describe("runHeartbeatOnce", () => {
       expect(sendWhatsApp).toHaveBeenCalledTimes(1);
       expect(replySpy).toHaveBeenCalledTimes(1);
       const calledCtx = replySpy.mock.calls[0]?.[0] as { Body?: string };
-      const expectedPath = path.join(workspaceDir, "HEARTBEAT.md").replace(/\\/g, "/");
+      const expectedPath = path.join(workspaceDir, "PULSE.md").replace(/\\/g, "/");
       expect(calledCtx.Body).toContain(`use workspace file ${expectedPath} (exact case)`);
       expect(calledCtx.Body).toContain("Do not read docs/heartbeat.md.");
     } finally {

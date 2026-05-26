@@ -48,12 +48,15 @@ const CONTEXT_FILE_ORDER = new Map<string, number>([
   ["user.md", 40],
   ["tools.md", 50],
   ["bootstrap.md", 60],
+  ["pulse.md", 65],
   ["memory.md", 70],
 ]);
 
-const DYNAMIC_CONTEXT_FILE_BASENAMES = new Set(["heartbeat.md"]);
+const DYNAMIC_CONTEXT_FILE_BASENAMES = new Set(["pulse.md", "heartbeat.md"]);
 const DEFAULT_HEARTBEAT_PROMPT_CONTEXT_BLOCK =
   "Default heartbeat prompt:\n`Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.`";
+const DEFAULT_PULSE_PROMPT_CONTEXT_BLOCK =
+  "Default Pulse prompt:\n`Read PULSE.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply with ONLY: NO_REPLY.`";
 function normalizeContextFilePath(pathValue: string): string {
   return pathValue.trim().replace(/\\/g, "/");
 }
@@ -71,7 +74,10 @@ function sanitizeContextFileContentForPrompt(content: string): string {
   // Claude Code subscription mode rejects this exact prompt-policy quote when it
   // appears in system context. The live heartbeat user turn still carries the
   // actual instruction, and the generated heartbeat section below covers behavior.
-  return content.replaceAll(DEFAULT_HEARTBEAT_PROMPT_CONTEXT_BLOCK, "").replace(/\n{3,}/g, "\n\n");
+  return content
+    .replaceAll(DEFAULT_HEARTBEAT_PROMPT_CONTEXT_BLOCK, "")
+    .replaceAll(DEFAULT_PULSE_PROMPT_CONTEXT_BLOCK, "")
+    .replace(/\n{3,}/g, "\n\n");
 }
 
 function sortContextFilesForPrompt(contextFiles: EmbeddedContextFile[]): EmbeddedContextFile[] {
@@ -129,10 +135,9 @@ function buildHeartbeatSection(params: { isMinimal: boolean; heartbeatPrompt?: s
     return [];
   }
   return [
-    "## Heartbeats",
-    "If the current user message is a heartbeat poll and nothing needs attention, reply exactly:",
-    "HEARTBEAT_OK",
-    'If something needs attention, do NOT include "HEARTBEAT_OK"; reply with the alert text instead.',
+    "## Pulse",
+    `If the current user message is a Pulse/background check and nothing needs attention, reply with ONLY: ${SILENT_REPLY_TOKEN}`,
+    `If something needs attention, do NOT include "${SILENT_REPLY_TOKEN}"; reply with the update text instead.`,
     "",
   ];
 }

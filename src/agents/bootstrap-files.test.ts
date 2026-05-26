@@ -83,12 +83,13 @@ function registerDuplicateBootstrapFileHook() {
 
 async function createHeartbeatAgentsWorkspace() {
   const workspaceDir = await makeTempWorkspace("kova-bootstrap-");
-  await fs.writeFile(path.join(workspaceDir, "HEARTBEAT.md"), "check inbox", "utf8");
+  await fs.writeFile(path.join(workspaceDir, "PULSE.md"), "check inbox", "utf8");
   await fs.writeFile(path.join(workspaceDir, "AGENTS.md"), "repo rules", "utf8");
   return workspaceDir;
 }
 
 function expectHeartbeatExcludedAndAgentsKept(files: WorkspaceBootstrapFile[]) {
+  expect(files.some((file) => file.name === "PULSE.md")).toBe(false);
   expect(files.some((file) => file.name === "HEARTBEAT.md")).toBe(false);
   expect(files.some((file) => file.name === "AGENTS.md")).toBe(true);
 }
@@ -171,9 +172,9 @@ describe("resolveBootstrapContextForRun", () => {
     expect(result.contextFiles.some((file) => file.path.endsWith("AGENTS.md"))).toBe(true);
   });
 
-  it("uses heartbeat-only bootstrap files in lightweight heartbeat mode", async () => {
+  it("uses Pulse-only bootstrap files in lightweight heartbeat mode", async () => {
     const workspaceDir = await makeTempWorkspace("kova-bootstrap-");
-    await fs.writeFile(path.join(workspaceDir, "HEARTBEAT.md"), "check inbox", "utf8");
+    await fs.writeFile(path.join(workspaceDir, "PULSE.md"), "check inbox", "utf8");
     await fs.writeFile(path.join(workspaceDir, "SOUL.md"), "persona", "utf8");
 
     const files = await resolveBootstrapFilesForRun({
@@ -183,12 +184,12 @@ describe("resolveBootstrapContextForRun", () => {
     });
 
     expect(files.length).toBeGreaterThan(0);
-    expect(files.every((file) => file.name === "HEARTBEAT.md")).toBe(true);
+    expect(files.every((file) => file.name === "PULSE.md")).toBe(true);
   });
 
   it("keeps bootstrap context empty in lightweight cron mode", async () => {
     const workspaceDir = await makeTempWorkspace("kova-bootstrap-");
-    await fs.writeFile(path.join(workspaceDir, "HEARTBEAT.md"), "check inbox", "utf8");
+    await fs.writeFile(path.join(workspaceDir, "PULSE.md"), "check inbox", "utf8");
 
     const files = await resolveBootstrapFilesForRun({
       workspaceDir,
@@ -199,7 +200,7 @@ describe("resolveBootstrapContextForRun", () => {
     expect(files).toEqual([]);
   });
 
-  it("drops HEARTBEAT.md for non-heartbeat runs when the heartbeat prompt section is disabled", async () => {
+  it("drops PULSE.md for non-Pulse runs when the Pulse prompt section is disabled", async () => {
     const workspaceDir = await createHeartbeatAgentsWorkspace();
 
     const files = await resolveBootstrapFilesForRun({
@@ -219,7 +220,7 @@ describe("resolveBootstrapContextForRun", () => {
     expectHeartbeatExcludedAndAgentsKept(files);
   });
 
-  it("drops HEARTBEAT.md for non-heartbeat runs when the heartbeat cadence is disabled", async () => {
+  it("drops PULSE.md for non-Pulse runs when the Pulse cadence is disabled", async () => {
     const workspaceDir = await createHeartbeatAgentsWorkspace();
 
     const files = await resolveBootstrapFilesForRun({
@@ -239,9 +240,9 @@ describe("resolveBootstrapContextForRun", () => {
     expectHeartbeatExcludedAndAgentsKept(files);
   });
 
-  it("keeps HEARTBEAT.md for actual heartbeat runs even when the prompt section is disabled", async () => {
+  it("keeps PULSE.md for actual Pulse runs even when the prompt section is disabled", async () => {
     const workspaceDir = await makeTempWorkspace("kova-bootstrap-");
-    await fs.writeFile(path.join(workspaceDir, "HEARTBEAT.md"), "check inbox", "utf8");
+    await fs.writeFile(path.join(workspaceDir, "PULSE.md"), "check inbox", "utf8");
 
     const files = await resolveBootstrapFilesForRun({
       workspaceDir,
@@ -258,7 +259,7 @@ describe("resolveBootstrapContextForRun", () => {
       },
     });
 
-    expect(files.some((file) => file.name === "HEARTBEAT.md")).toBe(true);
+    expect(files.some((file) => file.name === "PULSE.md")).toBe(true);
   });
 });
 

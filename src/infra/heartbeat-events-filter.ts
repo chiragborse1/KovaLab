@@ -1,4 +1,4 @@
-import { HEARTBEAT_TOKEN } from "../auto-reply/tokens.js";
+import { HEARTBEAT_TOKEN, SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 
 const MAX_EXEC_EVENT_PROMPT_CHARS = 8_000;
@@ -18,12 +18,12 @@ export function buildCronEventPrompt(
     if (!deliverToUser) {
       return (
         "A scheduled cron event was triggered, but no event content was found. " +
-        "Handle this internally and reply HEARTBEAT_OK when nothing needs user-facing follow-up."
+        `Handle this internally and reply ${SILENT_REPLY_TOKEN} when nothing needs user-facing follow-up.`
       );
     }
     return (
       "A scheduled cron event was triggered, but no event content was found. " +
-      "Reply HEARTBEAT_OK."
+      `Reply ${SILENT_REPLY_TOKEN}.`
     );
   }
   if (!deliverToUser) {
@@ -53,13 +53,13 @@ export function buildExecEventPrompt(
   if (!eventText) {
     return (
       "An async command completion event was triggered, but no command output was found. " +
-      "Reply HEARTBEAT_OK only. Do not mention, summarize, or reuse output from any earlier run."
+      `Reply ${SILENT_REPLY_TOKEN} only. Do not mention, summarize, or reuse output from any earlier run.`
     );
   }
   if (!deliverToUser) {
     return (
       "An async command completion event was triggered, but user delivery is disabled for this run. " +
-      "Handle the result internally and reply HEARTBEAT_OK only. Do not mention, summarize, or reuse command output."
+      `Handle the result internally and reply ${SILENT_REPLY_TOKEN} only. Do not mention, summarize, or reuse command output.`
     );
   }
   return (
@@ -71,23 +71,28 @@ export function buildExecEventPrompt(
   );
 }
 
-const HEARTBEAT_OK_PREFIX = normalizeLowercaseStringOrEmpty(HEARTBEAT_TOKEN);
+const QUIET_ACK_PREFIXES = [HEARTBEAT_TOKEN, SILENT_REPLY_TOKEN].map((token) =>
+  normalizeLowercaseStringOrEmpty(token),
+);
 
-// Detect heartbeat-specific noise so cron reminders don't trigger on non-reminder events.
+// Detect Pulse-specific noise so cron reminders don't trigger on non-reminder events.
 function isHeartbeatAckEvent(evt: string): boolean {
   const trimmed = evt.trim();
   if (!trimmed) {
     return false;
   }
   const lower = normalizeLowercaseStringOrEmpty(trimmed);
-  if (!lower.startsWith(HEARTBEAT_OK_PREFIX)) {
-    return false;
+  for (const prefix of QUIET_ACK_PREFIXES) {
+    if (!lower.startsWith(prefix)) {
+      continue;
+    }
+    const suffix = lower.slice(prefix.length);
+    if (suffix.length === 0) {
+      return true;
+    }
+    return !/[a-z0-9_]/.test(suffix[0]);
   }
-  const suffix = lower.slice(HEARTBEAT_OK_PREFIX.length);
-  if (suffix.length === 0) {
-    return true;
-  }
-  return !/[a-z0-9_]/.test(suffix[0]);
+  return false;
 }
 
 function isHeartbeatNoiseEvent(evt: string): boolean {
@@ -97,6 +102,8 @@ function isHeartbeatNoiseEvent(evt: string): boolean {
   }
   return (
     isHeartbeatAckEvent(lower) ||
+    lower.includes("pulse check") ||
+    lower.includes("pulse wake") ||
     lower.includes("heartbeat poll") ||
     lower.includes("heartbeat wake")
   );

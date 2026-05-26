@@ -403,8 +403,8 @@ function sanitizeSessionText(text: string, role: "user" | "assistant"): string |
   if (isSilentReplyPayloadText(normalized)) {
     return null;
   }
-  // Assistant-side machinery acks: HEARTBEAT_OK is the canonical "all clear,
-  // nothing to do" reply to a heartbeat tick. Drop on the assistant side
+  // Assistant-side machinery acks: quiet Pulse tokens mean "all clear,
+  // nothing to do" for a Pulse tick. Drop on the assistant side
   // directly so we do not have to rely on cross-message coupling with the
   // preceding user message (which a real user could spoof).
   if (role === "assistant" && normalized === HEARTBEAT_TOKEN) {

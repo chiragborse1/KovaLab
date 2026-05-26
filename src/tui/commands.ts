@@ -37,6 +37,7 @@ const AUTOMATION_LEVELS = ["list", "running", "queued", "failed", "audit"];
 const RECOVER_LEVELS = ["status", "apply"];
 const ROLLBACK_LEVELS = ["list", "show ", "branch ", "restore "];
 const UPDATE_LEVELS = ["status", "run"];
+const PULSE_LEVELS = ["status", "last", "enable", "disable", "run"];
 const PERMISSION_COMMAND_COMPLETIONS = [
   {
     value: "edit",
@@ -180,6 +181,7 @@ const COMMAND_ALIASES: Record<string, string> = {
   gwstatus: "gateway-status",
   limit: "limits",
   plugin: "plugins",
+  heartbeat: "pulse",
   quit: "exit",
   v: "verbose",
 };
@@ -189,6 +191,7 @@ const HIDDEN_ALIAS_NAMES = new Set([
   "elev",
   "export",
   "footer",
+  "heartbeat",
   "gwstatus",
   "id",
   "limit",
@@ -407,6 +410,12 @@ export function getSlashCommands(options: SlashCommandOptions = {}): SlashComman
       description: "Show scheduled/background automation",
       argumentHint: "list | running | queued | failed | audit",
       getArgumentCompletions: automationCompletions,
+    },
+    {
+      name: "pulse",
+      description: "Show or control background Pulse",
+      argumentHint: "status | last | enable | disable | run",
+      getArgumentCompletions: createLevelCompletion(PULSE_LEVELS),
     },
     {
       name: "recover",

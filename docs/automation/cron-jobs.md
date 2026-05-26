@@ -3,7 +3,7 @@ summary: "Scheduled jobs, webhooks, and Gmail PubSub triggers for the Gateway sc
 read_when:
   - Scheduling background jobs or wakeups
   - Wiring external triggers (webhooks, Gmail) into Kova
-  - Deciding between heartbeat and cron for scheduled tasks
+  - Deciding between Pulse and cron for scheduled tasks
 title: "Scheduled tasks"
 sidebarTitle: "Scheduled tasks"
 ---
@@ -87,14 +87,14 @@ This fires ~5–6 times per month instead of 0–1 times per month. Kova uses Cr
 
 | Style           | `--session` value   | Runs in                  | Best for                        |
 | --------------- | ------------------- | ------------------------ | ------------------------------- |
-| Main session    | `main`              | Next heartbeat turn      | Reminders, system events        |
+| Main session    | `main`              | Next Pulse turn          | Reminders, system events        |
 | Isolated        | `isolated`          | Dedicated `cron:<jobId>` | Reports, background chores      |
 | Current session | `current`           | Bound at creation time   | Context-aware recurring work    |
 | Custom session  | `session:custom-id` | Persistent named session | Workflows that build on history |
 
 <AccordionGroup>
   <Accordion title="Main session vs isolated vs custom">
-    **Main session** jobs enqueue a system event and optionally wake the heartbeat (`--wake now` or `--wake next-heartbeat`). Those system events do not extend daily/idle reset freshness for the target session. **Isolated** jobs run a dedicated agent turn with a fresh session. **Custom sessions** (`session:xxx`) persist context across runs, enabling workflows like daily standups that build on previous summaries.
+    **Main session** jobs enqueue a system event and optionally wake Pulse (`--wake now` or `--wake next-heartbeat`). Those system events do not extend daily/idle reset freshness for the target session. **Isolated** jobs run a dedicated agent turn with a fresh session. **Custom sessions** (`session:xxx`) persist context across runs, enabling workflows like daily standups that build on previous summaries.
   </Accordion>
   <Accordion title="What 'fresh session' means for isolated jobs">
     For isolated jobs, "fresh session" means a new transcript/session id for each run. Kova may carry safe preferences such as thinking/fast/verbose settings, labels, and explicit user-selected model/auth overrides, but it does not inherit ambient conversation context from an older cron row: channel/group routing, send or queue policy, elevation, origin, or ACP runtime binding. Use `current` or `session:<id>` when a recurring job should deliberately build on the same conversation context.
@@ -175,7 +175,7 @@ Failure notifications follow a separate destination path:
       --name "Calendar check" \
       --at "20m" \
       --session main \
-      --system-event "Next heartbeat: check calendar." \
+      --system-event "Next Pulse: check calendar." \
       --wake now
     ```
   </Tab>
@@ -437,7 +437,7 @@ kova gateway status
 kova cron status
 kova cron list
 kova cron runs --id <jobId> --limit 20
-kova system heartbeat last
+kova system pulse last
 kova logs --follow
 kova doctor
 ```
@@ -457,15 +457,15 @@ kova doctor
     - If the isolated run returns only the silent token (`NO_REPLY` / `no_reply`), Kova suppresses direct outbound delivery and also suppresses the fallback queued summary path, so nothing is posted back to chat.
     - If the agent should message the user itself, check that the job has a usable route (`channel: "last"` with a previous chat, or an explicit channel/target).
   </Accordion>
-  <Accordion title="Cron or heartbeat appears to prevent /new-style rollover">
+  <Accordion title="Cron or Pulse appears to prevent /new-style rollover">
     - Daily and idle reset freshness is not based on `updatedAt`; see [Session management](/concepts/session#session-lifecycle).
-    - Cron wakeups, heartbeat runs, exec notifications, and gateway bookkeeping may update the session row for routing/status, but they do not extend `sessionStartedAt` or `lastInteractionAt`.
+    - Cron wakeups, Pulse runs, exec notifications, and gateway bookkeeping may update the session row for routing/status, but they do not extend `sessionStartedAt` or `lastInteractionAt`.
     - For legacy rows created before those fields existed, Kova can recover `sessionStartedAt` from the transcript JSONL session header when the file is still available. Legacy idle rows without `lastInteractionAt` use that recovered start time as their idle baseline.
   </Accordion>
   <Accordion title="Timezone gotchas">
     - Cron without `--tz` uses the gateway host timezone.
     - `at` schedules without timezone are treated as UTC.
-    - Heartbeat `activeHours` uses configured timezone resolution.
+    - Pulse `activeHours` uses configured timezone resolution.
   </Accordion>
 </AccordionGroup>
 
@@ -473,5 +473,5 @@ kova doctor
 
 - [Automation & Tasks](/automation) — all automation mechanisms at a glance
 - [Background Tasks](/automation/tasks) — task ledger for cron executions
-- [Heartbeat](/gateway/heartbeat) — periodic main-session turns
+- [Pulse](/gateway/heartbeat) — periodic main-session turns
 - [Timezone](/concepts/timezone) — timezone configuration

@@ -28,12 +28,16 @@ export async function drainFormattedSystemEvents(params: {
     if (lower.includes("reason periodic")) {
       return null;
     }
-    // Filter out the actual heartbeat prompt, but not cron jobs that mention "heartbeat".
-    // The heartbeat prompt starts with "Read HEARTBEAT.md" - cron payloads won't match this.
-    if (lower.startsWith("read heartbeat.md")) {
+    // Filter out actual Pulse prompts, but not cron jobs that mention heartbeat/Pulse.
+    if (lower.startsWith("read pulse.md") || lower.startsWith("read heartbeat.md")) {
       return null;
     }
-    if (lower.includes("heartbeat poll") || lower.includes("heartbeat wake")) {
+    if (
+      lower.includes("pulse check") ||
+      lower.includes("pulse wake") ||
+      lower.includes("heartbeat poll") ||
+      lower.includes("heartbeat wake")
+    ) {
       return null;
     }
     if (trimmed.startsWith("Node:")) {

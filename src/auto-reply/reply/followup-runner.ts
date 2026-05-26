@@ -428,10 +428,13 @@ export function createFollowupRunner(params: {
       }
       const sanitizedPayloads = payloadArray.flatMap((payload) => {
         const text = payload.text;
-        if (!text || !text.includes("HEARTBEAT_OK")) {
+        if (!text) {
           return [payload];
         }
         const stripped = stripHeartbeatToken(text, { mode: "message" });
+        if (!stripped.didStrip) {
+          return [payload];
+        }
         const hasMedia = resolveSendableOutboundReplyParts(payload).hasMedia;
         if (stripped.shouldSkip && !hasMedia) {
           return [];

@@ -681,6 +681,24 @@ describe("tui command handlers", () => {
     expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Plugin: Telegram (telegram)"));
   });
 
+  it("renders Pulse status locally without starting an agent turn", async () => {
+    const { handleCommand, getGatewayStatus, sendChat, addUser, addSystem } = createHarness({
+      getGatewayStatus: vi.fn().mockResolvedValue({
+        heartbeat: {
+          agents: [{ agentId: "main", enabled: true, every: "30m", everyMs: 1_800_000 }],
+        },
+      }),
+    });
+
+    await handleCommand("/pulse");
+
+    expect(sendChat).not.toHaveBeenCalled();
+    expect(addUser).toHaveBeenCalledWith("/pulse");
+    expect(getGatewayStatus).toHaveBeenCalledTimes(1);
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Kova Pulse"));
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("main: 30m"));
+  });
+
   it("renders permissions locally without starting an agent turn", async () => {
     const { handleCommand, getConfig, listTools, listPlugins, sendChat, addUser, addSystem } =
       createHarness();

@@ -94,7 +94,7 @@ In group chats where you receive every message, be **smart about when to contrib
 - Correcting important misinformation
 - Summarizing when asked
 
-**Stay silent (HEARTBEAT_OK) when:**
+**Stay silent (`NO_REPLY`) when:**
 
 - It's just casual banter between humans
 - Someone already answered the question
@@ -137,15 +137,15 @@ Skills provide your tools. When you need one, check its `SKILL.md`. Keep local n
 - **Discord links:** Wrap multiple links in `<>` to suppress embeds: `<https://example.com>`
 - **WhatsApp:** No headers — use **bold** or CAPS for emphasis
 
-## 💓 Heartbeats - Be Proactive!
+## Pulse - Be Proactive!
 
-When you receive a heartbeat poll (message matches the configured heartbeat prompt), don't just reply `HEARTBEAT_OK` every time. Use heartbeats productively!
+When you receive a Pulse check, don't just reply `NO_REPLY` every time. Use Pulse productively!
 
-You are free to edit `HEARTBEAT.md` with a short checklist or reminders. Keep it small to limit token burn.
+You are free to edit `PULSE.md` with a short checklist or reminders. Keep it small to limit token burn.
 
-### Heartbeat vs Cron: When to Use Each
+### Pulse vs Cron: When to Use Each
 
-**Use heartbeat when:**
+**Use Pulse when:**
 
 - Multiple checks can batch together (inbox + calendar + notifications in one turn)
 - You need conversational context from recent messages
@@ -160,7 +160,7 @@ You are free to edit `HEARTBEAT.md` with a short checklist or reminders. Keep it
 - One-shot reminders ("remind me in 20 minutes")
 - Output should deliver directly to a channel without main session involvement
 
-**Tip:** Batch similar periodic checks into `HEARTBEAT.md` instead of creating multiple cron jobs. Use cron for precise schedules and standalone tasks.
+**Tip:** Batch similar periodic checks into `PULSE.md` instead of creating multiple cron jobs. Use cron for precise schedules and standalone tasks.
 
 **Things to check (rotate through these, 2-4 times per day):**
 
@@ -169,7 +169,7 @@ You are free to edit `HEARTBEAT.md` with a short checklist or reminders. Keep it
 - **Mentions** - Twitter/social notifications?
 - **Weather** - Relevant if your human might go out?
 
-**Track your checks** in `memory/heartbeat-state.json`:
+**Track your checks** in `memory/pulse-state.json`:
 
 ```json
 {
@@ -188,7 +188,7 @@ You are free to edit `HEARTBEAT.md` with a short checklist or reminders. Keep it
 - Something interesting you found
 - It's been >8h since you said anything
 
-**When to stay quiet (HEARTBEAT_OK):**
+**When to stay quiet (`NO_REPLY`):**
 
 - Late night (23:00-08:00) unless urgent
 - Human is clearly busy
@@ -203,9 +203,9 @@ You are free to edit `HEARTBEAT.md` with a short checklist or reminders. Keep it
 - Commit and push your own changes
 - **Review and update MEMORY.md** (see below)
 
-### 🔄 Memory Maintenance (During Heartbeats)
+### 🔄 Memory Maintenance (During Pulse)
 
-Periodically (every few days), use a heartbeat to:
+Periodically (every few days), use Pulse to:
 
 1. Read through recent `memory/YYYY-MM-DD.md` files
 2. Identify significant events, lessons, or insights worth keeping long-term

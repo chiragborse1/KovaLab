@@ -244,14 +244,21 @@ export const FIELD_HELP: Record<string, string> = {
     "Optional default working directory for this agent's ACP sessions.",
   "agents.list[].identity.avatar":
     "Avatar image path (relative to the agent workspace only) or a remote URL/data URL.",
+  "agents.defaults.pulse.suppressToolErrorWarnings":
+    "Suppress tool error warning payloads during Pulse runs.",
+  "agents.list[].pulse.suppressToolErrorWarnings":
+    "Suppress tool error warning payloads during Pulse runs.",
+  "agents.defaults.pulse.timeoutSeconds":
+    "Maximum time in seconds allowed for a Pulse agent turn before it is aborted. Leave unset to use agents.defaults.timeoutSeconds.",
+  "agents.list[].pulse.timeoutSeconds":
+    "Per-agent maximum time in seconds allowed for a Pulse agent turn before it is aborted. Leave unset to inherit the merged Pulse/default agent timeout.",
   "agents.defaults.heartbeat.suppressToolErrorWarnings":
-    "Suppress tool error warning payloads during heartbeat runs.",
+    "Legacy alias for agents.defaults.pulse.suppressToolErrorWarnings.",
   "agents.list[].heartbeat.suppressToolErrorWarnings":
-    "Suppress tool error warning payloads during heartbeat runs.",
+    "Legacy alias for agents.list[].pulse.suppressToolErrorWarnings.",
   "agents.defaults.heartbeat.timeoutSeconds":
-    "Maximum time in seconds allowed for a heartbeat agent turn before it is aborted. Leave unset to use agents.defaults.timeoutSeconds.",
-  "agents.list[].heartbeat.timeoutSeconds":
-    "Per-agent maximum time in seconds allowed for a heartbeat agent turn before it is aborted. Leave unset to inherit the merged heartbeat/default agent timeout.",
+    "Legacy alias for agents.defaults.pulse.timeoutSeconds.",
+  "agents.list[].heartbeat.timeoutSeconds": "Legacy alias for agents.list[].pulse.timeoutSeconds.",
   browser:
     "Browser runtime controls for local or remote CDP attachment, profile routing, and screenshot/snapshot behavior. Keep defaults unless your automation workflow requires custom browser transport settings.",
   "browser.enabled":
@@ -1640,14 +1647,20 @@ export const FIELD_HELP: Record<string, string> = {
     "Shows degraded/error heartbeat alerts when true so operator channels surface problems promptly. Keep enabled in production so broken channel states are visible.",
   "channels.defaults.heartbeat.useIndicator":
     "Enables concise indicator-style heartbeat rendering instead of verbose status text where supported. Use indicator mode for dense dashboards with many active channels.",
+  "agents.defaults.pulse.includeSystemPromptSection":
+    "Includes the default agent's ## Pulse system prompt section when true. Turn this off to keep Pulse runtime behavior while omitting the Pulse prompt instructions from the agent system prompt.",
+  "agents.list.*.pulse.includeSystemPromptSection":
+    "Per-agent override for whether the default agent's ## Pulse system prompt section is injected. Use false to keep Pulse runtime behavior but omit the Pulse prompt instructions from that agent's system prompt.",
+  "agents.defaults.pulse.directPolicy":
+    'Controls whether Pulse delivery may target direct/DM chats: "allow" (default) permits DM delivery and "block" suppresses direct-target sends.',
+  "agents.list.*.pulse.directPolicy":
+    'Per-agent override for Pulse direct/DM delivery policy; use "block" for agents that should only send Pulse alerts to non-DM destinations.',
   "agents.defaults.heartbeat.includeSystemPromptSection":
-    "Includes the default agent's ## Heartbeats system prompt section when true. Turn this off to keep heartbeat runtime behavior while omitting the heartbeat prompt instructions from the agent system prompt.",
+    "Legacy alias for agents.defaults.pulse.includeSystemPromptSection.",
   "agents.list.*.heartbeat.includeSystemPromptSection":
-    "Per-agent override for whether the default agent's ## Heartbeats system prompt section is injected. Use false to keep heartbeat runtime behavior but omit the heartbeat prompt instructions from that agent's system prompt.",
-  "agents.defaults.heartbeat.directPolicy":
-    'Controls whether heartbeat delivery may target direct/DM chats: "allow" (default) permits DM delivery and "block" suppresses direct-target sends.',
-  "agents.list.*.heartbeat.directPolicy":
-    'Per-agent override for heartbeat direct/DM delivery policy; use "block" for agents that should only send heartbeat alerts to non-DM destinations.',
+    "Legacy alias for agents.list.*.pulse.includeSystemPromptSection.",
+  "agents.defaults.heartbeat.directPolicy": "Legacy alias for agents.defaults.pulse.directPolicy.",
+  "agents.list.*.heartbeat.directPolicy": "Legacy alias for agents.list.*.pulse.directPolicy.",
   "channels.mattermost.configWrites":
     "Allow Mattermost to write config in response to channel events/commands (default: true).",
   "channels.modelByChannel":

@@ -778,6 +778,7 @@ export function collectConfiguredModelPricingRefs(
   addModelListLike({ value: config.agents?.defaults?.pdfModel, aliasIndex, refs });
   addResolvedModelRef({ raw: config.agents?.defaults?.compaction?.model, aliasIndex, refs });
   addResolvedModelRef({ raw: config.agents?.defaults?.heartbeat?.model, aliasIndex, refs });
+  addResolvedModelRef({ raw: config.agents?.defaults?.pulse?.model, aliasIndex, refs });
   addModelListLike({ value: config.tools?.subagents?.model, aliasIndex, refs });
   addResolvedModelRef({ raw: config.messages?.tts?.summaryModel, aliasIndex, refs });
   addResolvedModelRef({ raw: config.hooks?.gmail?.model, aliasIndex, refs });
@@ -786,6 +787,7 @@ export function collectConfiguredModelPricingRefs(
     addModelListLike({ value: agent.model, aliasIndex, refs });
     addModelListLike({ value: agent.subagents?.model, aliasIndex, refs });
     addResolvedModelRef({ raw: agent.heartbeat?.model, aliasIndex, refs });
+    addResolvedModelRef({ raw: agent.pulse?.model, aliasIndex, refs });
   }
 
   for (const mapping of config.hooks?.mappings ?? []) {

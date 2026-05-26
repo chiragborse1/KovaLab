@@ -184,7 +184,7 @@ describe("runHeartbeatOnce ack handling", () => {
     });
   });
 
-  it("sends HEARTBEAT_OK when visibility.showOk is true", async () => {
+  it("sends a quiet Pulse status when visibility.showOk is true", async () => {
     await withTempHeartbeatSandbox(async ({ tmpDir, storePath, replySpy }) => {
       const cfg = createWhatsAppHeartbeatConfig({
         tmpDir,
@@ -210,7 +210,7 @@ describe("runHeartbeatOnce ack handling", () => {
       });
 
       expect(sendWhatsApp).toHaveBeenCalledTimes(1);
-      expect(sendWhatsApp).toHaveBeenCalledWith(WHATSAPP_GROUP, "HEARTBEAT_OK", expect.any(Object));
+      expect(sendWhatsApp).toHaveBeenCalledWith(WHATSAPP_GROUP, "Pulse quiet.", expect.any(Object));
     });
   });
 

@@ -1,7 +1,7 @@
 import type { ContextVisibilityMode, GroupPolicy } from "./types.base.js";
 
 export type ChannelHeartbeatVisibilityConfig = {
-  /** Show HEARTBEAT_OK acknowledgments in chat (default: false). */
+  /** Show quiet Pulse acknowledgments in chat (default: false). */
   showOk?: boolean;
   /** Show heartbeat alerts with actual content (default: true). */
   showAlerts?: boolean;

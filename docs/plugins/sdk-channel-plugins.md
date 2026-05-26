@@ -29,7 +29,7 @@ shared `message` tool in core. Your plugin owns:
 - **Session grammar** — how provider-specific conversation ids map to base chats, thread ids, and parent fallbacks
 - **Outbound** — sending text, media, and polls to the platform
 - **Threading** — how replies are threaded
-- **Heartbeat typing** — optional typing/busy signals for heartbeat delivery targets
+- **Pulse typing** — optional typing/busy signals for Pulse delivery targets
 
 Core owns the shared message tool, prompt wiring, the outer session-key shape,
 generic `:thread:` bookkeeping, and dispatch.

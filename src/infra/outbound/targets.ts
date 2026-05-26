@@ -88,7 +88,8 @@ export function resolveHeartbeatDeliveryTarget(params: {
   turnSource?: DeliveryContext;
 }): OutboundTarget {
   const { cfg, entry } = params;
-  const heartbeat = params.heartbeat ?? cfg.agents?.defaults?.heartbeat;
+  const heartbeat =
+    params.heartbeat ?? cfg.agents?.defaults?.pulse ?? cfg.agents?.defaults?.heartbeat;
   const rawTarget = heartbeat?.target;
   let target: HeartbeatTarget = "none";
   if (rawTarget === "none" || rawTarget === "last") {

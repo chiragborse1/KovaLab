@@ -59,7 +59,7 @@ Optional default skill allowlist for agents that do not set
 
 ### `agents.defaults.skipBootstrap`
 
-Disables automatic creation of workspace bootstrap files (`AGENTS.md`, `SOUL.md`, `TOOLS.md`, `IDENTITY.md`, `USER.md`, `HEARTBEAT.md`, `BOOTSTRAP.md`).
+Disables automatic creation of workspace bootstrap files (`AGENTS.md`, `SOUL.md`, `TOOLS.md`, `IDENTITY.md`, `USER.md`, `PULSE.md`, `BOOTSTRAP.md`).
 
 ```json5
 {
@@ -71,8 +71,8 @@ Disables automatic creation of workspace bootstrap files (`AGENTS.md`, `SOUL.md`
 
 Controls when workspace bootstrap files are injected into the system prompt. Default: `"always"`.
 
-- `"continuation-skip"`: safe continuation turns (after a completed assistant response) skip workspace bootstrap re-injection, reducing prompt size. Heartbeat runs and post-compaction retries still rebuild context.
-- `"never"`: disable workspace bootstrap and context-file injection on every turn. Use this only for agents that fully own their prompt lifecycle (custom context engines, native runtimes that build their own context, or specialized bootstrap-free workflows). Heartbeat and compaction-recovery turns also skip injection.
+- `"continuation-skip"`: safe continuation turns (after a completed assistant response) skip workspace bootstrap re-injection, reducing prompt size. Pulse runs and post-compaction retries still rebuild context.
+- `"never"`: disable workspace bootstrap and context-file injection on every turn. Use this only for agents that fully own their prompt lifecycle (custom context engines, native runtimes that build their own context, or specialized bootstrap-free workflows). Pulse and compaction-recovery turns also skip injection.
 
 ```json5
 {
@@ -498,26 +498,26 @@ Provider-independent prompt overlays applied by model family. GPT-5-family model
 - `"off"` disables only the friendly layer; the tagged GPT-5 behavior contract remains enabled.
 - Legacy `plugins.entries.openai.config.personality` is still read when this shared setting is unset.
 
-### `agents.defaults.heartbeat`
+### `agents.defaults.pulse`
 
-Periodic heartbeat runs.
+Periodic Pulse runs. Legacy `agents.defaults.heartbeat` still works as an alias, but new config should use `pulse`.
 
 ```json5
 {
   agents: {
     defaults: {
-      heartbeat: {
+      pulse: {
         every: "30m", // 0m disables
         model: "openai/gpt-5.4-mini",
         includeReasoning: false,
-        includeSystemPromptSection: true, // default: true; false omits the Heartbeat section from the system prompt
-        lightContext: false, // default: false; true keeps only HEARTBEAT.md from workspace bootstrap files
-        isolatedSession: false, // default: false; true runs each heartbeat in a fresh session (no conversation history)
+        includeSystemPromptSection: true, // default: true; false omits the Pulse section from the system prompt
+        lightContext: false, // default: false; true keeps only PULSE.md/legacy HEARTBEAT.md from workspace bootstrap files
+        isolatedSession: false, // default: false; true runs each Pulse in a fresh session (no conversation history)
         session: "main",
         to: "+15555550123",
         directPolicy: "allow", // allow (default) | block
         target: "none", // default: none | options: last | whatsapp | telegram | discord | ...
-        prompt: "Read HEARTBEAT.md if it exists...",
+        prompt: "Read PULSE.md if it exists...",
         ackMaxChars: 300,
         suppressToolErrorWarnings: false,
         timeoutSeconds: 45,
@@ -528,14 +528,14 @@ Periodic heartbeat runs.
 ```
 
 - `every`: duration string (ms/s/m/h). Default: `30m` (API-key auth) or `1h` (OAuth auth). Set to `0m` to disable.
-- `includeSystemPromptSection`: when false, omits the Heartbeat section from the system prompt and skips `HEARTBEAT.md` injection into bootstrap context. Default: `true`.
-- `suppressToolErrorWarnings`: when true, suppresses tool error warning payloads during heartbeat runs.
-- `timeoutSeconds`: maximum time in seconds allowed for a heartbeat agent turn before it is aborted. Leave unset to use `agents.defaults.timeoutSeconds`.
+- `includeSystemPromptSection`: when false, omits the Pulse section from the system prompt and skips `PULSE.md` / legacy `HEARTBEAT.md` injection into bootstrap context. Default: `true`.
+- `suppressToolErrorWarnings`: when true, suppresses tool error warning payloads during Pulse runs.
+- `timeoutSeconds`: maximum time in seconds allowed for a Pulse agent turn before it is aborted. Leave unset to use `agents.defaults.timeoutSeconds`.
 - `directPolicy`: direct/DM delivery policy. `allow` (default) permits direct-target delivery. `block` suppresses direct-target delivery and emits `reason=dm-blocked`.
-- `lightContext`: when true, heartbeat runs use lightweight bootstrap context and keep only `HEARTBEAT.md` from workspace bootstrap files.
-- `isolatedSession`: when true, each heartbeat runs in a fresh session with no prior conversation history. Same isolation pattern as cron `sessionTarget: "isolated"`. Reduces per-heartbeat token cost from ~100K to ~2-5K tokens.
-- Per-agent: set `agents.list[].heartbeat`. When any agent defines `heartbeat`, **only those agents** run heartbeats.
-- Heartbeats run full agent turns — shorter intervals burn more tokens.
+- `lightContext`: when true, Pulse runs use lightweight bootstrap context and keep only `PULSE.md` / legacy `HEARTBEAT.md` from workspace bootstrap files.
+- `isolatedSession`: when true, each Pulse runs in a fresh session with no prior conversation history. Same isolation pattern as cron `sessionTarget: "isolated"`. Reduces per-Pulse token cost from ~100K to ~2-5K tokens.
+- Per-agent: set `agents.list[].pulse`. When any agent defines `pulse`, **only those agents** run Pulse.
+- Pulse runs full agent turns — shorter intervals burn more tokens.
 
 ### `agents.defaults.compaction`
 

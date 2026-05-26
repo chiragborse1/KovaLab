@@ -165,6 +165,7 @@ describe("getSlashCommands", () => {
     const rollback = commands.find((command) => command.name === "rollback");
     const subagents = commands.find((command) => command.name === "subagents");
     const automation = commands.find((command) => command.name === "automation");
+    const pulse = commands.find((command) => command.name === "pulse");
 
     expect(tasks?.argumentHint).toContain("audit");
     expect(tasks?.getArgumentCompletions?.("rep")).toEqual([
@@ -188,6 +189,10 @@ describe("getSlashCommands", () => {
     expect(automation?.getArgumentCompletions?.("f")).toEqual([
       { value: "failed", label: "failed" },
     ]);
+    expect(pulse?.argumentHint).toBe("status | last | enable | disable | run");
+    expect(pulse?.getArgumentCompletions?.("dis")).toEqual([
+      { value: "disable", label: "disable" },
+    ]);
   });
 
   it("keeps alias commands out of the visible command palette", () => {
@@ -203,6 +208,7 @@ describe("getSlashCommands", () => {
     expect(commandNames).not.toContain("quit");
     expect(commandNames).not.toContain("id");
     expect(commandNames).not.toContain("plugin");
+    expect(commandNames).not.toContain("heartbeat");
     expect(commandNames).not.toContain("tell");
     expect(commandNames).not.toContain("t");
     expect(commandNames).not.toContain("v");

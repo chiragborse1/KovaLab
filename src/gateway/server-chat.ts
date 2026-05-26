@@ -22,7 +22,9 @@ function resolveHeartbeatAckMaxChars(): number {
     const cfg = getRuntimeConfig();
     return Math.max(
       0,
-      cfg.agents?.defaults?.heartbeat?.ackMaxChars ?? DEFAULT_HEARTBEAT_ACK_MAX_CHARS,
+      cfg.agents?.defaults?.pulse?.ackMaxChars ??
+        cfg.agents?.defaults?.heartbeat?.ackMaxChars ??
+        DEFAULT_HEARTBEAT_ACK_MAX_CHARS,
     );
   } catch {
     return DEFAULT_HEARTBEAT_ACK_MAX_CHARS;

@@ -26,7 +26,19 @@ const DEFAULT_HEARTBEAT_TARGET = "none";
 
 function hasExplicitHeartbeatAgents(cfg: KovaConfig) {
   const list = cfg.agents?.list ?? [];
-  return list.some((entry) => Boolean(entry?.heartbeat));
+  return list.some((entry) => Boolean(entry?.pulse ?? entry?.heartbeat));
+}
+
+function mergePulseConfig(
+  defaults?: HeartbeatConfig,
+  defaultsPulse?: HeartbeatConfig,
+  overrides?: HeartbeatConfig,
+  overridesPulse?: HeartbeatConfig,
+): HeartbeatConfig | undefined {
+  if (!defaults && !defaultsPulse && !overrides && !overridesPulse) {
+    return undefined;
+  }
+  return { ...defaults, ...defaultsPulse, ...overrides, ...overridesPulse };
 }
 
 export function isHeartbeatEnabledForAgent(cfg: KovaConfig, agentId?: string): boolean {
@@ -35,7 +47,9 @@ export function isHeartbeatEnabledForAgent(cfg: KovaConfig, agentId?: string): b
   const hasExplicit = hasExplicitHeartbeatAgents(cfg);
   if (hasExplicit) {
     return list.some(
-      (entry) => Boolean(entry?.heartbeat) && normalizeAgentId(entry?.id) === resolvedAgentId,
+      (entry) =>
+        Boolean(entry?.pulse ?? entry?.heartbeat) &&
+        normalizeAgentId(entry?.id) === resolvedAgentId,
     );
   }
   return resolvedAgentId === resolveDefaultAgentId(cfg);
@@ -49,6 +63,7 @@ export function resolveHeartbeatIntervalMs(
   const raw =
     overrideEvery ??
     heartbeat?.every ??
+    cfg.agents?.defaults?.pulse?.every ??
     cfg.agents?.defaults?.heartbeat?.every ??
     DEFAULT_HEARTBEAT_EVERY;
   if (!raw) {
@@ -75,37 +90,32 @@ export function resolveHeartbeatSummaryForAgent(
   agentId?: string,
 ): HeartbeatSummary {
   const defaults = cfg.agents?.defaults?.heartbeat;
-  const overrides = agentId ? resolveAgentConfig(cfg, agentId)?.heartbeat : undefined;
+  const defaultsPulse = cfg.agents?.defaults?.pulse;
+  const agentConfig = agentId ? resolveAgentConfig(cfg, agentId) : undefined;
+  const overrides = agentConfig?.heartbeat;
+  const overridesPulse = agentConfig?.pulse;
   const enabled = isHeartbeatEnabledForAgent(cfg, agentId);
+  const base = mergePulseConfig(defaults, defaultsPulse);
+  const merged = mergePulseConfig(defaults, defaultsPulse, overrides, overridesPulse);
 
   if (!enabled) {
     return {
       enabled: false,
       every: "disabled",
       everyMs: null,
-      prompt: resolveHeartbeatPromptText(defaults?.prompt),
-      target: defaults?.target ?? DEFAULT_HEARTBEAT_TARGET,
-      model: defaults?.model,
-      ackMaxChars: Math.max(0, defaults?.ackMaxChars ?? DEFAULT_HEARTBEAT_ACK_MAX_CHARS),
+      prompt: resolveHeartbeatPromptText(base?.prompt),
+      target: base?.target ?? DEFAULT_HEARTBEAT_TARGET,
+      model: base?.model,
+      ackMaxChars: Math.max(0, base?.ackMaxChars ?? DEFAULT_HEARTBEAT_ACK_MAX_CHARS),
     };
   }
 
-  const merged = defaults || overrides ? { ...defaults, ...overrides } : undefined;
-  const every = merged?.every ?? defaults?.every ?? overrides?.every ?? DEFAULT_HEARTBEAT_EVERY;
+  const every = merged?.every ?? DEFAULT_HEARTBEAT_EVERY;
   const everyMs = resolveHeartbeatIntervalMs(cfg, undefined, merged);
-  const prompt = resolveHeartbeatPromptText(
-    merged?.prompt ?? defaults?.prompt ?? overrides?.prompt,
-  );
-  const target =
-    merged?.target ?? defaults?.target ?? overrides?.target ?? DEFAULT_HEARTBEAT_TARGET;
-  const model = merged?.model ?? defaults?.model ?? overrides?.model;
-  const ackMaxChars = Math.max(
-    0,
-    merged?.ackMaxChars ??
-      defaults?.ackMaxChars ??
-      overrides?.ackMaxChars ??
-      DEFAULT_HEARTBEAT_ACK_MAX_CHARS,
-  );
+  const prompt = resolveHeartbeatPromptText(merged?.prompt);
+  const target = merged?.target ?? DEFAULT_HEARTBEAT_TARGET;
+  const model = merged?.model;
+  const ackMaxChars = Math.max(0, merged?.ackMaxChars ?? DEFAULT_HEARTBEAT_ACK_MAX_CHARS);
 
   return {
     enabled: true,

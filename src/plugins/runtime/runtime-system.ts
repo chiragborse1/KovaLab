@@ -17,6 +17,7 @@ const runHeartbeatOnceInternal = createLazyRuntimeMethod(
 export function createRuntimeSystem(): PluginRuntime["system"] {
   return {
     enqueueSystemEvent,
+    requestPulseNow: requestHeartbeatNow,
     requestHeartbeatNow,
     runHeartbeatOnce: (opts?: RunHeartbeatOnceOptions) => {
       // Destructure to forward only the plugin-safe subset; prevent cfg/deps injection at runtime.

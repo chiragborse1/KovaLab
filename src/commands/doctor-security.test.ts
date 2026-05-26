@@ -404,11 +404,11 @@ describe("noteSecurityWarnings gateway exposure", () => {
     expect(message).not.toContain('tools.exec: ask="always" still bypasses future prompts');
   });
 
-  it("warns when heartbeat delivery relies on implicit directPolicy defaults", async () => {
+  it("warns when Pulse delivery relies on implicit directPolicy defaults", async () => {
     const cfg = {
       agents: {
         defaults: {
-          heartbeat: {
+          pulse: {
             target: "last",
           },
         },
@@ -416,18 +416,18 @@ describe("noteSecurityWarnings gateway exposure", () => {
     } as KovaConfig;
     await noteSecurityWarnings(cfg);
     const message = lastMessage();
-    expect(message).toContain("Heartbeat defaults");
-    expect(message).toContain("agents.defaults.heartbeat.directPolicy");
+    expect(message).toContain("Pulse defaults");
+    expect(message).toContain("agents.defaults.pulse.directPolicy");
     expect(message).toContain("direct/DM targets by default");
   });
 
-  it("warns when a per-agent heartbeat relies on implicit directPolicy", async () => {
+  it("warns when a per-agent Pulse config relies on implicit directPolicy", async () => {
     const cfg = {
       agents: {
         list: [
           {
             id: "ops",
-            heartbeat: {
+            pulse: {
               target: "last",
             },
           },
@@ -436,8 +436,8 @@ describe("noteSecurityWarnings gateway exposure", () => {
     } as KovaConfig;
     await noteSecurityWarnings(cfg);
     const message = lastMessage();
-    expect(message).toContain('Heartbeat agent "ops"');
-    expect(message).toContain('heartbeat.directPolicy for agent "ops"');
+    expect(message).toContain('Pulse agent "ops"');
+    expect(message).toContain('pulse.directPolicy for agent "ops"');
     expect(message).toContain("direct/DM targets by default");
   });
 
@@ -474,18 +474,18 @@ describe("noteSecurityWarnings gateway exposure", () => {
     expect(message).toContain("Run: kova security audit --deep");
   });
 
-  it("skips heartbeat directPolicy warning when delivery is internal-only or explicit", async () => {
+  it("skips Pulse directPolicy warning when delivery is internal-only or explicit", async () => {
     const cfg = {
       agents: {
         defaults: {
-          heartbeat: {
+          pulse: {
             target: "none",
           },
         },
         list: [
           {
             id: "ops",
-            heartbeat: {
+            pulse: {
               target: "last",
               directPolicy: "block",
             },
@@ -495,7 +495,7 @@ describe("noteSecurityWarnings gateway exposure", () => {
     } as KovaConfig;
     await noteSecurityWarnings(cfg);
     const message = lastMessage();
-    expect(message).not.toContain("Heartbeat defaults");
-    expect(message).not.toContain('Heartbeat agent "ops"');
+    expect(message).not.toContain("Pulse defaults");
+    expect(message).not.toContain('Pulse agent "ops"');
   });
 });

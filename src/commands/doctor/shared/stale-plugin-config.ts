@@ -322,7 +322,7 @@ export function maybeRepairStalePluginConfig(
     const heartbeatCount = hits.filter((hit) => hit.surface === "heartbeat").length;
     if (heartbeatCount > 0) {
       changes.push(
-        `- agents heartbeat: removed ${heartbeatCount} stale heartbeat target${heartbeatCount === 1 ? "" : "s"} (${channelIds.join(", ")})`,
+        `- agents Pulse: removed ${heartbeatCount} stale Pulse target${heartbeatCount === 1 ? "" : "s"} (${channelIds.join(", ")})`,
       );
     }
     const modelByChannelCount = hits.filter((hit) => hit.surface === "modelByChannel").length;

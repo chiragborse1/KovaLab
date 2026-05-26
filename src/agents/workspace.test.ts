@@ -9,6 +9,7 @@ import {
   DEFAULT_HEARTBEAT_FILENAME,
   DEFAULT_IDENTITY_FILENAME,
   DEFAULT_MEMORY_FILENAME,
+  DEFAULT_PULSE_FILENAME,
   DEFAULT_SOUL_FILENAME,
   DEFAULT_TOOLS_FILENAME,
   DEFAULT_USER_FILENAME,
@@ -79,6 +80,7 @@ function expectSubagentAllowedBootstrapNames(files: WorkspaceBootstrapFile[]) {
   expect(names).toContain("SOUL.md");
   expect(names).toContain("IDENTITY.md");
   expect(names).toContain("USER.md");
+  expect(names).not.toContain("PULSE.md");
   expect(names).not.toContain("HEARTBEAT.md");
   expect(names).not.toContain("BOOTSTRAP.md");
   expect(names).not.toContain("MEMORY.md");
@@ -280,19 +282,22 @@ describe("ensureAgentWorkspace", () => {
     await expect(isWorkspaceBootstrapPending(tempDir)).resolves.toBe(false);
   });
 
-  it("writes the current fenced HEARTBEAT template body into new workspaces", async () => {
+  it("writes the current fenced PULSE template body into new workspaces", async () => {
     const tempDir = await makeTempWorkspace("kova-workspace-");
 
     await ensureAgentWorkspace({ dir: tempDir, ensureBootstrapFiles: true });
 
-    const heartbeat = await fs.readFile(path.join(tempDir, DEFAULT_HEARTBEAT_FILENAME), "utf-8");
-    expect(heartbeat).toContain("```markdown");
-    expect(heartbeat).toContain(
-      "# Keep this file empty (or with only comments) to skip heartbeat API calls.",
+    const pulse = await fs.readFile(path.join(tempDir, DEFAULT_PULSE_FILENAME), "utf-8");
+    expect(pulse).toContain("```markdown");
+    expect(pulse).toContain(
+      "# Keep this file empty (or with only comments) to skip Pulse model calls.",
     );
-    expect(heartbeat).toContain(
-      "# Add tasks below when you want the agent to check something periodically.",
+    expect(pulse).toContain(
+      "# Add tasks below when you want Kova to check something quietly in the background.",
     );
+    await expect(fs.access(path.join(tempDir, DEFAULT_HEARTBEAT_FILENAME))).rejects.toMatchObject({
+      code: "ENOENT",
+    });
   });
 });
 
@@ -372,6 +377,7 @@ describe("filterBootstrapFilesForSession", () => {
     { name: "TOOLS.md", path: "/w/TOOLS.md", content: "", missing: false },
     { name: "IDENTITY.md", path: "/w/IDENTITY.md", content: "", missing: false },
     { name: "USER.md", path: "/w/USER.md", content: "", missing: false },
+    { name: "PULSE.md", path: "/w/PULSE.md", content: "", missing: false },
     { name: "HEARTBEAT.md", path: "/w/HEARTBEAT.md", content: "", missing: false },
     { name: "BOOTSTRAP.md", path: "/w/BOOTSTRAP.md", content: "", missing: false },
     { name: "MEMORY.md", path: "/w/MEMORY.md", content: "", missing: false },

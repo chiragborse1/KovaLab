@@ -129,10 +129,12 @@ export type PluginRuntimeCore = {
   };
   system: {
     enqueueSystemEvent: typeof import("../../infra/system-events.js").enqueueSystemEvent;
+    requestPulseNow: typeof import("../../infra/heartbeat-wake.js").requestHeartbeatNow;
+    /** Legacy alias for requestPulseNow. */
     requestHeartbeatNow: typeof import("../../infra/heartbeat-wake.js").requestHeartbeatNow;
     /**
-     * Run a single heartbeat cycle immediately (bypassing the coalesce timer).
-     * Accepts an optional `heartbeat` config override so callers can force
+     * Run a single Pulse cycle immediately (bypassing the coalesce timer).
+     * Accepts an optional legacy `heartbeat` config override so callers can force
      * delivery to the last active channel — the same pattern the cron service
      * uses to avoid the default `target: "none"` suppression.
      */

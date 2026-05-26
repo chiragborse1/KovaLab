@@ -110,6 +110,8 @@ export type AgentConfig = {
   contextTokens?: number;
   /** Optional per-agent heartbeat overrides. */
   heartbeat?: AgentDefaultsConfig["heartbeat"];
+  /** Optional per-agent Pulse overrides. Prefer this over heartbeat for new config. */
+  pulse?: AgentDefaultsConfig["pulse"];
   identity?: IdentityConfig;
   groupChat?: GroupChatConfig;
   subagents?: {

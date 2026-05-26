@@ -133,8 +133,8 @@ export function buildStatusCommandOverviewRows(
       { Item: "Probes", Value: probesValue },
       { Item: "Events", Value: eventsValue },
       { Item: "Tasks", Value: tasksValue },
-      { Item: "Heartbeat", Value: heartbeatValue },
-      ...(lastHeartbeatValue ? [{ Item: "Last heartbeat", Value: lastHeartbeatValue }] : []),
+      { Item: "Pulse", Value: heartbeatValue },
+      ...(lastHeartbeatValue ? [{ Item: "Last pulse", Value: lastHeartbeatValue }] : []),
       {
         Item: "Sessions",
         Value: buildStatusSessionsOverviewValue({

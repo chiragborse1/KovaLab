@@ -178,14 +178,14 @@ Kova splits the system prompt into a **stable prefix** and a **volatile
 suffix** separated by an internal cache-prefix boundary. Content above the
 boundary (tool definitions, skills metadata, workspace files, and other
 relatively static context) is ordered so it stays byte-identical across turns.
-Content below the boundary (for example `HEARTBEAT.md`, runtime timestamps, and
+Content below the boundary (for example `PULSE.md`, runtime timestamps, and
 other per-turn metadata) is allowed to change without invalidating the cached
 prefix.
 
 Key design choices:
 
-- Stable workspace project-context files are ordered before `HEARTBEAT.md` so
-  heartbeat churn does not bust the stable prefix.
+- Stable workspace project-context files are ordered before `PULSE.md` so
+  Pulse churn does not bust the stable prefix.
 - The boundary is applied across Anthropic-family, OpenAI-family, Google, and
   CLI transport shaping so all supported providers benefit from the same prefix
   stability.

@@ -143,6 +143,12 @@ describe("plugin runtime command execution", () => {
       expected: onSessionTranscriptUpdate,
     },
     {
+      name: "exposes runtime.system.requestPulseNow",
+      readValue: (runtime: ReturnType<typeof createPluginRuntime>) =>
+        runtime.system.requestPulseNow,
+      expected: requestHeartbeatNow,
+    },
+    {
       name: "exposes runtime.system.requestHeartbeatNow",
       readValue: (runtime: ReturnType<typeof createPluginRuntime>) =>
         runtime.system.requestHeartbeatNow,

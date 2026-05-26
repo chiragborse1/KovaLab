@@ -11,28 +11,41 @@ import { listAgentEntries, resolveAgentConfig, resolveDefaultAgentId } from "./a
 
 type HeartbeatConfig = AgentDefaultsConfig["heartbeat"];
 
+function mergePulseConfig(
+  defaults?: HeartbeatConfig,
+  defaultsPulse?: HeartbeatConfig,
+  overrides?: HeartbeatConfig,
+  overridesPulse?: HeartbeatConfig,
+): HeartbeatConfig | undefined {
+  if (!defaults && !defaultsPulse && !overrides && !overridesPulse) {
+    return undefined;
+  }
+  return { ...defaults, ...defaultsPulse, ...overrides, ...overridesPulse };
+}
+
 function resolveHeartbeatConfigForSystemPrompt(
   config?: KovaConfig,
   agentId?: string,
 ): HeartbeatConfig | undefined {
   const defaults = config?.agents?.defaults?.heartbeat;
+  const defaultsPulse = config?.agents?.defaults?.pulse;
   if (!config || !agentId) {
-    return defaults;
+    return mergePulseConfig(defaults, defaultsPulse);
   }
-  const overrides = resolveAgentConfig(config, agentId)?.heartbeat;
-  if (!defaults && !overrides) {
-    return overrides;
-  }
-  return { ...defaults, ...overrides };
+  const agentConfig = resolveAgentConfig(config, agentId);
+  return mergePulseConfig(defaults, defaultsPulse, agentConfig?.heartbeat, agentConfig?.pulse);
 }
 
 function isHeartbeatEnabledByAgentPolicy(config: KovaConfig, agentId: string): boolean {
   const resolvedAgentId = normalizeAgentId(agentId);
   const agents = listAgentEntries(config);
-  const hasExplicitHeartbeatAgents = agents.some((entry) => Boolean(entry?.heartbeat));
+  const hasExplicitHeartbeatAgents = agents.some((entry) =>
+    Boolean(entry?.pulse ?? entry?.heartbeat),
+  );
   if (hasExplicitHeartbeatAgents) {
     return agents.some(
-      (entry) => Boolean(entry?.heartbeat) && normalizeAgentId(entry.id) === resolvedAgentId,
+      (entry) =>
+        Boolean(entry?.pulse ?? entry?.heartbeat) && normalizeAgentId(entry.id) === resolvedAgentId,
     );
   }
   return resolvedAgentId === resolveDefaultAgentId(config);

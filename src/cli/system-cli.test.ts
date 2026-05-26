@@ -65,10 +65,21 @@ describe("system-cli", () => {
     await runCli(["system", "event", "--text", "hello", "--mode", "later"]);
 
     expect(callGatewayFromCli).not.toHaveBeenCalled();
-    expect(runtimeErrors[0]).toContain("--mode must be now or next-heartbeat");
+    expect(runtimeErrors[0]).toContain("--mode must be now or next-pulse");
   });
 
   it.each([
+    { args: ["system", "pulse", "last"], method: "last-heartbeat", params: undefined },
+    {
+      args: ["system", "pulse", "enable"],
+      method: "set-heartbeats",
+      params: { enabled: true },
+    },
+    {
+      args: ["system", "pulse", "disable"],
+      method: "set-heartbeats",
+      params: { enabled: false },
+    },
     { args: ["system", "heartbeat", "last"], method: "last-heartbeat", params: undefined },
     {
       args: ["system", "heartbeat", "enable"],

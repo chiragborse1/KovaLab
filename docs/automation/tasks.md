@@ -3,7 +3,7 @@ summary: "Background task tracking for ACP runs, subagents, isolated cron jobs, 
 read_when:
   - Inspecting background work in progress or recently completed
   - Debugging delivery failures for detached agent runs
-  - Understanding how background runs relate to sessions, cron, and heartbeat
+  - Understanding how background runs relate to sessions, cron, and Pulse
 title: "Background tasks"
 sidebarTitle: "Background tasks"
 ---
@@ -14,26 +14,26 @@ Looking for scheduling? See [Automation and tasks](/automation) for choosing the
 
 Background tasks track work that runs **outside your main conversation session**: ACP runs, subagent spawns, isolated cron job executions, and CLI-initiated operations.
 
-Tasks do **not** replace sessions, cron jobs, or heartbeats — they are the **activity ledger** that records what detached work happened, when, and whether it succeeded.
+Tasks do **not** replace sessions, cron jobs, or Pulse — they are the **activity ledger** that records what detached work happened, when, and whether it succeeded.
 
 <Note>
-Not every agent run creates a task. Heartbeat turns and normal interactive chat do not. All cron executions, ACP spawns, subagent spawns, and CLI agent commands do.
+Not every agent run creates a task. Pulse turns and normal interactive chat do not. All cron executions, ACP spawns, subagent spawns, and CLI agent commands do.
 </Note>
 
 ## TL;DR
 
-- Tasks are **records**, not schedulers — cron and heartbeat decide _when_ work runs, tasks track _what happened_.
-- ACP, subagents, all cron jobs, and CLI operations create tasks. Heartbeat turns do not.
+- Tasks are **records**, not schedulers — cron and Pulse decide _when_ work runs, tasks track _what happened_.
+- ACP, subagents, all cron jobs, and CLI operations create tasks. Pulse turns do not.
 - Each task moves through `queued → running → terminal` (succeeded, failed, timed_out, cancelled, or lost).
 - Cron tasks stay live while the cron runtime still owns the job; if the
   in-memory runtime state is gone, task maintenance first checks durable cron
   run history before marking a task lost.
 - Completion is push-driven: detached work can notify directly or wake the
-  requester session/heartbeat when it finishes, so status polling loops are
+  requester session/Pulse when it finishes, so status polling loops are
   usually the wrong shape.
 - Isolated cron runs and subagent completions best-effort clean up tracked browser tabs/processes for their child session before final cleanup bookkeeping.
 - Isolated cron delivery suppresses stale interim parent replies while descendant subagent work is still draining, and it prefers final descendant output when that arrives before delivery.
-- Completion notifications are delivered directly to a channel or queued for the next heartbeat.
+- Completion notifications are delivered directly to a channel or queued for the next Pulse turn.
 - `kova tasks list` shows all tasks; `kova tasks audit` surfaces issues.
 - `kova tasks report` summarizes active automation, task failures, delivery state, Task Flow counts, and recent issue rows without rerunning work.
 - In the TUI, `/recover` runs the same self-healing scan and `/recover apply`
@@ -115,7 +115,7 @@ Not every agent run creates a task. Heartbeat turns and normal interactive chat 
     While a session-backed `video_generate` task is still active, the tool also acts as a guardrail: repeated `video_generate` calls in that same session return the active task status instead of starting a second concurrent generation. Use `action: "status"` when you want an explicit progress/status lookup from the agent side.
   </Accordion>
   <Accordion title="What does not create tasks">
-    - Heartbeat turns — main-session; see [Heartbeat](/gateway/heartbeat)
+    - Pulse turns — main-session; see [Pulse](/gateway/heartbeat)
     - Normal interactive chat turns
     - Direct `/command` responses
   </Accordion>
@@ -168,10 +168,10 @@ When a task reaches a terminal state, Kova notifies you. There are two delivery 
 
 **Direct delivery** — if the task has a channel target (the `requesterOrigin`), the completion message goes straight to that channel (Telegram, Discord, Slack, etc.). For subagent completions, Kova also preserves bound thread/topic routing when available and can fill a missing `to` / account from the requester session's stored route (`lastChannel` / `lastTo` / `lastAccountId`) before giving up on direct delivery.
 
-**Session-queued delivery** — if direct delivery fails or no origin is set, the update is queued as a system event in the requester's session and surfaces on the next heartbeat.
+**Session-queued delivery** — if direct delivery fails or no origin is set, the update is queued as a system event in the requester's session and surfaces on the next Pulse turn.
 
 <Tip>
-Task completion triggers an immediate heartbeat wake so you see the result quickly — you do not have to wait for the next scheduled heartbeat tick.
+Task completion triggers an immediate Pulse wake so you see the result quickly — you do not have to wait for the next scheduled Pulse tick.
 </Tip>
 
 That means the usual workflow is push-based: start detached work once, then let the runtime wake or notify you on completion. Poll task state only when you need debugging, intervention, or an explicit audit.
@@ -373,10 +373,10 @@ A sweeper runs every **60 seconds** and handles three things:
     See [Cron Jobs](/automation/cron-jobs).
 
   </Accordion>
-  <Accordion title="Tasks and heartbeat">
-    Heartbeat runs are main-session turns — they do not create task records. When a task completes, it can trigger a heartbeat wake so you see the result promptly.
+  <Accordion title="Tasks and Pulse">
+    Pulse runs are main-session turns — they do not create task records. When a task completes, it can trigger a Pulse wake so you see the result promptly.
 
-    See [Heartbeat](/gateway/heartbeat).
+    See [Pulse](/gateway/heartbeat).
 
   </Accordion>
   <Accordion title="Tasks and sessions">
@@ -391,6 +391,6 @@ A sweeper runs every **60 seconds** and handles three things:
 
 - [Automation & Tasks](/automation) — all automation mechanisms at a glance
 - [CLI: Tasks](/cli/tasks) — CLI command reference
-- [Heartbeat](/gateway/heartbeat) — periodic main-session turns
+- [Pulse](/gateway/heartbeat) — periodic main-session turns
 - [Scheduled Tasks](/automation/cron-jobs) — scheduling background work
 - [Task Flow](/automation/taskflow) — flow orchestration above tasks

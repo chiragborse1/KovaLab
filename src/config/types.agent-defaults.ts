@@ -176,6 +176,55 @@ export type CliBackendConfig = {
   };
 };
 
+export type AgentPulseConfig = {
+  /** Pulse interval (duration string, default unit: minutes; default: 30m). */
+  every?: string;
+  /** Optional active-hours window (local time); Pulse runs only inside this window. */
+  activeHours?: {
+    /** Start time (24h, HH:MM). Inclusive. */
+    start?: string;
+    /** End time (24h, HH:MM). Exclusive. Use "24:00" for end-of-day. */
+    end?: string;
+    /** Timezone for the window ("user", "local", or IANA TZ id). Default: "user". */
+    timezone?: string;
+  };
+  /** Pulse model override (provider/model). */
+  model?: string;
+  /** Session key for Pulse runs ("main" or explicit session key). */
+  session?: string;
+  /** Delivery target ("last", "none", or a channel id). */
+  target?: string;
+  /** Direct/DM delivery policy. Default: "allow". */
+  directPolicy?: "allow" | "block";
+  /** Optional delivery override (E.164 for WhatsApp, chat id for Telegram). Supports :topic:NNN suffix for Telegram topics. */
+  to?: string;
+  /** Optional account id for multi-account channels. */
+  accountId?: string;
+  /** Override the Pulse prompt body. */
+  prompt?: string;
+  /** Include the ## Pulse system prompt section for the default agent (default: true). */
+  includeSystemPromptSection?: boolean;
+  /** Max chars allowed after a quiet ack before delivery (default: 300). */
+  ackMaxChars?: number;
+  /** Suppress tool error warning payloads during Pulse runs. */
+  suppressToolErrorWarnings?: boolean;
+  /** Run timeout in seconds for Pulse agent turns. */
+  timeoutSeconds?: number;
+  /**
+   * If true, run Pulse turns with lightweight bootstrap context.
+   * Lightweight mode keeps only PULSE.md or legacy HEARTBEAT.md from workspace bootstrap files.
+   */
+  lightContext?: boolean;
+  /**
+   * If true, run Pulse turns in an isolated session with no prior conversation history.
+   * The Pulse only sees its bootstrap context (PULSE.md or legacy HEARTBEAT.md when
+   * lightContext is also enabled).
+   */
+  isolatedSession?: boolean;
+  /** Deliver separate reasoning payloads for Pulse runs (default: false). */
+  includeReasoning?: boolean;
+};
+
 export type AgentDefaultsConfig = {
   /** Global default provider params applied to all models before per-model and per-agent overrides. */
   params?: Record<string, unknown>;
@@ -331,61 +380,10 @@ export type AgentDefaultsConfig = {
   typingIntervalSeconds?: number;
   /** Typing indicator start mode (never|instant|thinking|message). */
   typingMode?: TypingMode;
-  /** Periodic background heartbeat runs. */
-  heartbeat?: {
-    /** Heartbeat interval (duration string, default unit: minutes; default: 30m). */
-    every?: string;
-    /** Optional active-hours window (local time); heartbeats run only inside this window. */
-    activeHours?: {
-      /** Start time (24h, HH:MM). Inclusive. */
-      start?: string;
-      /** End time (24h, HH:MM). Exclusive. Use "24:00" for end-of-day. */
-      end?: string;
-      /** Timezone for the window ("user", "local", or IANA TZ id). Default: "user". */
-      timezone?: string;
-    };
-    /** Heartbeat model override (provider/model). */
-    model?: string;
-    /** Session key for heartbeat runs ("main" or explicit session key). */
-    session?: string;
-    /** Delivery target ("last", "none", or a channel id). */
-    target?: string;
-    /** Direct/DM delivery policy. Default: "allow". */
-    directPolicy?: "allow" | "block";
-    /** Optional delivery override (E.164 for WhatsApp, chat id for Telegram). Supports :topic:NNN suffix for Telegram topics. */
-    to?: string;
-    /** Optional account id for multi-account channels. */
-    accountId?: string;
-    /** Override the heartbeat prompt body (default: "Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK."). */
-    prompt?: string;
-    /** Include the ## Heartbeats system prompt section for the default agent (default: true). */
-    includeSystemPromptSection?: boolean;
-    /** Max chars allowed after HEARTBEAT_OK before delivery (default: 30). */
-    ackMaxChars?: number;
-    /** Suppress tool error warning payloads during heartbeat runs. */
-    suppressToolErrorWarnings?: boolean;
-    /** Run timeout in seconds for heartbeat agent turns. */
-    timeoutSeconds?: number;
-    /**
-     * If true, run heartbeat turns with lightweight bootstrap context.
-     * Lightweight mode keeps only HEARTBEAT.md from workspace bootstrap files.
-     */
-    lightContext?: boolean;
-    /**
-     * If true, run heartbeat turns in an isolated session with no prior
-     * conversation history. The heartbeat only sees its bootstrap context
-     * (HEARTBEAT.md when lightContext is also enabled). Dramatically reduces
-     * per-heartbeat token cost by avoiding the full session transcript.
-     */
-    isolatedSession?: boolean;
-    /**
-     * When enabled, deliver the model's reasoning payload for heartbeat runs (when available)
-     * as a separate message prefixed with `Thinking` (same as `/reasoning on`).
-     *
-     * Default: false (only the final heartbeat payload is delivered).
-     */
-    includeReasoning?: boolean;
-  };
+  /** Periodic background Pulse runs. */
+  pulse?: AgentPulseConfig;
+  /** Legacy alias for periodic background Pulse runs. Prefer `pulse` in new config. */
+  heartbeat?: AgentPulseConfig;
   /** Max concurrent agent runs across all conversations. Default: 1 (sequential). */
   maxConcurrent?: number;
   /** Sub-agent defaults (spawned via sessions_spawn). */

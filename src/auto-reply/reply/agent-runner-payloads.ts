@@ -120,13 +120,16 @@ export async function buildReplyPayloads(params: {
           text = formatBunFetchSocketError(text);
         }
 
-        if (!text || !text.includes("HEARTBEAT_OK")) {
+        if (!text) {
           return [{ ...payload, text }];
         }
         const stripped = stripHeartbeatToken(text, { mode: "message" });
         if (stripped.didStrip && !didLogHeartbeatStrip) {
           didLogHeartbeatStrip = true;
-          logVerbose("Stripped stray HEARTBEAT_OK token from reply");
+          logVerbose("Stripped stray quiet Pulse token from reply");
+        }
+        if (!stripped.didStrip) {
+          return [{ ...payload, text }];
         }
         const hasMedia = resolveSendableOutboundReplyParts(payload).hasMedia;
         if (stripped.shouldSkip && !hasMedia) {

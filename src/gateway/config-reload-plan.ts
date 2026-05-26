@@ -66,6 +66,11 @@ const BASE_RELOAD_RULES: ReloadRule[] = [
   { prefix: "hooks.gmail", kind: "hot", actions: ["restart-gmail-watcher"] },
   { prefix: "hooks", kind: "hot", actions: ["reload-hooks"] },
   {
+    prefix: "agents.defaults.pulse",
+    kind: "hot",
+    actions: ["restart-heartbeat"],
+  },
+  {
     prefix: "agents.defaults.heartbeat",
     kind: "hot",
     actions: ["restart-heartbeat"],
@@ -90,6 +95,7 @@ const BASE_RELOAD_RULES: ReloadRule[] = [
     kind: "hot",
     actions: ["restart-heartbeat"],
   },
+  { prefix: "agent.pulse", kind: "hot", actions: ["restart-heartbeat"] },
   { prefix: "agent.heartbeat", kind: "hot", actions: ["restart-heartbeat"] },
   { prefix: "cron", kind: "hot", actions: ["restart-cron"] },
   { prefix: "mcp", kind: "hot", actions: ["dispose-mcp-runtimes"] },

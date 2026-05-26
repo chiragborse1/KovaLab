@@ -3,8 +3,12 @@ import { HEARTBEAT_TRANSCRIPT_PROMPT } from "./heartbeat.js";
 
 const HEARTBEAT_TASK_PROMPT_PREFIX =
   "Run the following periodic tasks (only those due based on their intervals):";
-const HEARTBEAT_TASK_PROMPT_ACK = "After completing all due tasks, reply HEARTBEAT_OK.";
-const LEGACY_HEARTBEAT_TRANSCRIPT_PROMPTS = new Set<string>(["[Open\u0043law heartbeat poll]"]);
+const HEARTBEAT_TASK_PROMPT_ACK = "After completing all due tasks, reply with ONLY: NO_REPLY.";
+const LEGACY_HEARTBEAT_TASK_PROMPT_ACK = "After completing all due tasks, reply HEARTBEAT_OK.";
+const LEGACY_HEARTBEAT_TRANSCRIPT_PROMPTS = new Set<string>([
+  "[Kova heartbeat poll]",
+  "[Open\u0043law heartbeat poll]",
+]);
 
 function resolveMessageText(content: unknown): { text: string; hasNonTextContent: boolean } {
   if (typeof content === "string") {
@@ -55,7 +59,9 @@ export function isHeartbeatUserMessage(
     return true;
   }
   return (
-    trimmed.startsWith(HEARTBEAT_TASK_PROMPT_PREFIX) && trimmed.includes(HEARTBEAT_TASK_PROMPT_ACK)
+    trimmed.startsWith(HEARTBEAT_TASK_PROMPT_PREFIX) &&
+    (trimmed.includes(HEARTBEAT_TASK_PROMPT_ACK) ||
+      trimmed.includes(LEGACY_HEARTBEAT_TASK_PROMPT_ACK))
   );
 }
 

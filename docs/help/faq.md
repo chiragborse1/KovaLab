@@ -334,11 +334,11 @@ lives on the [First-run FAQ](/help/faq-first-run).
     Yes. Use the Gateway scheduler:
 
     - **Cron jobs** for scheduled or recurring tasks (persist across restarts).
-    - **Heartbeat** for "main session" periodic checks.
+    - **Pulse** for "main session" periodic checks.
     - **Isolated jobs** for autonomous agents that post summaries or deliver to chats.
 
     Docs: [Cron jobs](/automation/cron-jobs), [Automation & Tasks](/automation),
-    [Heartbeat](/gateway/heartbeat).
+    [Pulse](/gateway/heartbeat).
 
   </Accordion>
 
@@ -576,7 +576,7 @@ lives on the [First-run FAQ](/help/faq-first-run).
     These files live in the **agent workspace**, not `~/.kova`.
 
     - **Workspace (per agent)**: `AGENTS.md`, `SOUL.md`, `IDENTITY.md`, `USER.md`,
-      `MEMORY.md`, `memory/YYYY-MM-DD.md`, optional `HEARTBEAT.md`.
+      `MEMORY.md`, `memory/YYYY-MM-DD.md`, optional `PULSE.md`.
       Lowercase root `memory.md` is legacy repair input only; `kova doctor --fix`
       can merge it into `MEMORY.md` when both files exist.
     - **State dir (`~/.kova`)**: config, channel/provider state, auth profiles, sessions, logs,
@@ -1259,14 +1259,14 @@ lives on the [First-run FAQ](/help/faq-first-run).
 
   </Accordion>
 
-  <Accordion title="Why am I getting heartbeat messages every 30 minutes?">
-    Heartbeats run every **30m** by default (**1h** when using OAuth auth). Tune or disable them:
+  <Accordion title="Why am I getting Pulse messages every 30 minutes?">
+    Pulse runs every **30m** by default (**1h** when using OAuth auth). Tune or disable it:
 
     ```json5
     {
       agents: {
         defaults: {
-          heartbeat: {
+          pulse: {
             every: "2h", // or "0m" to disable
           },
         },
@@ -1274,11 +1274,11 @@ lives on the [First-run FAQ](/help/faq-first-run).
     }
     ```
 
-    If `HEARTBEAT.md` exists but is effectively empty (only blank lines and markdown
-    headers like `# Heading`), Kova skips the heartbeat run to save API calls.
-    If the file is missing, the heartbeat still runs and the model decides what to do.
+    If `PULSE.md` exists but is effectively empty (only blank lines and markdown
+    headers like `# Heading`), Kova skips the Pulse run to save API calls.
+    If the file is missing, Pulse still runs and the model decides what to do.
 
-    Per-agent overrides use `agents.list[].heartbeat`. Docs: [Heartbeat](/gateway/heartbeat).
+    Per-agent overrides use `agents.list[].pulse`. Docs: [Pulse](/gateway/heartbeat).
 
   </Accordion>
 

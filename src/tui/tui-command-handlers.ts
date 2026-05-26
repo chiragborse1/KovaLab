@@ -511,6 +511,32 @@ function formatUsageSummary(state: TuiStateAccess): string {
   ].join("\n");
 }
 
+function formatPulseSummary(status: unknown): string {
+  const lines = ["Kova Pulse"];
+  if (typeof status === "string") {
+    lines.push(`- runtime: ${status}`);
+  } else if (status && typeof status === "object") {
+    const heartbeat = (status as GatewayStatusSummary).heartbeat;
+    const agents = heartbeat?.agents ?? [];
+    if (agents.length === 0) {
+      lines.push("- schedule: disabled");
+    } else {
+      for (const agent of agents) {
+        const agentId = agent.agentId ?? "unknown";
+        const state = agent.enabled && agent.everyMs ? (agent.every ?? "enabled") : "disabled";
+        lines.push(`- ${agentId}: ${state}`);
+      }
+    }
+  } else {
+    lines.push("- status: unavailable");
+  }
+  lines.push("- rules: edit PULSE.md in your workspace");
+  lines.push('- run now: kova system event --mode now --text "Manual Pulse check"');
+  lines.push("- controls: kova system pulse last | enable | disable");
+  lines.push("- legacy heartbeat config still works as an alias");
+  return lines.join("\n");
+}
+
 type TuiUpdateAction = "help" | "run" | "status";
 
 function parseTuiUpdateAction(args: string): TuiUpdateAction | null {
@@ -1099,6 +1125,24 @@ export function createCommandHandlers(context: CommandHandlerContext) {
       );
     } catch (err) {
       chatLog.addSystem(`plugins status failed: ${sanitizeRenderableText(String(err))}`);
+    }
+  };
+
+  const showPulse = async (args: string) => {
+    const action = normalizeLowercaseStringOrEmpty(args.trim().split(/\s+/)[0] ?? "");
+    if (action === "last" || action === "enable" || action === "disable" || action === "run") {
+      const command =
+        action === "run"
+          ? 'kova system event --mode now --text "Manual Pulse check"'
+          : `kova system pulse ${action}`;
+      chatLog.addSystem(`Pulse ${action} is CLI-owned for now.\nUse: ${command}`);
+      return;
+    }
+    try {
+      const status = await client.getGatewayStatus();
+      chatLog.addSystem(formatPulseSummary(status));
+    } catch (err) {
+      chatLog.addSystem(`Pulse status failed: ${sanitizeRenderableText(String(err))}`);
     }
   };
 
@@ -1811,6 +1855,10 @@ export function createCommandHandlers(context: CommandHandlerContext) {
         } else {
           await showTaskSnapshot("automation", args);
         }
+        break;
+      case "pulse":
+        echoCommand();
+        await showPulse(args);
         break;
       case "recover":
         echoCommand();

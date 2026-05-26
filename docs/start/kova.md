@@ -25,7 +25,7 @@ Start conservative:
 
 - Always set `channels.whatsapp.allowFrom` (never run open-to-the-world on your personal Mac).
 - Use a dedicated WhatsApp number for the assistant.
-- Heartbeats now default to every 30 minutes. Disable until you trust the setup by setting `agents.defaults.heartbeat.every: "0m"`.
+- Pulse defaults to every 30 minutes. Disable until you trust the setup by setting `agents.defaults.pulse.every: "0m"`.
 
 ## Prerequisites
 
@@ -79,7 +79,7 @@ anytime with `kova`. Use `kova settings`, `kova status --all`, and
 
 Kova reads operating instructions and “memory” from its workspace directory.
 
-By default, Kova uses `~/.kova/workspace` as the agent workspace, and will create it (plus starter `AGENTS.md`, `SOUL.md`, `TOOLS.md`, `IDENTITY.md`, `USER.md`, `HEARTBEAT.md`) automatically on setup/first agent run. `BOOTSTRAP.md` is only created when the workspace is brand new (it should not come back after you delete it). `MEMORY.md` is optional (not auto-created); when present, it is loaded for normal sessions. Subagent sessions only inject `AGENTS.md` and `TOOLS.md`.
+By default, Kova uses `~/.kova/workspace` as the agent workspace, and will create it (plus starter `AGENTS.md`, `SOUL.md`, `TOOLS.md`, `IDENTITY.md`, `USER.md`, `PULSE.md`) automatically on setup/first agent run. `BOOTSTRAP.md` is only created when the workspace is brand new (it should not come back after you delete it). `MEMORY.md` is optional (not auto-created); when present, it is loaded for normal sessions. Subagent sessions only inject `AGENTS.md` and `TOOLS.md`.
 
 <Tip>
 Treat this folder like Kova's memory and make it a git repo (ideally private) so your `AGENTS.md` and memory files are backed up. If git is installed, brand-new workspaces are auto-initialized.
@@ -122,7 +122,7 @@ Kova defaults to a good assistant setup, but you’ll usually want to tune:
 
 - persona/instructions in [`SOUL.md`](/concepts/soul)
 - thinking defaults (if desired)
-- heartbeats (once you trust it)
+- Pulse (once you trust it)
 
 Example:
 
@@ -135,7 +135,7 @@ Example:
     thinkingDefault: "high",
     timeoutSeconds: 1800,
     // Start with 0; enable later.
-    heartbeat: { every: "0m" },
+    pulse: { every: "0m" },
   },
   channels: {
     whatsapp: {
@@ -169,22 +169,22 @@ Example:
 - `/new` or `/reset` starts a fresh session for that chat (configurable via `resetTriggers`). If sent alone, the agent replies with a short hello to confirm the reset.
 - `/compact [instructions]` compacts the session context and reports the remaining context budget.
 
-## Heartbeats (proactive mode)
+## Pulse (proactive mode)
 
-By default, Kova runs a heartbeat every 30 minutes with the prompt:
-`Read HEARTBEAT.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply HEARTBEAT_OK.`
-Set `agents.defaults.heartbeat.every: "0m"` to disable.
+By default, Kova runs Pulse every 30 minutes with the prompt:
+`Read PULSE.md if it exists (workspace context). Follow it strictly. Do not infer or repeat old tasks from prior chats. If nothing needs attention, reply with ONLY: NO_REPLY.`
+Set `agents.defaults.pulse.every: "0m"` to disable.
 
-- If `HEARTBEAT.md` exists but is effectively empty (only blank lines and markdown headers like `# Heading`), Kova skips the heartbeat run to save API calls.
-- If the file is missing, the heartbeat still runs and the model decides what to do.
-- If the agent replies with `HEARTBEAT_OK` (optionally with short padding; see `agents.defaults.heartbeat.ackMaxChars`), Kova suppresses outbound delivery for that heartbeat.
-- By default, heartbeat delivery to DM-style `user:<id>` targets is allowed. Set `agents.defaults.heartbeat.directPolicy: "block"` to suppress direct-target delivery while keeping heartbeat runs active.
-- Heartbeats run full agent turns — shorter intervals burn more tokens.
+- If `PULSE.md` exists but is effectively empty (only blank lines and markdown headers like `# Heading`), Kova skips the Pulse run to save API calls.
+- If `PULSE.md` is missing, legacy `HEARTBEAT.md` is still read when present.
+- If the agent replies with `NO_REPLY` (optionally with short padding; see `agents.defaults.pulse.ackMaxChars`), Kova suppresses outbound delivery for that Pulse.
+- By default, Pulse delivery to DM-style `user:<id>` targets is allowed. Set `agents.defaults.pulse.directPolicy: "block"` to suppress direct-target delivery while keeping Pulse runs active.
+- Pulse runs full agent turns — shorter intervals burn more tokens.
 
 ```json5
 {
   agent: {
-    heartbeat: { every: "30m" },
+    pulse: { every: "30m" },
   },
 }
 ```

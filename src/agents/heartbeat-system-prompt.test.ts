@@ -112,6 +112,38 @@ describe("resolveHeartbeatPromptForSystemPrompt", () => {
     ).toBe("Ops check");
   });
 
+  it("prefers Pulse prompt text over legacy heartbeat config", () => {
+    expect(
+      resolveHeartbeatPromptForSystemPrompt({
+        config: {
+          agents: {
+            defaults: {
+              heartbeat: {
+                prompt: "Legacy prompt",
+              },
+              pulse: {
+                prompt: "Pulse prompt",
+              },
+            },
+            list: [
+              {
+                id: "main",
+                heartbeat: {
+                  prompt: "Legacy agent prompt",
+                },
+                pulse: {
+                  prompt: "  Agent Pulse check  ",
+                },
+              },
+            ],
+          },
+        },
+        agentId: "main",
+        defaultAgentId: "main",
+      }),
+    ).toBe("Agent Pulse check");
+  });
+
   it("does not inject the heartbeat section for non-default agents", () => {
     expect(
       resolveHeartbeatPromptForSystemPrompt({

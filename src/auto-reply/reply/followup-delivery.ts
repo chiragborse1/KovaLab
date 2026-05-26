@@ -47,10 +47,13 @@ export function resolveFollowupDeliveryPayloads(params: {
   );
   const sanitizedPayloads = params.payloads.flatMap((payload) => {
     const text = payload.text;
-    if (!text || !text.includes("HEARTBEAT_OK")) {
+    if (!text) {
       return [payload];
     }
     const stripped = stripHeartbeatToken(text, { mode: "message" });
+    if (!stripped.didStrip) {
+      return [payload];
+    }
     const hasMedia = hasReplyPayloadMedia(payload);
     if (stripped.shouldSkip && !hasMedia) {
       return [];

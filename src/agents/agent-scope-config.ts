@@ -28,6 +28,7 @@ export type ResolvedAgentConfig = {
   humanDelay?: AgentEntry["humanDelay"];
   tts?: AgentEntry["tts"];
   contextLimits?: AgentContextLimitsConfig;
+  pulse?: AgentEntry["pulse"];
   heartbeat?: AgentEntry["heartbeat"];
   identity?: AgentEntry["identity"];
   groupChat?: AgentEntry["groupChat"];
@@ -134,6 +135,7 @@ export function resolveAgentConfig(
       typeof entry.contextLimits === "object" && entry.contextLimits
         ? { ...agentDefaults?.contextLimits, ...entry.contextLimits }
         : agentDefaults?.contextLimits,
+    pulse: entry.pulse,
     heartbeat: entry.heartbeat,
     identity: entry.identity,
     groupChat: entry.groupChat,

@@ -14,7 +14,7 @@ describe("isHeartbeatUserMessage", () => {
       isHeartbeatUserMessage(
         {
           role: "user",
-          content: `${HEARTBEAT_PROMPT}\nWhen reading HEARTBEAT.md, use workspace file /tmp/HEARTBEAT.md (exact case). Do not read docs/heartbeat.md.`,
+          content: `${HEARTBEAT_PROMPT}\nWhen reading PULSE.md, use workspace file /tmp/PULSE.md (exact case). If PULSE.md is missing, legacy HEARTBEAT.md may exist at /tmp/HEARTBEAT.md. Do not read docs/heartbeat.md.`,
         },
         HEARTBEAT_PROMPT,
       ),
@@ -25,6 +25,14 @@ describe("isHeartbeatUserMessage", () => {
         role: "user",
         content:
           "Run the following periodic tasks (only those due based on their intervals):\n\n- email-check: Check for urgent unread emails\n\nAfter completing all due tasks, reply HEARTBEAT_OK.",
+      }),
+    ).toBe(true);
+
+    expect(
+      isHeartbeatUserMessage({
+        role: "user",
+        content:
+          "Run the following periodic tasks (only those due based on their intervals):\n\n- email-check: Check for urgent unread emails\n\nAfter completing all due tasks, reply with ONLY: NO_REPLY.",
       }),
     ).toBe(true);
 
@@ -66,6 +74,13 @@ describe("isHeartbeatOkResponse", () => {
       isHeartbeatOkResponse({
         role: "assistant",
         content: "**HEARTBEAT_OK**",
+      }),
+    ).toBe(true);
+
+    expect(
+      isHeartbeatOkResponse({
+        role: "assistant",
+        content: "**NO_REPLY**",
       }),
     ).toBe(true);
 
@@ -114,7 +129,7 @@ describe("filterHeartbeatPairs", () => {
       { role: "user", content: HEARTBEAT_PROMPT },
       { role: "assistant", content: "HEARTBEAT_OK" },
       { role: "user", content: HEARTBEAT_TRANSCRIPT_PROMPT },
-      { role: "assistant", content: "HEARTBEAT_OK" },
+      { role: "assistant", content: "NO_REPLY" },
       { role: "user", content: legacyHeartbeatTranscriptPrompt },
       { role: "assistant", content: "HEARTBEAT_OK" },
       { role: "user", content: "What time is it?" },

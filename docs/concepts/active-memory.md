@@ -280,7 +280,7 @@ inference feature.
 | Gateway clients / local chat persistent sessions                    | Yes, if the plugin is enabled and the agent is targeted |
 | Other interactive channel sessions on the same persistent chat path | Yes, if the plugin is enabled and the agent is targeted |
 | Headless one-shot runs                                              | No                                                      |
-| Heartbeat/background runs                                           | No                                                      |
+| Pulse/background runs                                               | No                                                      |
 | Generic internal `agent-command` paths                              | No                                                      |
 | Sub-agent/internal helper execution                                 | No                                                      |
 

@@ -39,9 +39,9 @@ git commit -m "Add agent workspace"
 - On session start, read today + yesterday if present.
 - Capture durable facts, preferences, and decisions; avoid secrets.
 
-## Heartbeats (optional)
+## Pulse (optional)
 
-- HEARTBEAT.md can hold a tiny checklist for heartbeat runs; keep it small.
+- PULSE.md can hold a tiny checklist for Pulse runs; keep it small.
 
 ## Customize
 

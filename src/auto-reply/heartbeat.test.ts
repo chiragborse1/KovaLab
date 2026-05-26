@@ -5,7 +5,7 @@ import {
   parseHeartbeatTasks,
   stripHeartbeatToken,
 } from "./heartbeat.js";
-import { HEARTBEAT_TOKEN } from "./tokens.js";
+import { HEARTBEAT_TOKEN, SILENT_REPLY_TOKEN } from "./tokens.js";
 
 describe("stripHeartbeatToken", () => {
   it("skips empty or token-only replies", () => {
@@ -24,15 +24,30 @@ describe("stripHeartbeatToken", () => {
       text: "",
       didStrip: true,
     });
+    expect(stripHeartbeatToken(SILENT_REPLY_TOKEN, { mode: "heartbeat" })).toEqual({
+      shouldSkip: true,
+      text: "",
+      didStrip: true,
+    });
   });
 
-  it("drops heartbeats with small junk in heartbeat mode", () => {
+  it("drops quiet Pulse acknowledgments with small junk in heartbeat mode", () => {
     expect(stripHeartbeatToken("HEARTBEAT_OK 🦞", { mode: "heartbeat" })).toEqual({
       shouldSkip: true,
       text: "",
       didStrip: true,
     });
     expect(stripHeartbeatToken(`🦞 ${HEARTBEAT_TOKEN}`, { mode: "heartbeat" })).toEqual({
+      shouldSkip: true,
+      text: "",
+      didStrip: true,
+    });
+    expect(stripHeartbeatToken(`${SILENT_REPLY_TOKEN}.`, { mode: "heartbeat" })).toEqual({
+      shouldSkip: true,
+      text: "",
+      didStrip: true,
+    });
+    expect(stripHeartbeatToken("no_reply", { mode: "heartbeat" })).toEqual({
       shouldSkip: true,
       text: "",
       didStrip: true,
@@ -181,6 +196,7 @@ describe("isHeartbeatContentEffectivelyEmpty", () => {
   });
 
   it("returns true for header-only content", () => {
+    expect(isHeartbeatContentEffectivelyEmpty("# PULSE.md")).toBe(true);
     expect(isHeartbeatContentEffectivelyEmpty("# HEARTBEAT.md")).toBe(true);
     expect(isHeartbeatContentEffectivelyEmpty("# HEARTBEAT.md\n")).toBe(true);
     expect(isHeartbeatContentEffectivelyEmpty("# HEARTBEAT.md\n\n")).toBe(true);

@@ -166,7 +166,7 @@ describe("doctor stale plugin config helpers", () => {
       "- plugins.allow: removed 1 stale plugin id (kova-weixin)",
       "- plugins.entries: removed 1 stale plugin entry (kova-weixin)",
       "- channels: removed 1 stale channel config (kova-weixin)",
-      "- agents heartbeat: removed 2 stale heartbeat targets (kova-weixin)",
+      "- agents Pulse: removed 2 stale Pulse targets (kova-weixin)",
       "- channels.modelByChannel: removed 1 stale channel model override (kova-weixin)",
     ]);
     expect(result.config.plugins?.allow).toEqual(["discord"]);

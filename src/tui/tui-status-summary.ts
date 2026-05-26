@@ -41,7 +41,7 @@ export function formatStatusSummary(summary: GatewayStatusSummary) {
       return `${agent.every ?? "unknown"} (${agentId})`;
     });
     lines.push("");
-    lines.push(`Heartbeat: ${heartbeatParts.join(", ")}`);
+    lines.push(`Pulse: ${heartbeatParts.join(", ")}`);
   }
 
   const sessionPaths = summary.sessions?.paths ?? [];
