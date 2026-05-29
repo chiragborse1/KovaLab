@@ -4,6 +4,7 @@ import { logVerbose } from "../../globals.js";
 import { formatErrorMessage } from "../../infra/errors.js";
 import { normalizeAgentId } from "../../routing/session-key.js";
 import { isAcpSessionKey } from "../../sessions/session-key-utils.js";
+import { clampTimerTimeoutMs } from "../../shared/number-coercion.js";
 import { normalizeLowercaseStringOrEmpty } from "../../shared/string-coerce.js";
 import {
   createRunningTaskRun,
@@ -972,7 +973,7 @@ export class AcpSessionManager {
       Number.isFinite(runtimeTimeoutSeconds) &&
       runtimeTimeoutSeconds > 0
     ) {
-      return Math.max(1_000, Math.round(runtimeTimeoutSeconds * 1_000));
+      return clampTimerTimeoutMs(Math.round(runtimeTimeoutSeconds * 1_000), 1_000) ?? 1_000;
     }
     return resolveAgentTimeoutMs({
       cfg: params.cfg,
@@ -1007,7 +1008,8 @@ export class AcpSessionManager {
       }),
     );
 
-    if (params.timeoutMs <= 0) {
+    const timeoutMs = clampTimerTimeoutMs(params.timeoutMs, 1);
+    if (timeoutMs === undefined) {
       const outcome = await observedTurnPromise;
       if (outcome.kind === "error") {
         throw outcome.error;
@@ -1018,7 +1020,7 @@ export class AcpSessionManager {
     const timeoutToken = Symbol("acp-turn-timeout");
     let timer: NodeJS.Timeout | undefined;
     const timeoutPromise = new Promise<typeof timeoutToken>((resolve) => {
-      timer = setTimeout(() => resolve(timeoutToken), params.timeoutMs);
+      timer = setTimeout(() => resolve(timeoutToken), timeoutMs);
       timer.unref?.();
     });
 

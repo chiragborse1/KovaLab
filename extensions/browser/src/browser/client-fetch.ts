@@ -1,3 +1,4 @@
+import { resolveTimerTimeoutMs } from "getkova/plugin-sdk/infra-runtime";
 import { fetchWithSsrFGuard } from "getkova/plugin-sdk/ssrf-runtime";
 import { normalizeOptionalString } from "getkova/plugin-sdk/text-runtime";
 import { normalizeLowercaseStringOrEmpty } from "getkova/plugin-sdk/text-runtime";
@@ -166,6 +167,10 @@ function appendBrowserToolModelHint(message: string): string {
 
 type BrowserFetchFailureKind = "timeout" | "aborted" | "persistent";
 
+function resolveBrowserFetchTimeoutMs(timeoutMs: number | undefined): number {
+  return resolveTimerTimeoutMs(timeoutMs, 5000);
+}
+
 function classifyBrowserFetchFailure(err: unknown): BrowserFetchFailureKind {
   const msg = normalizeErrorMessage(err);
   const msgLower = normalizeLowercaseStringOrEmpty(msg);
@@ -232,7 +237,7 @@ async function fetchHttpJson<T>(
   url: string,
   init: RequestInit & { timeoutMs?: number },
 ): Promise<T> {
-  const timeoutMs = init.timeoutMs ?? 5000;
+  const timeoutMs = resolveBrowserFetchTimeoutMs(init.timeoutMs);
   const ctrl = new AbortController();
   const upstreamSignal = init.signal;
   let upstreamAbortListener: (() => void) | undefined;
@@ -282,7 +287,7 @@ export async function fetchBrowserJson<T>(
   url: string,
   init?: RequestInit & { timeoutMs?: number },
 ): Promise<T> {
-  const timeoutMs = init?.timeoutMs ?? 5000;
+  const timeoutMs = resolveBrowserFetchTimeoutMs(init?.timeoutMs);
   let isDispatcherPath = false;
   try {
     if (isAbsoluteHttp(url)) {

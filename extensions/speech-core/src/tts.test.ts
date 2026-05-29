@@ -5,6 +5,7 @@ import {
   setRuntimeConfigSnapshot,
   type KovaConfig,
 } from "getkova/plugin-sdk/config-runtime";
+import { MAX_TIMER_TIMEOUT_MS } from "getkova/plugin-sdk/infra-runtime";
 import type { ReplyPayload } from "getkova/plugin-sdk/reply-payload";
 import type {
   SpeechProviderPlugin,
@@ -460,6 +461,49 @@ describe("speech-core native voice-note routing", () => {
       persona: "alfred",
     });
     expect(result.attempts?.[0]).not.toHaveProperty("personaBinding");
+  });
+
+  it("caps oversized configured TTS timeouts before synthesis", async () => {
+    const result = await synthesizeSpeech({
+      text: "Use capped configured timeout.",
+      cfg: {
+        messages: {
+          tts: {
+            enabled: true,
+            provider: "mock",
+            timeoutMs: Number.MAX_SAFE_INTEGER,
+          },
+        },
+      },
+      disableFallback: true,
+    });
+
+    expect(result.success).toBe(true);
+    expect(synthesizeMock).toHaveBeenCalledWith(
+      expect.objectContaining({ timeoutMs: MAX_TIMER_TIMEOUT_MS }),
+    );
+  });
+
+  it("caps oversized explicit TTS timeouts before synthesis", async () => {
+    const result = await synthesizeSpeech({
+      text: "Use capped explicit timeout.",
+      cfg: {
+        messages: {
+          tts: {
+            enabled: true,
+            provider: "mock",
+            timeoutMs: 45_000,
+          },
+        },
+      },
+      disableFallback: true,
+      timeoutMs: Number.MAX_SAFE_INTEGER,
+    });
+
+    expect(result.success).toBe(true);
+    expect(synthesizeMock).toHaveBeenCalledWith(
+      expect.objectContaining({ timeoutMs: MAX_TIMER_TIMEOUT_MS }),
+    );
   });
 
   it("uses provider defaults when fallback policy allows missing persona bindings", async () => {

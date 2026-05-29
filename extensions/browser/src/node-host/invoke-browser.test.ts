@@ -1,3 +1,4 @@
+import { MAX_TIMER_TIMEOUT_MS } from "getkova/plugin-sdk/infra-runtime";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const controlServiceMocks = vi.hoisted(() => ({
@@ -26,12 +27,7 @@ const browserConfigMocks = vi.hoisted(() => ({
   })),
 }));
 
-vi.mock("getkova/plugin-sdk/browser-config-runtime", () => ({
-  getRuntimeConfig: configMocks.loadConfig,
-  loadConfig: configMocks.loadConfig,
-}));
-
-vi.mock("getkova/plugin-sdk/browser-node-runtime", () => ({
+const browserNodeRuntimeMocks = vi.hoisted(() => ({
   withTimeout: vi.fn(
     async (
       run: (signal: AbortSignal | undefined) => Promise<unknown>,
@@ -64,6 +60,15 @@ vi.mock("getkova/plugin-sdk/browser-node-runtime", () => ({
       }
     },
   ),
+}));
+
+vi.mock("getkova/plugin-sdk/browser-config-runtime", () => ({
+  getRuntimeConfig: configMocks.loadConfig,
+  loadConfig: configMocks.loadConfig,
+}));
+
+vi.mock("getkova/plugin-sdk/browser-node-runtime", () => ({
+  withTimeout: browserNodeRuntimeMocks.withTimeout,
 }));
 
 vi.mock("getkova/plugin-sdk/browser-setup-tools", () => ({
@@ -158,6 +163,7 @@ describe("runBrowserProxyCommand", () => {
       enabled: true,
       defaultProfile: "kova",
     });
+    browserNodeRuntimeMocks.withTimeout.mockClear();
     configMocks.loadConfig.mockReturnValue({
       browser: {},
       nodeHost: { browserProxy: { enabled: true, allowProfiles: [] as string[] } },
@@ -167,6 +173,24 @@ describe("runBrowserProxyCommand", () => {
       defaultProfile: "kova",
     });
     controlServiceMocks.startBrowserControlServiceFromConfig.mockResolvedValue(true);
+  });
+
+  it("caps oversized proxy timeouts before invoking the browser runtime", async () => {
+    dispatcherMocks.dispatch.mockResolvedValueOnce({ status: 200, body: { ok: true } });
+
+    await runBrowserProxyCommand(
+      JSON.stringify({
+        method: "GET",
+        path: "/tabs",
+        timeoutMs: Number.MAX_SAFE_INTEGER,
+      }),
+    );
+
+    expect(browserNodeRuntimeMocks.withTimeout).toHaveBeenCalledWith(
+      expect.any(Function),
+      MAX_TIMER_TIMEOUT_MS,
+      "browser proxy request",
+    );
   });
 
   it("adds profile and browser status details on ws-backed timeouts", async () => {

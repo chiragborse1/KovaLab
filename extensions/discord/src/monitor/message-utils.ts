@@ -1,5 +1,6 @@
 import type { ChannelType, Client, Message } from "@buape/carbon";
 import { StickerFormatType, type APIAttachment, type APIStickerItem } from "discord-api-types/v10";
+import { resolveTimerTimeoutMs } from "getkova/plugin-sdk/infra-runtime";
 import { getFileExtension } from "getkova/plugin-sdk/media-mime";
 import { fetchRemoteMedia, type FetchLike } from "getkova/plugin-sdk/media-runtime";
 import { saveMediaBuffer } from "getkova/plugin-sdk/media-runtime";
@@ -344,7 +345,11 @@ async function fetchDiscordMedia(params: {
 }) {
   // `totalTimeoutMs` is enforced per individual attachment or sticker fetch.
   // The inbound worker's abort signal remains the outer bound for the message.
-  const timeoutAbortController = params.totalTimeoutMs ? new AbortController() : undefined;
+  const totalTimeoutMs =
+    params.totalTimeoutMs === undefined
+      ? undefined
+      : resolveTimerTimeoutMs(params.totalTimeoutMs, 1);
+  const timeoutAbortController = totalTimeoutMs ? new AbortController() : undefined;
   const signal = mergeAbortSignals([params.abortSignal, timeoutAbortController?.signal]);
   let timedOut = false;
   let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
@@ -368,15 +373,15 @@ async function fetchDiscordMedia(params: {
   });
 
   try {
-    if (!params.totalTimeoutMs) {
+    if (!totalTimeoutMs) {
       return await fetchPromise;
     }
     const timeoutPromise = new Promise<never>((_, reject) => {
       timeoutHandle = setTimeout(() => {
         timedOut = true;
         timeoutAbortController?.abort();
-        reject(new Error(`discord media download timed out after ${params.totalTimeoutMs}ms`));
-      }, params.totalTimeoutMs);
+        reject(new Error(`discord media download timed out after ${totalTimeoutMs}ms`));
+      }, totalTimeoutMs);
       timeoutHandle.unref?.();
     });
     return await Promise.race([fetchPromise, timeoutPromise]);

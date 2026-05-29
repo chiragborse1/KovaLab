@@ -1,5 +1,6 @@
 import { ChannelType, type Client, type Message } from "@buape/carbon";
 import { MessageReferenceType, StickerFormatType } from "discord-api-types/v10";
+import { MAX_TIMER_TIMEOUT_MS } from "getkova/plugin-sdk/infra-runtime";
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const fetchRemoteMedia = vi.fn();
@@ -781,6 +782,35 @@ describe("resolveMediaList", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("caps oversized attachment download total timeouts before scheduling", async () => {
+    const timeoutSpy = vi
+      .spyOn(globalThis, "setTimeout")
+      .mockReturnValue(1 as unknown as ReturnType<typeof setTimeout>);
+    vi.spyOn(globalThis, "clearTimeout").mockImplementation(() => undefined);
+    fetchRemoteMedia.mockResolvedValue({
+      buffer: Buffer.from("png"),
+      contentType: "image/png",
+      fileName: "huge.png",
+    });
+
+    await resolveMediaList(
+      asMessage({
+        attachments: [
+          {
+            id: "att-total-timeout-cap",
+            url: "https://cdn.discordapp.com/attachments/1/huge.png",
+            filename: "huge.png",
+            content_type: "image/png",
+          },
+        ],
+      }),
+      512,
+      { totalTimeoutMs: Number.MAX_SAFE_INTEGER },
+    );
+
+    expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), MAX_TIMER_TIMEOUT_MS);
   });
 
   it("passes abortSignal to fetchRemoteMedia and falls back when aborted", async () => {

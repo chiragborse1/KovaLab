@@ -1,6 +1,7 @@
 import { Buffer } from "node:buffer";
 import { once } from "node:events";
 import http, { type IncomingMessage, type ServerResponse } from "node:http";
+import { MAX_TIMER_TIMEOUT_MS } from "getkova/plugin-sdk/infra-runtime";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 vi.mock("getkova/plugin-sdk/core", async () => {
@@ -50,6 +51,7 @@ beforeAll(async () => {
 });
 
 afterEach(async () => {
+  vi.restoreAllMocks();
   await Promise.all(
     servers.splice(0).map(
       (server) =>
@@ -153,6 +155,24 @@ describe("signalRpcRequest", () => {
         timeoutMs: 25,
       }),
     ).rejects.toThrow("Signal HTTP exceeded deadline after 25ms");
+  });
+
+  it("caps oversized RPC request timeouts before scheduling", async () => {
+    const timeoutSpy = vi
+      .spyOn(globalThis, "setTimeout")
+      .mockReturnValue(1 as unknown as ReturnType<typeof setTimeout>);
+    vi.spyOn(globalThis, "clearTimeout").mockImplementation(() => undefined);
+    const baseUrl = await withSignalServer((_req, res) => {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ jsonrpc: "2.0", result: { version: "0.13.22" }, id: "test-id" }));
+    });
+
+    await signalRpcRequest("version", undefined, {
+      baseUrl,
+      timeoutMs: Number.MAX_SAFE_INTEGER,
+    });
+
+    expect(timeoutSpy).toHaveBeenCalledWith(expect.any(Function), MAX_TIMER_TIMEOUT_MS);
   });
 });
 

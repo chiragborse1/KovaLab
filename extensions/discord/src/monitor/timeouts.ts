@@ -1,19 +1,15 @@
-const MAX_DISCORD_TIMEOUT_MS = 2_147_483_647;
+import { resolveTimerTimeoutMs } from "getkova/plugin-sdk/infra-runtime";
 
 export const DISCORD_DEFAULT_LISTENER_TIMEOUT_MS = 120_000;
 export const DISCORD_DEFAULT_INBOUND_WORKER_TIMEOUT_MS = 30 * 60_000;
 export const DISCORD_ATTACHMENT_IDLE_TIMEOUT_MS = 60_000;
 export const DISCORD_ATTACHMENT_TOTAL_TIMEOUT_MS = 120_000;
 
-function clampDiscordTimeoutMs(timeoutMs: number, minimumMs: number): number {
-  return Math.max(minimumMs, Math.min(Math.floor(timeoutMs), MAX_DISCORD_TIMEOUT_MS));
-}
-
 export function normalizeDiscordListenerTimeoutMs(raw: number | undefined): number {
   if (!Number.isFinite(raw) || (raw ?? 0) <= 0) {
     return DISCORD_DEFAULT_LISTENER_TIMEOUT_MS;
   }
-  return clampDiscordTimeoutMs(raw!, 1_000);
+  return resolveTimerTimeoutMs(raw, DISCORD_DEFAULT_LISTENER_TIMEOUT_MS, 1_000);
 }
 
 export function normalizeDiscordInboundWorkerTimeoutMs(
@@ -25,7 +21,7 @@ export function normalizeDiscordInboundWorkerTimeoutMs(
   if (typeof raw !== "number" || !Number.isFinite(raw) || raw < 0) {
     return DISCORD_DEFAULT_INBOUND_WORKER_TIMEOUT_MS;
   }
-  return clampDiscordTimeoutMs(raw, 1);
+  return resolveTimerTimeoutMs(raw, DISCORD_DEFAULT_INBOUND_WORKER_TIMEOUT_MS, 1);
 }
 
 export function isAbortError(error: unknown): boolean {
@@ -75,7 +71,9 @@ export async function runDiscordTaskWithTimeout(params: {
   onAbortAfterTimeout?: () => void;
   onErrorAfterTimeout?: (error: unknown) => void;
 }): Promise<boolean> {
-  const timeoutAbortController = params.timeoutMs ? new AbortController() : undefined;
+  const timeoutMs =
+    params.timeoutMs === undefined ? undefined : resolveTimerTimeoutMs(params.timeoutMs, 1);
+  const timeoutAbortController = timeoutMs ? new AbortController() : undefined;
   const mergedAbortSignal = mergeAbortSignals([
     ...(params.abortSignals ?? []),
     timeoutAbortController?.signal,
@@ -95,12 +93,12 @@ export async function runDiscordTaskWithTimeout(params: {
   });
 
   try {
-    if (!params.timeoutMs) {
+    if (!timeoutMs) {
       await runPromise;
       return false;
     }
     const timeoutPromise = new Promise<"timeout">((resolve) => {
-      timeoutHandle = setTimeout(() => resolve("timeout"), params.timeoutMs);
+      timeoutHandle = setTimeout(() => resolve("timeout"), timeoutMs);
       timeoutHandle.unref?.();
     });
     const result = await Promise.race([
@@ -110,7 +108,7 @@ export async function runDiscordTaskWithTimeout(params: {
     if (result === "timeout") {
       timedOut = true;
       timeoutAbortController?.abort();
-      await params.onTimeout(params.timeoutMs);
+      await params.onTimeout(timeoutMs);
       return true;
     }
     return false;

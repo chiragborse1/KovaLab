@@ -1,3 +1,4 @@
+import { resolveTimerTimeoutMs } from "getkova/plugin-sdk/infra-runtime";
 import { transcodeAudioBufferToOpus } from "getkova/plugin-sdk/media-runtime";
 import { assertOkOrThrowProviderError } from "getkova/plugin-sdk/provider-http";
 import { normalizeResolvedSecretInputString } from "getkova/plugin-sdk/secret-input";
@@ -205,8 +206,9 @@ export async function xiaomiTTS(params: {
   timeoutMs: number;
 }): Promise<Buffer> {
   const { text, apiKey, baseUrl, model, voice, format, style, timeoutMs } = params;
+  const requestTimeoutMs = resolveTimerTimeoutMs(timeoutMs, 1);
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  const timeout = setTimeout(() => controller.abort(), requestTimeoutMs);
 
   try {
     const { response, release } = await fetchWithSsrFGuard({
@@ -224,7 +226,7 @@ export async function xiaomiTTS(params: {
         }),
         signal: controller.signal,
       },
-      timeoutMs,
+      timeoutMs: requestTimeoutMs,
       policy: ssrfPolicyFromHttpBaseUrlAllowedHostname(baseUrl),
       auditContext: "xiaomi.tts",
     });

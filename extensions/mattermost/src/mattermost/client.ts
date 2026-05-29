@@ -1,3 +1,4 @@
+import { resolveTimerTimeoutMs } from "getkova/plugin-sdk/infra-runtime";
 import {
   fetchWithSsrFGuard,
   ssrfPolicyFromPrivateNetworkOptIn,
@@ -295,9 +296,10 @@ export async function createMattermostDirectChannelWithRetry(
     maxRetries = 3,
     initialDelayMs = 1000,
     maxDelayMs = 10000,
-    timeoutMs = 30000,
+    timeoutMs: rawTimeoutMs = 30000,
     onRetry,
   } = options;
+  const timeoutMs = resolveTimerTimeoutMs(rawTimeoutMs, 30000);
 
   let lastError: Error | undefined;
 

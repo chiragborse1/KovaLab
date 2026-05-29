@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { detectZaiEndpoint } from "../plugins/provider-zai-endpoint.js";
+import { MAX_TIMER_TIMEOUT_MS } from "../shared/number-coercion.js";
 
 type FetchResponse = { status: number; body?: unknown };
 
@@ -19,6 +20,10 @@ function makeFetch(map: Record<string, FetchResponse>) {
 }
 
 describe("detectZaiEndpoint", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("resolves preferred/fallback endpoints and null when probes fail", async () => {
     const scenarios: Array<{
       endpoint?: "global" | "cn" | "coding-global" | "coding-cn";
@@ -109,5 +114,23 @@ describe("detectZaiEndpoint", () => {
         expect(detected?.modelId).toBe(scenario.expected.modelId);
       }
     }
+  });
+
+  it("caps oversized probe timeouts before scheduling", async () => {
+    const timeoutSpy = vi
+      .spyOn(globalThis, "setTimeout")
+      .mockImplementation((() => 1) as typeof setTimeout);
+    vi.spyOn(globalThis, "clearTimeout").mockImplementation(() => undefined);
+    const fetchFn = makeFetch({
+      "https://api.z.ai/api/paas/v4/chat/completions::glm-5.1": { status: 200 },
+    });
+
+    await detectZaiEndpoint({
+      apiKey: "sk-test", // pragma: allowlist secret
+      fetchFn,
+      timeoutMs: MAX_TIMER_TIMEOUT_MS + 1_000_000,
+    });
+
+    expect(timeoutSpy.mock.calls[0]?.[1]).toBe(MAX_TIMER_TIMEOUT_MS);
   });
 });

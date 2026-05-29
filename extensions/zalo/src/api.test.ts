@@ -1,3 +1,4 @@
+import { MAX_TIMER_TIMEOUT_MS } from "getkova/plugin-sdk/infra-runtime";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const resolvePinnedHostnameWithPolicyMock = vi.fn();
@@ -70,6 +71,38 @@ describe("Zalo API request methods", () => {
       expect(init?.signal?.aborted).toBe(true);
     } finally {
       vi.useRealTimers();
+    }
+  });
+
+  it("caps oversized sendChatAction timeouts before scheduling the timer", async () => {
+    const setTimeoutMock = vi
+      .spyOn(globalThis, "setTimeout")
+      .mockImplementation((() => 1) as typeof setTimeout);
+    const clearTimeoutMock = vi
+      .spyOn(globalThis, "clearTimeout")
+      .mockImplementation(() => undefined);
+    try {
+      const fetcher = vi.fn<ZaloFetch>(
+        async () =>
+          ({
+            json: async () => ({ ok: true, result: {} }),
+          }) as Response,
+      );
+
+      await sendChatAction(
+        "test-token",
+        {
+          chat_id: "chat-123",
+          action: "typing",
+        },
+        fetcher,
+        MAX_TIMER_TIMEOUT_MS + 1_000_000,
+      );
+
+      expect(setTimeoutMock).toHaveBeenCalledWith(expect.any(Function), MAX_TIMER_TIMEOUT_MS);
+    } finally {
+      setTimeoutMock.mockRestore();
+      clearTimeoutMock.mockRestore();
     }
   });
 

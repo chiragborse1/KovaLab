@@ -21,6 +21,7 @@ import {
   type TtsProvider,
 } from "getkova/plugin-sdk/config-runtime";
 import { formatErrorMessage } from "getkova/plugin-sdk/error-runtime";
+import { resolveTimerTimeoutMs } from "getkova/plugin-sdk/infra-runtime";
 import { redactSensitiveText } from "getkova/plugin-sdk/logging-core";
 import {
   resolveSendableOutboundReplyParts,
@@ -67,6 +68,13 @@ const DEFAULT_TIMEOUT_MS = 30_000;
 const DEFAULT_TTS_MAX_LENGTH = 1500;
 const DEFAULT_TTS_SUMMARIZE = true;
 const DEFAULT_MAX_TEXT_LENGTH = 4096;
+
+function resolvePositiveTimerTimeoutMs(value: number | undefined): number | undefined {
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    return undefined;
+  }
+  return resolveTimerTimeoutMs(value, DEFAULT_TIMEOUT_MS);
+}
 
 type TtsUserPrefs = {
   tts?: {
@@ -457,7 +465,7 @@ export function resolveTtsConfig(
   cfg = resolveTtsRuntimeConfig(cfg);
   const raw: TtsConfig = resolveEffectiveTtsConfig(cfg, contextOrAgentId);
   const providerSource = raw.provider ? "config" : "default";
-  const timeoutMs = raw.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const timeoutMs = resolvePositiveTimerTimeoutMs(raw.timeoutMs) ?? DEFAULT_TIMEOUT_MS;
   const auto = resolveConfiguredTtsAutoMode(raw);
   const persona = normalizeTtsPersonaId(raw.persona);
   return {
@@ -1161,7 +1169,7 @@ export async function synthesizeSpeech(params: {
   }
 
   const { cfg, config, persona, providers } = setup;
-  const timeoutMs = params.timeoutMs ?? config.timeoutMs;
+  const timeoutMs = resolvePositiveTimerTimeoutMs(params.timeoutMs) ?? config.timeoutMs;
   const target = resolveTtsSynthesisTarget(params.channel);
 
   const errors: string[] = [];

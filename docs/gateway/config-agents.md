@@ -530,7 +530,7 @@ Periodic Pulse runs. Legacy `agents.defaults.heartbeat` still works as an alias,
 - `every`: duration string (ms/s/m/h). Default: `30m` (API-key auth) or `1h` (OAuth auth). Set to `0m` to disable.
 - `includeSystemPromptSection`: when false, omits the Pulse section from the system prompt and skips `PULSE.md` / legacy `HEARTBEAT.md` injection into bootstrap context. Default: `true`.
 - `suppressToolErrorWarnings`: when true, suppresses tool error warning payloads during Pulse runs.
-- `timeoutSeconds`: maximum time in seconds allowed for a Pulse agent turn before it is aborted. Leave unset to use `agents.defaults.timeoutSeconds`.
+- `timeoutSeconds`: maximum time in seconds allowed for a Pulse agent turn before it is aborted. Leave unset to use `agents.defaults.timeoutSeconds`; when that is unset too, Kova uses the Pulse cadence capped at 600 seconds.
 - `directPolicy`: direct/DM delivery policy. `allow` (default) permits direct-target delivery. `block` suppresses direct-target delivery and emits `reason=dm-blocked`.
 - `lightContext`: when true, Pulse runs use lightweight bootstrap context and keep only `PULSE.md` / legacy `HEARTBEAT.md` from workspace bootstrap files.
 - `isolatedSession`: when true, each Pulse runs in a fresh session with no prior conversation history. Same isolation pattern as cron `sessionTarget: "isolated"`. Reduces per-Pulse token cost from ~100K to ~2-5K tokens.

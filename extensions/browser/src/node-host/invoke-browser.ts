@@ -2,6 +2,7 @@ import fsPromises from "node:fs/promises";
 import { getRuntimeConfig } from "getkova/plugin-sdk/browser-config-runtime";
 import { withTimeout } from "getkova/plugin-sdk/browser-node-runtime";
 import { detectMime } from "getkova/plugin-sdk/browser-setup-tools";
+import { resolveTimerTimeoutMs } from "getkova/plugin-sdk/infra-runtime";
 import { redactCdpUrl } from "../browser/cdp.helpers.js";
 import { resolveBrowserConfig } from "../browser/config.js";
 import {
@@ -135,9 +136,7 @@ function decodeParams<T>(raw?: string | null): T {
 }
 
 function resolveBrowserProxyTimeout(timeoutMs?: number): number {
-  return typeof timeoutMs === "number" && Number.isFinite(timeoutMs)
-    ? Math.max(1, Math.floor(timeoutMs))
-    : DEFAULT_BROWSER_PROXY_TIMEOUT_MS;
+  return resolveTimerTimeoutMs(timeoutMs, DEFAULT_BROWSER_PROXY_TIMEOUT_MS);
 }
 
 function isBrowserProxyTimeoutError(err: unknown): boolean {

@@ -1,3 +1,4 @@
+import { resolveTimerTimeoutMs } from "../shared/number-coercion.js";
 import { fetchWithTimeout } from "../utils/fetch-timeout.js";
 
 const ZAI_CODING_GLOBAL_BASE_URL = "https://api.z.ai/api/coding/paas/v4";
@@ -96,7 +97,7 @@ export async function detectZaiEndpoint(params: {
     return null;
   }
 
-  const timeoutMs = params.timeoutMs ?? 5_000;
+  const timeoutMs = resolveTimerTimeoutMs(params.timeoutMs, 5_000);
   const probeCandidates = (() => {
     const general = [
       {

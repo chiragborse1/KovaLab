@@ -10,6 +10,7 @@ import {
 import { Type } from "typebox";
 import { formatErrorMessage } from "../infra/errors.js";
 import { inferParamBFromIdOrName } from "../shared/model-param-b.js";
+import { resolveTimerTimeoutMs } from "../shared/number-coercion.js";
 import {
   normalizeLowercaseStringOrEmpty,
   normalizeOptionalString,
@@ -172,7 +173,8 @@ async function withTimeout<T>(
   fn: (signal: AbortSignal) => Promise<T>,
 ): Promise<T> {
   const controller = new AbortController();
-  const timer = setTimeout(controller.abort.bind(controller), timeoutMs);
+  const safeTimeoutMs = resolveTimerTimeoutMs(timeoutMs, 1);
+  const timer = setTimeout(controller.abort.bind(controller), safeTimeoutMs);
   try {
     return await fn(controller.signal);
   } finally {
