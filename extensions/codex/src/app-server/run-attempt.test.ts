@@ -22,6 +22,10 @@ import {
 import { createMockPluginRegistry } from "../../../../src/plugins/hooks.test-helpers.js";
 import { CODEX_GPT5_BEHAVIOR_CONTRACT } from "../../prompt-overlay.js";
 import * as elicitationBridge from "./elicitation-bridge.js";
+import {
+  clearPendingCodexNativeHookRelayUnregistersForTests,
+  flushPendingCodexNativeHookRelayUnregistersForTests,
+} from "./native-hook-relay.js";
 import type { CodexServerNotification } from "./protocol.js";
 import { runCodexAppServerAttempt, __testing } from "./run-attempt.js";
 import { writeCodexAppServerBinding } from "./session-binding.js";
@@ -207,6 +211,7 @@ function createAppServerHarness(
 ) {
   const requests: Array<{ method: string; params: unknown }> = [];
   let notify: (notification: CodexServerNotification) => Promise<void> = async () => undefined;
+  let closeHandler: ((client: never) => void) | undefined;
   const request = vi.fn(async (method: string, params?: unknown) => {
     requests.push({ method, params });
     return requestImpl(method, params);
@@ -221,6 +226,12 @@ function createAppServerHarness(
         return () => undefined;
       },
       addRequestHandler: () => () => undefined,
+      addCloseHandler: (handler: (client: never) => void) => {
+        closeHandler = handler;
+        return () => {
+          closeHandler = undefined;
+        };
+      },
     } as never;
   });
 
@@ -235,6 +246,9 @@ function createAppServerHarness(
     },
     async notify(notification: CodexServerNotification) {
       await notify(notification);
+    },
+    close() {
+      closeHandler?.(undefined as never);
     },
     async completeTurn(params: { threadId: string; turnId: string }) {
       await notify({
@@ -319,6 +333,7 @@ function createThreadLifecycleAppServerOptions(): Parameters<
       headers: {},
     },
     requestTimeoutMs: 60_000,
+    turnCompletionIdleTimeoutMs: 60_000,
     approvalPolicy: "never",
     approvalsReviewer: "user",
     sandbox: "workspace-write",
@@ -369,6 +384,7 @@ describe("runCodexAppServerAttempt", () => {
 
   afterEach(async () => {
     __testing.resetCodexAppServerClientFactoryForTests();
+    clearPendingCodexNativeHookRelayUnregistersForTests();
     nativeHookRelayTesting.clearNativeHookRelaysForTests();
     resetAgentEventsForTest();
     resetGlobalHookRunner();
@@ -600,7 +616,7 @@ describe("runCodexAppServerAttempt", () => {
     expect(startRequest?.params).toEqual(
       expect.objectContaining({
         config: expect.objectContaining({
-          "features.codex_hooks": true,
+          "features.hooks": true,
           "hooks.PreToolUse": [
             expect.objectContaining({
               hooks: [
@@ -616,6 +632,7 @@ describe("runCodexAppServerAttempt", () => {
       }),
     );
     const relayId = extractRelayIdFromThreadRequest(startRequest?.params);
+    flushPendingCodexNativeHookRelayUnregistersForTests();
     expect(nativeHookRelayTesting.getNativeHookRelayRegistrationForTests(relayId)).toBeUndefined();
   });
 
@@ -635,7 +652,7 @@ describe("runCodexAppServerAttempt", () => {
     expect(startRequest?.params).toEqual(
       expect.objectContaining({
         config: {
-          "features.codex_hooks": false,
+          "features.hooks": false,
           "hooks.PreToolUse": [],
           "hooks.PostToolUse": [],
           "hooks.PermissionRequest": [],
@@ -1357,6 +1374,47 @@ describe("runCodexAppServerAttempt", () => {
     expect(queueAgentHarnessMessage("session-1", "after timeout")).toBe(false);
   });
 
+  it("releases a quiet app-server turn through the completion idle watch", async () => {
+    const harness = createStartedThreadHarness();
+    const params = createParams(
+      path.join(tempDir, "session.jsonl"),
+      path.join(tempDir, "workspace"),
+    );
+    params.timeoutMs = 1_000;
+
+    const run = runCodexAppServerAttempt(params, {
+      pluginConfig: {
+        appServer: {
+          turnCompletionIdleTimeoutMs: 10,
+        },
+      },
+    });
+    await harness.waitForMethod("turn/start");
+
+    await expect(run).resolves.toMatchObject({
+      timedOut: true,
+      promptError: "codex app-server turn idle timed out waiting for turn/completed",
+      promptErrorSource: "prompt",
+    });
+    expect(harness.requests.map((entry) => entry.method)).toContain("turn/interrupt");
+  });
+
+  it("surfaces client-close as a prompt error instead of stranding the active turn", async () => {
+    const harness = createStartedThreadHarness();
+    const run = runCodexAppServerAttempt(
+      createParams(path.join(tempDir, "session.jsonl"), path.join(tempDir, "workspace")),
+    );
+    await harness.waitForMethod("turn/start");
+
+    harness.close();
+
+    await expect(run).resolves.toMatchObject({
+      aborted: false,
+      promptError: "codex app-server client closed before turn completed",
+      promptErrorSource: "prompt",
+    });
+  });
+
   it("passes the selected auth profile into app-server startup", async () => {
     const seenAuthProfileIds: Array<string | undefined> = [];
     const { requests, waitForMethod, completeTurn } = createStartedThreadHarness(undefined, {
@@ -1642,6 +1700,7 @@ describe("runCodexAppServerAttempt", () => {
         headers: {},
       },
       requestTimeoutMs: 60_000,
+      turnCompletionIdleTimeoutMs: 60_000,
       approvalPolicy: "on-request" as const,
       approvalsReviewer: "guardian_subagent" as const,
       sandbox: "danger-full-access" as const,
@@ -1683,6 +1742,7 @@ describe("runCodexAppServerAttempt", () => {
         headers: {},
       },
       requestTimeoutMs: 60_000,
+      turnCompletionIdleTimeoutMs: 60_000,
       approvalPolicy: "never" as const,
       approvalsReviewer: "user" as const,
       sandbox: "workspace-write" as const,
@@ -1740,6 +1800,7 @@ describe("runCodexAppServerAttempt", () => {
           headers: {},
         },
         requestTimeoutMs: 60_000,
+        turnCompletionIdleTimeoutMs: 60_000,
         approvalPolicy: "never",
         approvalsReviewer: "user",
         sandbox: "workspace-write",

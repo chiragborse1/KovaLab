@@ -21,6 +21,7 @@ describe("native hook relay gateway method", () => {
       params: {
         provider: "codex",
         relayId: relay.relayId,
+        generation: relay.generation,
         event: "post_tool_use",
         rawPayload: {
           hook_event_name: "PostToolUse",

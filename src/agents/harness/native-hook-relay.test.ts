@@ -42,7 +42,7 @@ describe("native hook relay registry", () => {
     });
     expect(relay.commandForEvent("pre_tool_use")).toBe(
       "/usr/local/bin/node /opt/Kova/kova.mjs hooks relay --provider codex --relay-id " +
-        `${relay.relayId} --event pre_tool_use --timeout 1234`,
+        `${relay.relayId} --generation ${relay.generation} --event pre_tool_use --timeout 1234`,
     );
   });
 
@@ -88,6 +88,74 @@ describe("native hook relay registry", () => {
         }),
       }),
     ]);
+  });
+
+  it("accepts an allowed Codex invocation through the direct bridge", async () => {
+    const relay = registerNativeHookRelay({
+      provider: "codex",
+      relayId: "codex-direct-bridge-test",
+      sessionId: "session-1",
+      runId: "run-1",
+      allowedEvents: ["pre_tool_use"],
+    });
+    await vi.waitFor(() => {
+      expect(__testing.getNativeHookRelayBridgeRecordForTests(relay.relayId)?.relayId).toBe(
+        relay.relayId,
+      );
+    });
+
+    const response = await __testing.invokeNativeHookRelayBridgeForTests({
+      provider: "codex",
+      relayId: relay.relayId,
+      generation: relay.generation,
+      event: "pre_tool_use",
+      timeoutMs: 2_000,
+      rawPayload: {
+        hook_event_name: "PreToolUse",
+        tool_name: "Bash",
+        tool_input: { command: "pnpm test" },
+      },
+    });
+
+    expect(response).toEqual({ stdout: "", stderr: "", exitCode: 0 });
+    expect(__testing.getNativeHookRelayInvocationsForTests()).toEqual([
+      expect.objectContaining({
+        relayId: relay.relayId,
+        event: "pre_tool_use",
+        runId: "run-1",
+      }),
+    ]);
+  });
+
+  it("rejects stale direct bridge generations", async () => {
+    const relay = registerNativeHookRelay({
+      provider: "codex",
+      relayId: "codex-stale-generation-test",
+      sessionId: "session-1",
+      runId: "run-1",
+      allowedEvents: ["pre_tool_use"],
+    });
+    await vi.waitFor(() => {
+      expect(__testing.getNativeHookRelayBridgeRecordForTests(relay.relayId)?.relayId).toBe(
+        relay.relayId,
+      );
+    });
+
+    await expect(
+      __testing.invokeNativeHookRelayBridgeForTests({
+        provider: "codex",
+        relayId: relay.relayId,
+        generation: "stale-generation",
+        event: "pre_tool_use",
+        timeoutMs: 2_000,
+        rawPayload: {
+          hook_event_name: "PreToolUse",
+          tool_name: "Bash",
+          tool_input: { command: "pnpm test" },
+        },
+      }),
+    ).rejects.toThrow("native hook relay bridge stale registration");
+    expect(__testing.getNativeHookRelayInvocationsForTests()).toEqual([]);
   });
 
   it("retains bounded payload snapshots in invocation history", async () => {

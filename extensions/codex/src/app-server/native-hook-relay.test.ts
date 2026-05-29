@@ -13,10 +13,9 @@ describe("Codex native hook relay config", () => {
     });
 
     expect(config).toEqual({
-      "features.codex_hooks": true,
+      "features.hooks": true,
       "hooks.PreToolUse": [
         {
-          matcher: null,
           hooks: [
             {
               type: "command",
@@ -30,7 +29,6 @@ describe("Codex native hook relay config", () => {
       ],
       "hooks.PostToolUse": [
         {
-          matcher: null,
           hooks: [
             {
               type: "command",
@@ -44,7 +42,6 @@ describe("Codex native hook relay config", () => {
       ],
       "hooks.PermissionRequest": [
         {
-          matcher: null,
           hooks: [
             {
               type: "command",
@@ -59,7 +56,6 @@ describe("Codex native hook relay config", () => {
       ],
       "hooks.Stop": [
         {
-          matcher: null,
           hooks: [
             {
               type: "command",
@@ -72,6 +68,40 @@ describe("Codex native hook relay config", () => {
           ],
         },
       ],
+      "hooks.state": {
+        "/<session-flags>/config.toml:permission_request:0:0": {
+          enabled: true,
+          trusted_hash: expect.stringMatching(/^sha256:/),
+        },
+        "/<session-flags>/config.toml:post_tool_use:0:0": {
+          enabled: true,
+          trusted_hash: expect.stringMatching(/^sha256:/),
+        },
+        "/<session-flags>/config.toml:pre_tool_use:0:0": {
+          enabled: true,
+          trusted_hash: expect.stringMatching(/^sha256:/),
+        },
+        "/<session-flags>/config.toml:stop:0:0": {
+          enabled: true,
+          trusted_hash: expect.stringMatching(/^sha256:/),
+        },
+        "<session-flags>/config.toml:permission_request:0:0": {
+          enabled: true,
+          trusted_hash: expect.stringMatching(/^sha256:/),
+        },
+        "<session-flags>/config.toml:post_tool_use:0:0": {
+          enabled: true,
+          trusted_hash: expect.stringMatching(/^sha256:/),
+        },
+        "<session-flags>/config.toml:pre_tool_use:0:0": {
+          enabled: true,
+          trusted_hash: expect.stringMatching(/^sha256:/),
+        },
+        "<session-flags>/config.toml:stop:0:0": {
+          enabled: true,
+          trusted_hash: expect.stringMatching(/^sha256:/),
+        },
+      },
     });
     expect(JSON.stringify(config)).not.toContain("timeoutSec");
     expect(config).not.toHaveProperty("hooks.SessionStart");
@@ -85,10 +115,9 @@ describe("Codex native hook relay config", () => {
         events: ["permission_request"],
       }),
     ).toEqual({
-      "features.codex_hooks": true,
+      "features.hooks": true,
       "hooks.PermissionRequest": [
         {
-          matcher: null,
           hooks: [
             {
               type: "command",
@@ -101,22 +130,32 @@ describe("Codex native hook relay config", () => {
           ],
         },
       ],
+      "hooks.state": {
+        "/<session-flags>/config.toml:permission_request:0:0": {
+          enabled: true,
+          trusted_hash: expect.stringMatching(/^sha256:/),
+        },
+        "<session-flags>/config.toml:permission_request:0:0": {
+          enabled: true,
+          trusted_hash: expect.stringMatching(/^sha256:/),
+        },
+      },
     });
   });
 
-  it("leaves matchers open so Codex MCP tool names reach the relay", () => {
+  it("omits matchers so Codex MCP tool names reach the relay", () => {
     const config = buildCodexNativeHookRelayConfig({
       relay: createRelay(),
       events: ["pre_tool_use", "post_tool_use"],
     });
 
-    expect(config["hooks.PreToolUse"]).toEqual([expect.objectContaining({ matcher: null })]);
-    expect(config["hooks.PostToolUse"]).toEqual([expect.objectContaining({ matcher: null })]);
+    expect(JSON.stringify(config["hooks.PreToolUse"])).not.toContain("matcher");
+    expect(JSON.stringify(config["hooks.PostToolUse"])).not.toContain("matcher");
   });
 
   it("builds deterministic clearing config when the relay is disabled", () => {
     expect(buildCodexNativeHookRelayDisabledConfig()).toEqual({
-      "features.codex_hooks": false,
+      "features.hooks": false,
       "hooks.PreToolUse": [],
       "hooks.PostToolUse": [],
       "hooks.PermissionRequest": [],
@@ -134,8 +173,11 @@ function createRelay(): NativeHookRelayRegistrationHandle {
     runId: "run-1",
     allowedEvents: ["pre_tool_use", "post_tool_use", "permission_request", "before_agent_finalize"],
     expiresAtMs: Date.now() + 1000,
+    generation: "generation-1",
+    shouldRelayEvent: () => true,
     commandForEvent: (event) =>
       `kova hooks relay --provider codex --relay-id relay-1 --event ${event}`,
+    renew: () => undefined,
     unregister: () => undefined,
   };
 }
