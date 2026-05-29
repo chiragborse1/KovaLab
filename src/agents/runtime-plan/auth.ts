@@ -17,6 +17,7 @@ function resolveHarnessAuthProvider(params: {
 export function buildAgentRuntimeAuthPlan(params: {
   provider: string;
   authProfileProvider?: string;
+  authProfileMode?: string;
   sessionAuthProfileId?: string;
   config?: KovaConfig;
   workspaceDir?: string;
@@ -40,7 +41,10 @@ export function buildAgentRuntimeAuthPlan(params: {
   const harnessCanForwardProfile =
     params.allowHarnessAuthProfileForwarding !== false &&
     harnessProviderForAuth &&
-    harnessProviderForAuth === authProfileProviderForAuth;
+    (harnessProviderForAuth === authProfileProviderForAuth ||
+      (harnessProviderForAuth === CODEX_HARNESS_AUTH_PROVIDER &&
+        authProfileProviderForAuth === "openai" &&
+        params.authProfileMode === "api_key"));
   const canForwardProfile =
     providerForAuth === authProfileProviderForAuth || harnessCanForwardProfile;
 

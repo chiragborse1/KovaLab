@@ -3,7 +3,12 @@ import { resolveSessionAgentId } from "../../agents/agent-scope.js";
 import type { KovaConfig } from "../../config/config.js";
 import type { MsgContext } from "../templating.js";
 import { handleContextCommand } from "./commands-context-command.js";
-import { handleExportTrajectoryCommand, handleStatusCommand } from "./commands-info.js";
+import {
+  handleCommandsListCommand,
+  handleExportTrajectoryCommand,
+  handleSkillCommandUsage,
+  handleStatusCommand,
+} from "./commands-info.js";
 import { buildStatusReply } from "./commands-status.js";
 import type { HandleCommandsParams } from "./commands-types.js";
 import { handleWhoamiCommand } from "./commands-whoami.js";
@@ -11,6 +16,7 @@ import { handleWhoamiCommand } from "./commands-whoami.js";
 const buildContextReplyMock = vi.hoisted(() => vi.fn());
 const buildExportTrajectoryReplyMock = vi.hoisted(() => vi.fn(async () => ({ text: "exported" })));
 const listSkillCommandsForAgentsMock = vi.hoisted(() => vi.fn(() => []));
+const resolveSkillCommandInvocationMock = vi.hoisted(() => vi.fn(() => null));
 const buildCommandsMessagePaginatedMock = vi.hoisted(() =>
   vi.fn(() => ({ text: "/commands", currentPage: 1, totalPages: 1 })),
 );
@@ -39,6 +45,7 @@ vi.mock("../../agents/agent-scope.js", async () => {
 
 vi.mock("../skill-commands.js", () => ({
   listSkillCommandsForAgents: listSkillCommandsForAgentsMock,
+  resolveSkillCommandInvocation: resolveSkillCommandInvocationMock,
 }));
 
 vi.mock("../status.js", async () => {
@@ -108,6 +115,7 @@ describe("info command handlers", () => {
       currentPage: 1,
       totalPages: 1,
     });
+    resolveSkillCommandInvocationMock.mockReturnValue(null);
   });
 
   it("only lets owners export trajectory bundles", async () => {
@@ -286,7 +294,6 @@ describe("info command handlers", () => {
   });
 
   it("uses the canonical target session agent when listing /commands", async () => {
-    const { handleCommandsListCommand } = await import("./commands-info.js");
     const params = buildInfoParams("/commands", {
       commands: { text: true },
       channels: { whatsapp: { allowFrom: ["*"] } },
@@ -303,5 +310,71 @@ describe("info command handlers", () => {
         agentIds: ["target"],
       }),
     );
+  });
+
+  it("uses a lazy skill command loader when listing /commands", async () => {
+    const skillCommand = {
+      name: "demo_skill",
+      skillName: "demo-skill",
+      description: "Demo skill",
+    };
+    const loadSkillCommands = vi.fn(async () => [skillCommand]);
+    const params = buildInfoParams("/commands", {
+      commands: { text: true },
+      channels: { whatsapp: { allowFrom: ["*"] } },
+    } as KovaConfig);
+    params.loadSkillCommands = loadSkillCommands;
+
+    const result = await handleCommandsListCommand(params, true);
+
+    expect(result?.shouldContinue).toBe(false);
+    expect(loadSkillCommands).toHaveBeenCalledOnce();
+    expect(listSkillCommandsForAgentsMock).not.toHaveBeenCalled();
+    expect(buildCommandsMessagePaginatedMock).toHaveBeenCalledWith(
+      expect.anything(),
+      [skillCommand],
+      expect.objectContaining({ page: 1 }),
+    );
+  });
+
+  it("returns deterministic /skill usage without a model turn", async () => {
+    const params = buildInfoParams("/skill", {
+      commands: { text: true },
+      channels: { whatsapp: { allowFrom: ["*"] } },
+    } as KovaConfig);
+    params.skillCommands = [
+      {
+        name: "demo_skill",
+        skillName: "demo-skill",
+        description: "Demo skill",
+      },
+    ];
+
+    const result = await handleSkillCommandUsage(params, true);
+
+    expect(result?.shouldContinue).toBe(false);
+    expect(result?.reply?.text).toContain("Usage: /skill <name> [input]");
+    expect(result?.reply?.text).toContain("Available: demo-skill");
+  });
+
+  it("lets valid /skill invocations continue to the skill fast path", async () => {
+    const skillCommand = {
+      name: "demo_skill",
+      skillName: "demo-skill",
+      description: "Demo skill",
+    };
+    const params = buildInfoParams("/skill demo-skill please run", {
+      commands: { text: true },
+      channels: { whatsapp: { allowFrom: ["*"] } },
+    } as KovaConfig);
+    params.skillCommands = [skillCommand];
+    resolveSkillCommandInvocationMock.mockReturnValue({
+      command: skillCommand,
+      args: "please run",
+    });
+
+    const result = await handleSkillCommandUsage(params, true);
+
+    expect(result).toBeNull();
   });
 });

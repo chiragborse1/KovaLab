@@ -339,7 +339,6 @@ export class LocalProcessTuiBackend implements TuiBackend {
 
   private handleMessage(message: LocalProcessMessage) {
     if (message.type === "ready") {
-      this.emitConnected();
       return;
     }
     if (message.type === "connected") {

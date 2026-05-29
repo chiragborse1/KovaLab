@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { getToolPluginMetadata, type ToolPluginMetadata } from "../plugin-sdk/tool-plugin.js";
 import {
+  createPluginJitiLoaderCache,
   getCachedPluginJitiLoader,
   type PluginJitiLoaderCache,
 } from "../plugins/jiti-loader-cache.js";
@@ -40,7 +41,7 @@ type LoadedToolPlugin = {
   metadata: ToolPluginMetadata;
 };
 
-const toolPluginEntryModuleLoaders: PluginJitiLoaderCache = new Map();
+const toolPluginEntryModuleLoaders: PluginJitiLoaderCache = createPluginJitiLoaderCache();
 
 function readJsonFile(filePath: string): JsonObject {
   return JSON.parse(fs.readFileSync(filePath, "utf8")) as JsonObject;

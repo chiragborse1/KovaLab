@@ -327,6 +327,30 @@ function toolExecutionLabels(evt: {
   };
 }
 
+function toolExecutionBlockedLabels(
+  evt: Extract<DiagnosticEventPayload, { type: "tool.execution.blocked" }>,
+): LabelSet {
+  return {
+    denied_reason: lowCardinalityLabel(evt.deniedReason, "other"),
+    params_kind: lowCardinalityLabel(evt.paramsSummary?.kind),
+    tool: lowCardinalityLabel(evt.toolName, "tool"),
+  };
+}
+
+function skillLabels(evt: {
+  activation: string;
+  agentId?: string;
+  skillName: string;
+  skillSource?: string;
+}): LabelSet {
+  return {
+    activation: lowCardinalityLabel(evt.activation, "unknown"),
+    agent: lowCardinalityLabel(evt.agentId),
+    skill: lowCardinalityLabel(evt.skillName, "skill"),
+    source: lowCardinalityLabel(evt.skillSource),
+  };
+}
+
 function harnessLabels(evt: {
   channel?: string;
   errorCategory?: string;
@@ -461,6 +485,16 @@ function recordDiagnosticEvent(
         "Tool executions completed by outcome.",
         toolExecutionLabels(evt),
       );
+      return;
+    case "tool.execution.blocked":
+      store.counter(
+        "kova_tool_execution_blocked_total",
+        "Tool executions blocked by policy or sandbox diagnostics.",
+        toolExecutionBlockedLabels(evt),
+      );
+      return;
+    case "skill.used":
+      store.counter("kova_skill_used_total", "Skills used by agent runs.", skillLabels(evt));
       return;
     case "harness.run.completed":
     case "harness.run.error":

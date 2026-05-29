@@ -1,7 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 import { getRuntimeConfig } from "../../config/config.js";
-import { getCachedPluginJitiLoader, type PluginJitiLoaderCache } from "../jiti-loader-cache.js";
+import {
+  createPluginJitiLoaderCache,
+  getCachedPluginJitiLoader,
+  type PluginJitiLoaderCache,
+} from "../jiti-loader-cache.js";
 import { loadPluginManifestRegistry } from "../manifest-registry.js";
 import { shouldPreferNativeJiti } from "../sdk-alias.js";
 
@@ -139,7 +143,7 @@ export function createCachedPluginBoundaryModuleLoader<TModule>(
 ): () => TModule | null {
   let cachedModulePath: string | null = null;
   let cachedModule: TModule | null = null;
-  const loaders: PluginJitiLoaderCache = new Map();
+  const loaders: PluginJitiLoaderCache = createPluginJitiLoaderCache();
 
   return () => {
     const missingLabel = params.missingLabel ?? `${params.pluginId} plugin runtime`;

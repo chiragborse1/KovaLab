@@ -20,6 +20,7 @@ import {
   resolvePluginLoaderJitiTryNative,
   resolveExtensionApiAlias,
   resolvePluginRuntimeModulePath,
+  resolvePluginRuntimeModulePathWithDiagnostics,
   resolvePluginSdkAliasFile,
   shouldPreferNativeJiti,
 } from "./sdk-alias.js";
@@ -650,6 +651,67 @@ describe("plugin sdk alias helpers", () => {
     });
   });
 
+  it("aliases bundled plugin public surfaces for source and dist plugin loads", () => {
+    const fixture = createPluginSdkAliasFixture({
+      packageExports: {
+        "./plugin-sdk/core": { default: "./dist/plugin-sdk/core.js" },
+      },
+    });
+    const matrixRoot = path.join(fixture.root, "extensions", "matrix");
+    const matrixDistRoot = path.join(fixture.root, "dist", "extensions", "matrix");
+    mkdirSafeDir(matrixRoot);
+    mkdirSafeDir(matrixDistRoot);
+    fs.writeFileSync(
+      path.join(matrixRoot, "package.json"),
+      JSON.stringify({ name: "@kovaai/matrix", type: "module" }, null, 2),
+      "utf-8",
+    );
+    fs.writeFileSync(path.join(matrixRoot, "api.ts"), "export const sourceApi = true;\n", "utf-8");
+    fs.writeFileSync(
+      path.join(matrixRoot, "test-api.ts"),
+      "export const sourceTestApi = true;\n",
+      "utf-8",
+    );
+    fs.writeFileSync(
+      path.join(matrixDistRoot, "api.js"),
+      "export const distApi = true;\n",
+      "utf-8",
+    );
+    fs.writeFileSync(
+      path.join(matrixDistRoot, "test-api.js"),
+      "export const distTestApi = true;\n",
+      "utf-8",
+    );
+    const sourcePluginEntry = writePluginEntry(
+      fixture.root,
+      bundledPluginFile("qa-matrix", "src/index.ts"),
+    );
+
+    const sourceAliases = withEnv(
+      { KOVA_ENABLE_PRIVATE_QA_CLI: undefined, NODE_ENV: undefined },
+      () => buildPluginLoaderAliasMap(sourcePluginEntry),
+    );
+    const privateSourceAliases = withEnv(
+      { KOVA_ENABLE_PRIVATE_QA_CLI: "1", NODE_ENV: undefined },
+      () => buildPluginLoaderAliasMap(sourcePluginEntry),
+    );
+    const distAliases = withEnv(
+      { KOVA_ENABLE_PRIVATE_QA_CLI: undefined, NODE_ENV: undefined },
+      () => buildPluginLoaderAliasMap(sourcePluginEntry, undefined, undefined, "dist"),
+    );
+
+    expect(fs.realpathSync(sourceAliases["@kovaai/matrix/api.js"] ?? "")).toBe(
+      fs.realpathSync(path.join(matrixRoot, "api.ts")),
+    );
+    expect(sourceAliases["@kovaai/matrix/test-api.js"]).toBeUndefined();
+    expect(fs.realpathSync(privateSourceAliases["@kovaai/matrix/test-api.js"] ?? "")).toBe(
+      fs.realpathSync(path.join(matrixRoot, "test-api.ts")),
+    );
+    expect(fs.realpathSync(distAliases["@kovaai/matrix/api.js"] ?? "")).toBe(
+      fs.realpathSync(path.join(matrixDistRoot, "api.js")),
+    );
+  });
+
   it("adds private qa plugin-sdk aliases for source plugins when enabled", () => {
     const fixture = createPluginSdkAliasFixture({
       packageExports: {
@@ -870,7 +932,7 @@ describe("plugin sdk alias helpers", () => {
     }
   });
 
-  it("disables native Jiti loads on Windows for built JavaScript entries", () => {
+  it("enables native Jiti loads on Windows for built JavaScript entries", () => {
     const originalPlatform = process.platform;
     Object.defineProperty(process, "platform", {
       configurable: true,
@@ -878,9 +940,9 @@ describe("plugin sdk alias helpers", () => {
     });
 
     try {
-      expect(shouldPreferNativeJiti("/repo/dist/plugins/runtime/index.js")).toBe(false);
+      expect(shouldPreferNativeJiti("/repo/dist/plugins/runtime/index.js")).toBe(true);
       expect(shouldPreferNativeJiti(`/repo/${bundledDistPluginFile("browser", "index.js")}`)).toBe(
-        false,
+        true,
       );
     } finally {
       Object.defineProperty(process, "platform", {
@@ -890,7 +952,7 @@ describe("plugin sdk alias helpers", () => {
     }
   });
 
-  it("keeps plugin loader dist shortcuts on transpiled Jiti on Windows", () => {
+  it("keeps plugin loader dist shortcuts on native Jiti on Windows for JS entries", () => {
     const originalPlatform = process.platform;
     Object.defineProperty(process, "platform", {
       configurable: true,
@@ -902,7 +964,7 @@ describe("plugin sdk alias helpers", () => {
         resolvePluginLoaderJitiTryNative(`/repo/${bundledDistPluginFile("browser", "index.js")}`, {
           preferBuiltDist: true,
         }),
-      ).toBe(false);
+      ).toBe(true);
       expect(
         resolvePluginLoaderJitiTryNative(`/repo/${bundledDistPluginFile("browser", "helper.ts")}`, {
           preferBuiltDist: true,
@@ -1125,6 +1187,99 @@ export const syntheticRuntimeMarker = {
       env,
     });
     expect(resolved).toBe(expected === "dist" ? fixture.distFile : fixture.srcFile);
+  });
+
+  it("falls back to ancestor runtime candidates when package-root markers are unavailable", () => {
+    const root = makeTempDir();
+    const distFile = path.join(root, "dist", "plugins", "runtime", "index.js");
+    const loaderCachePath = path.join(root, ".cache", "tsx", "kova-loader.js");
+    mkdirSafeDir(path.dirname(distFile));
+    mkdirSafeDir(path.dirname(loaderCachePath));
+    fs.writeFileSync(distFile, "export const createPluginRuntime = () => ({});\n", "utf-8");
+    fs.writeFileSync(loaderCachePath, "export {};\n", "utf-8");
+
+    expect(
+      resolvePluginRuntimeModulePath({
+        modulePath: loaderCachePath,
+        argv1: path.join(root, "bin", "kova"),
+        pluginSdkResolution: "dist",
+      }),
+    ).toBe(distFile);
+  });
+
+  it("prefers startup argv runtime candidates over cache ancestor fallbacks", () => {
+    const root = makeTempDir();
+    const distFile = path.join(root, "dist", "plugins", "runtime", "index.js");
+    const loaderCacheRoot = makeTempDir();
+    const cacheDistFile = path.join(loaderCacheRoot, "dist", "plugins", "runtime", "index.js");
+    const loaderCachePath = path.join(loaderCacheRoot, "tsx", "kova-loader.js");
+    mkdirSafeDir(path.dirname(distFile));
+    mkdirSafeDir(path.dirname(cacheDistFile));
+    mkdirSafeDir(path.dirname(loaderCachePath));
+    mkdirSafeDir(path.join(root, "bin"));
+    fs.writeFileSync(distFile, "export const runtime = 'startup';\n", "utf-8");
+    fs.writeFileSync(cacheDistFile, "export const runtime = 'cache';\n", "utf-8");
+    fs.writeFileSync(loaderCachePath, "export {};\n", "utf-8");
+
+    expect(
+      resolvePluginRuntimeModulePath({
+        modulePath: loaderCachePath,
+        argv1: path.join(root, "bin", "kova"),
+        pluginSdkResolution: "dist",
+      }),
+    ).toBe(distFile);
+  });
+
+  it("resolves runtime fallback through npm .bin startup argv", () => {
+    const root = makeTempDir();
+    const packageRoot = path.join(root, "node_modules", "getkova");
+    const distFile = path.join(packageRoot, "dist", "plugins", "runtime", "index.js");
+    const projectDistFile = path.join(root, "dist", "plugins", "runtime", "index.js");
+    const binFile = path.join(root, "node_modules", ".bin", "kova");
+    const loaderCachePath = path.join(makeTempDir(), "tsx", "kova-loader.js");
+    mkdirSafeDir(path.dirname(distFile));
+    mkdirSafeDir(path.dirname(projectDistFile));
+    mkdirSafeDir(path.dirname(binFile));
+    mkdirSafeDir(path.dirname(loaderCachePath));
+    fs.writeFileSync(distFile, "export const runtime = 'startup';\n", "utf-8");
+    fs.writeFileSync(projectDistFile, "export const runtime = 'project';\n", "utf-8");
+    fs.writeFileSync(binFile, "#!/usr/bin/env node\n", "utf-8");
+    fs.writeFileSync(loaderCachePath, "export {};\n", "utf-8");
+
+    expect(
+      resolvePluginRuntimeModulePath({
+        modulePath: loaderCachePath,
+        argv1: binFile,
+        pluginSdkResolution: "dist",
+      }),
+    ).toBe(distFile);
+  });
+
+  it("reports loader, package root, and candidate paths when runtime resolution fails", () => {
+    const root = makeTempDir();
+    const modulePath = path.join(root, "dist", "plugins", "loader.js");
+    fs.writeFileSync(
+      path.join(root, "package.json"),
+      JSON.stringify({ name: "kova", type: "module" }, null, 2),
+      "utf-8",
+    );
+    mkdirSafeDir(path.dirname(modulePath));
+    fs.writeFileSync(modulePath, "export {};\n", "utf-8");
+
+    const resolution = resolvePluginRuntimeModulePathWithDiagnostics({
+      modulePath,
+      pluginSdkResolution: "dist",
+    });
+
+    expect(resolution.resolvedPath).toBeNull();
+    expect(resolution.modulePath).toBe(modulePath);
+    expect(resolution.packageRoot).toBe(root);
+    expect(resolution.candidates).toContain(
+      path.join(root, "dist", "plugins", "runtime", "index.js"),
+    );
+    expect(resolution.candidates).toContain(
+      path.join(root, "src", "plugins", "runtime", "index.ts"),
+    );
   });
 });
 

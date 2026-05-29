@@ -25,6 +25,7 @@ export type {
   SkillEntry,
   SkillInstallSpec,
   SkillSnapshot,
+  SkillTelemetrySource,
   SkillsInstallPreferences,
 } from "./skills/types.js";
 export {
@@ -36,6 +37,12 @@ export {
   resolveSkillsPromptForRun,
   syncSkillsToWorkspace,
 } from "./skills/workspace.js";
+export {
+  resetResolvedSkillsCacheForTests,
+  resolveReusableWorkspaceSkillSnapshot,
+  type ReusableSkillSnapshotParams,
+  type ReusableSkillSnapshotResult,
+} from "./skills/session-snapshot.js";
 export { buildWorkspaceSkillCommandSpecs } from "./skills/command-specs.js";
 
 export function resolveSkillsInstallPreferences(config?: KovaConfig): SkillsInstallPreferences {

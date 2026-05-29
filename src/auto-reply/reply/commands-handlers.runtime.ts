@@ -12,6 +12,7 @@ import {
   handleExportTrajectoryCommand,
   handleExportSessionCommand,
   handleHelpCommand,
+  handleSkillCommandUsage,
   handleStatusCommand,
   handleToolsCommand,
 } from "./commands-info.js";
@@ -53,6 +54,7 @@ export function loadCommandHandlers(): CommandHandler[] {
     handleTtsCommands,
     handleHelpCommand,
     handleCommandsListCommand,
+    handleSkillCommandUsage,
     handleToolsCommand,
     handleMemoryCommand,
     handlePersonaCommand,

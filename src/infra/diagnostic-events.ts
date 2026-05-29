@@ -215,6 +215,28 @@ export type DiagnosticToolExecutionErrorEvent = DiagnosticToolExecutionBaseEvent
   errorCode?: string;
 };
 
+export type DiagnosticToolExecutionBlockedEvent = DiagnosticToolExecutionBaseEvent & {
+  type: "tool.execution.blocked";
+  deniedReason: string;
+  reason: string;
+};
+
+export type DiagnosticSkillTelemetrySource = "bundled" | "unknown" | "workspace";
+export type DiagnosticSkillActivation = "command" | "read";
+
+export type DiagnosticSkillUsedEvent = DiagnosticBaseEvent & {
+  type: "skill.used";
+  runId?: string;
+  sessionKey?: string;
+  sessionId?: string;
+  agentId?: string;
+  skillName: string;
+  skillSource: DiagnosticSkillTelemetrySource;
+  activation: DiagnosticSkillActivation;
+  toolName?: string;
+  toolCallId?: string;
+};
+
 export type DiagnosticExecProcessCompletedEvent = DiagnosticBaseEvent & {
   type: "exec.process.completed";
   sessionKey?: string;
@@ -439,6 +461,8 @@ export type DiagnosticEventPayload =
   | DiagnosticToolExecutionStartedEvent
   | DiagnosticToolExecutionCompletedEvent
   | DiagnosticToolExecutionErrorEvent
+  | DiagnosticToolExecutionBlockedEvent
+  | DiagnosticSkillUsedEvent
   | DiagnosticExecProcessCompletedEvent
   | DiagnosticRunStartedEvent
   | DiagnosticRunCompletedEvent
@@ -492,6 +516,8 @@ const ASYNC_DIAGNOSTIC_EVENT_TYPES = new Set<DiagnosticEventPayload["type"]>([
   "tool.execution.started",
   "tool.execution.completed",
   "tool.execution.error",
+  "tool.execution.blocked",
+  "skill.used",
   "exec.process.completed",
   "message.delivery.started",
   "message.delivery.completed",

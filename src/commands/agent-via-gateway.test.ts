@@ -81,6 +81,12 @@ function mockLocalAgentReply(text = "local") {
 vi.mock("../config/config.js", () => ({ getRuntimeConfig: loadConfig, loadConfig }));
 vi.mock("../gateway/call.js", () => ({
   callGateway,
+  isGatewayTransportError: (value: unknown) =>
+    Boolean(
+      value &&
+      typeof value === "object" &&
+      (value as { name?: unknown }).name === "GatewayTransportError",
+    ),
   randomIdempotencyKey: () => "idem-1",
 }));
 vi.mock("./agent.js", () => ({ agentCommand }));

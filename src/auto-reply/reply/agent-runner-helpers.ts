@@ -21,12 +21,14 @@ type VerboseGateParams = {
   resolvedVerboseLevel: VerboseLevel;
 };
 
-function resolveCurrentVerboseLevel(params: VerboseGateParams): VerboseLevel | undefined {
+const VERBOSE_GATE_SESSION_REFRESH_MS = 250;
+
+function readCurrentVerboseLevel(params: VerboseGateParams): VerboseLevel | undefined {
   if (!params.sessionKey || !params.storePath) {
     return undefined;
   }
   try {
-    const store = loadSessionStore(params.storePath);
+    const store = loadSessionStore(params.storePath, { clone: false });
     const entry = store[params.sessionKey];
     return typeof entry?.verboseLevel === "string"
       ? normalizeVerboseLevel(entry.verboseLevel)
@@ -37,14 +39,34 @@ function resolveCurrentVerboseLevel(params: VerboseGateParams): VerboseLevel | u
   }
 }
 
+function createCurrentVerboseLevelResolver(
+  params: VerboseGateParams,
+): () => VerboseLevel | undefined {
+  let cachedLevel: VerboseLevel | undefined;
+  let cachedAtMs = Number.NEGATIVE_INFINITY;
+  return () => {
+    if (!params.sessionKey || !params.storePath) {
+      return undefined;
+    }
+    const now = Date.now();
+    if (now - cachedAtMs < VERBOSE_GATE_SESSION_REFRESH_MS) {
+      return cachedLevel;
+    }
+    cachedLevel = readCurrentVerboseLevel(params);
+    cachedAtMs = now;
+    return cachedLevel;
+  };
+}
+
 function createVerboseGate(
   params: VerboseGateParams,
   shouldEmit: (level: VerboseLevel) => boolean,
 ): () => boolean {
   // Normalize verbose values from session store/config so false/"false" still means off.
   const fallbackVerbose = params.resolvedVerboseLevel;
+  const resolveCurrentVerboseLevel = createCurrentVerboseLevelResolver(params);
   return () => {
-    return shouldEmit(resolveCurrentVerboseLevel(params) ?? fallbackVerbose);
+    return shouldEmit(resolveCurrentVerboseLevel() ?? fallbackVerbose);
   };
 }
 

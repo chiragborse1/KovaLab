@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { clearPluginDiscoveryCache } from "./discovery.js";
 import { clearPluginManifestRegistryCache } from "./manifest-registry.js";
@@ -119,6 +120,71 @@ describe("buildPluginRegistrySnapshotReport", () => {
         }),
       ]),
     );
+    expect(isColdPluginRuntimeLoaded(fixture)).toBe(false);
+  });
+
+  it("reports package dependency install state without importing plugin runtime", () => {
+    const rootDir = makeTempDir();
+    const fixture = createColdPluginFixture({
+      rootDir,
+      pluginId: "dependency-demo",
+      packageJson: {
+        dependencies: {
+          "missing-required": "1.0.0",
+          "present-required": "1.0.0",
+        },
+        optionalDependencies: {
+          "missing-optional": "1.0.0",
+        },
+      },
+      manifest: {
+        id: "dependency-demo",
+        name: "Dependency Demo",
+      },
+    });
+    fs.mkdirSync(path.join(rootDir, "node_modules", "present-required"), { recursive: true });
+
+    const report = buildPluginRegistrySnapshotReport({
+      config: {
+        plugins: {
+          load: { paths: [fixture.rootDir] },
+        },
+      },
+    });
+
+    const plugin = report.plugins.find((entry) => entry.id === "dependency-demo");
+    expect(plugin?.dependencyStatus).toMatchObject({
+      hasDependencies: true,
+      installed: false,
+      requiredInstalled: false,
+      optionalInstalled: false,
+      missing: ["missing-required"],
+      missingOptional: ["missing-optional"],
+    });
+    expect(plugin?.dependencyStatus?.dependencies).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: "missing-required",
+          spec: "1.0.0",
+          installed: false,
+          optional: false,
+        }),
+        expect.objectContaining({
+          name: "present-required",
+          spec: "1.0.0",
+          installed: true,
+          optional: false,
+        }),
+      ]),
+    );
+    expect(plugin?.dependencyStatus?.optionalDependencies).toEqual([
+      expect.objectContaining({
+        name: "missing-optional",
+        spec: "1.0.0",
+        installed: false,
+        optional: true,
+      }),
+    ]);
     expect(isColdPluginRuntimeLoaded(fixture)).toBe(false);
   });
 

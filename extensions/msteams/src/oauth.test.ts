@@ -220,6 +220,25 @@ describe("exchangeMSTeamsCodeForTokens", () => {
       }),
     ).rejects.toThrow(/MSTeams token exchange failed \(400\)/);
   });
+
+  it("rejects unsafe token exchange expiry values", async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response('{"access_token":"at-unsafe","refresh_token":"rt-unsafe","expires_in":1e309}', {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    await expect(
+      exchangeMSTeamsCodeForTokens({
+        tenantId: "t",
+        clientId: "c",
+        clientSecret: "s", // pragma: allowlist secret
+        code: "unsafe-expiry",
+        verifier: "v",
+      }),
+    ).rejects.toThrow("MSTeams token exchange failed: invalid token response fields");
+  });
 });
 
 describe("refreshMSTeamsDelegatedTokens", () => {
@@ -301,5 +320,23 @@ describe("refreshMSTeamsDelegatedTokens", () => {
         refreshToken: "expired-rt",
       }),
     ).rejects.toThrow(/MSTeams token refresh failed \(401\)/);
+  });
+
+  it("rejects unsafe token refresh expiry values", async () => {
+    fetchSpy.mockResolvedValueOnce(
+      new Response('{"access_token":"at-unsafe","expires_in":1e309}', {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+    );
+
+    await expect(
+      refreshMSTeamsDelegatedTokens({
+        tenantId: "t",
+        clientId: "c",
+        clientSecret: "s", // pragma: allowlist secret
+        refreshToken: "rt",
+      }),
+    ).rejects.toThrow("MSTeams token refresh failed: invalid token response fields");
   });
 });

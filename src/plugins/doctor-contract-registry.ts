@@ -4,7 +4,11 @@ import { fileURLToPath } from "node:url";
 import type { LegacyConfigRule } from "../config/legacy.shared.js";
 import type { KovaConfig } from "../config/types.js";
 import { asNullableRecord } from "../shared/record-coerce.js";
-import { getCachedPluginJitiLoader, type PluginJitiLoaderCache } from "./jiti-loader-cache.js";
+import {
+  createPluginJitiLoaderCache,
+  getCachedPluginJitiLoader,
+  type PluginJitiLoaderCache,
+} from "./jiti-loader-cache.js";
 import type { PluginManifestRegistry } from "./manifest-registry.js";
 import { tryNativeRequireJavaScriptModule } from "./native-module-require.js";
 import { loadPluginManifestRegistryForPluginRegistry } from "./plugin-registry.js";
@@ -38,7 +42,7 @@ type PluginDoctorContractEntry = {
 
 type PluginManifestRegistryRecord = PluginManifestRegistry["plugins"][number];
 
-const jitiLoaders: PluginJitiLoaderCache = new Map();
+const jitiLoaders: PluginJitiLoaderCache = createPluginJitiLoaderCache();
 const doctorContractCache = new Map<string, PluginDoctorContractEntry[]>();
 const doctorContractRecordCache = new Map<string, Map<string, PluginDoctorContractEntry | null>>();
 

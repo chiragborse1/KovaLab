@@ -1,6 +1,10 @@
 import path from "node:path";
 import { resolveStateDir } from "../config/paths.js";
 import { loadJsonFile, saveJsonFile } from "../infra/json-file.js";
+import {
+  parseStrictPositiveInteger,
+  positiveSecondsToSafeMilliseconds,
+} from "../infra/parse-finite-number.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
 import { buildCopilotIdeHeaders } from "./copilot-dynamic-headers.js";
 import { resolveProviderEndpoint } from "./provider-attribution.js";
@@ -38,19 +42,22 @@ function parseCopilotTokenResponse(value: unknown): {
     throw new Error("Copilot token response missing token");
   }
 
-  // GitHub returns a unix timestamp (seconds), but we defensively accept ms too.
-  // Use a 1e11 threshold so large seconds-epoch values are not misread as ms.
-  let expiresAtMs: number;
-  if (typeof expiresAt === "number" && Number.isFinite(expiresAt)) {
-    expiresAtMs = expiresAt < 100_000_000_000 ? expiresAt * 1000 : expiresAt;
-  } else if (typeof expiresAt === "string" && expiresAt.trim().length > 0) {
-    const parsed = Number.parseInt(expiresAt, 10);
-    if (!Number.isFinite(parsed)) {
-      throw new Error("Copilot token response has invalid expires_at");
-    }
-    expiresAtMs = parsed < 100_000_000_000 ? parsed * 1000 : parsed;
-  } else {
+  // GitHub returns a unix timestamp in seconds. Older local caches and some
+  // edge responses may already contain milliseconds, so accept both but only
+  // after strict safe-integer validation.
+  if (expiresAt === undefined || expiresAt === null || expiresAt === "") {
     throw new Error("Copilot token response missing expires_at");
+  }
+  const parsedExpiresAt = parseStrictPositiveInteger(expiresAt);
+  if (parsedExpiresAt === undefined) {
+    throw new Error("Copilot token response has invalid expires_at");
+  }
+  const expiresAtMs =
+    parsedExpiresAt < 100_000_000_000
+      ? positiveSecondsToSafeMilliseconds(parsedExpiresAt)
+      : parsedExpiresAt;
+  if (expiresAtMs === undefined || !Number.isSafeInteger(expiresAtMs)) {
+    throw new Error("Copilot token response has invalid expires_at");
   }
 
   return { token, expiresAt: expiresAtMs };

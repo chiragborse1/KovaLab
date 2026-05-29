@@ -526,7 +526,9 @@ export async function loadRunOverflowCompactionHarness(): Promise<{
   }));
 
   vi.doMock("../../utils/message-channel.js", () => ({
+    isDeliverableMessageChannel: vi.fn((value: string) => value === "telegram"),
     isMarkdownCapableMessageChannel: vi.fn(() => true),
+    normalizeMessageChannel: vi.fn((value?: string | null) => value?.trim() || undefined),
   }));
 
   vi.doMock("../agent-paths.js", () => ({

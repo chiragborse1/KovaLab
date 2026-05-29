@@ -1,3 +1,4 @@
+import { resolveExpiresAtMsFromDurationSeconds } from "getkova/plugin-sdk/core";
 import { fetchWithSsrFGuard } from "getkova/plugin-sdk/ssrf-runtime";
 import {
   MSTEAMS_DEFAULT_DELEGATED_SCOPES,
@@ -13,7 +14,7 @@ const EXPIRY_BUFFER_MS = 5 * 60 * 1000;
 type MSTeamsTokenResponse = {
   access_token: string;
   refresh_token?: string;
-  expires_in: number;
+  expiresAt: number;
   scope?: string;
 };
 
@@ -36,6 +37,33 @@ function createMSTeamsTokenBody(params: {
   }
 
   return body;
+}
+
+function resolveMSTeamsTokenExpiresAt(value: unknown): number | undefined {
+  return resolveExpiresAtMsFromDurationSeconds(value, { bufferMs: EXPIRY_BUFFER_MS });
+}
+
+function parseMSTeamsTokenResponse(
+  data: Record<string, unknown>,
+  failureLabel: string,
+): MSTeamsTokenResponse {
+  const expiresAt = resolveMSTeamsTokenExpiresAt(data.expires_in);
+  if (
+    typeof data.access_token !== "string" ||
+    !data.access_token ||
+    expiresAt === undefined ||
+    (data.refresh_token !== undefined && typeof data.refresh_token !== "string") ||
+    (data.scope !== undefined && typeof data.scope !== "string")
+  ) {
+    throw new Error(`MSTeams ${failureLabel} failed: invalid token response fields`);
+  }
+
+  return {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expiresAt,
+    scope: data.scope,
+  };
 }
 
 async function fetchMSTeamsTokens(params: {
@@ -65,7 +93,10 @@ async function fetchMSTeamsTokens(params: {
       const errorText = await response.text();
       throw new Error(`MSTeams ${params.failureLabel} failed (${response.status}): ${errorText}`);
     }
-    return (await response.json()) as MSTeamsTokenResponse;
+    return parseMSTeamsTokenResponse(
+      (await response.json()) as Record<string, unknown>,
+      params.failureLabel,
+    );
   } finally {
     await release();
   }
@@ -100,7 +131,7 @@ async function requestMSTeamsDelegatedTokens(params: {
   return {
     accessToken: data.access_token,
     refreshToken: params.resolveRefreshToken(data),
-    expiresAt: Date.now() + data.expires_in * 1000 - EXPIRY_BUFFER_MS,
+    expiresAt: data.expiresAt,
     scopes: data.scope ? data.scope.split(" ") : [...scopes],
   };
 }

@@ -82,12 +82,12 @@ async function createTuiBackend(opts: RunTuiOptions): Promise<TuiBackend> {
     return opts.backend;
   }
   if (opts.local) {
-    if (process.env.KOVA_TUI_IN_PROCESS_BACKEND === "1") {
-      const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
-      return new EmbeddedTuiBackend();
+    if (process.env.KOVA_TUI_PROCESS_BACKEND === "1") {
+      const { LocalProcessTuiBackend } = await import("./local-process-backend.js");
+      return new LocalProcessTuiBackend();
     }
-    const { LocalProcessTuiBackend } = await import("./local-process-backend.js");
-    return new LocalProcessTuiBackend();
+    const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
+    return new EmbeddedTuiBackend();
   }
   const { GatewayChatClient } = await import("./gateway-chat.js");
   return await GatewayChatClient.connect({
@@ -346,6 +346,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
   let currentSessionId: string | null = null;
   let activeChatRunId: string | null = null;
   let pendingOptimisticUserMessage = false;
+  let pendingChatRunId: string | null = null;
   let busyInputMode: TuiBusyInputMode = "queue";
   let queuedMessages: QueuedMessage[] = [];
   let historyLoaded = false;
@@ -429,6 +430,12 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     },
     set pendingOptimisticUserMessage(value) {
       pendingOptimisticUserMessage = value;
+    },
+    get pendingChatRunId() {
+      return pendingChatRunId;
+    },
+    set pendingChatRunId(value) {
+      pendingChatRunId = value?.trim() ? value.trim() : null;
     },
     get busyInputMode() {
       return busyInputMode;
@@ -769,7 +776,12 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     if (!key || catalogRefreshKey === key || catalogRefreshPromise) {
       return;
     }
-    if (busyStates.has(activityStatus) || activeChatRunId || pendingOptimisticUserMessage) {
+    if (
+      busyStates.has(activityStatus) ||
+      activeChatRunId ||
+      pendingChatRunId ||
+      pendingOptimisticUserMessage
+    ) {
       scheduleHeroCatalogRefresh();
       return;
     }
@@ -1232,6 +1244,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     if (
       drainingQueuedMessage ||
       activeChatRunId ||
+      pendingChatRunId ||
       pendingOptimisticUserMessage ||
       queuedMessages.length === 0
     ) {
@@ -1248,7 +1261,12 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     } finally {
       drainingQueuedMessage = false;
       updateFooter();
-      if (!activeChatRunId && !pendingOptimisticUserMessage && queuedMessages.length > 0) {
+      if (
+        !activeChatRunId &&
+        !pendingChatRunId &&
+        !pendingOptimisticUserMessage &&
+        queuedMessages.length > 0
+      ) {
         void drainQueuedMessages();
       }
     }
@@ -1337,7 +1355,7 @@ export async function runTui(opts: RunTuiOptions): Promise<TuiResult> {
     editor.addToHistory(value);
     queueMessage(value, "manual");
     updateFooter();
-    if (!activeChatRunId && !pendingOptimisticUserMessage) {
+    if (!activeChatRunId && !pendingChatRunId && !pendingOptimisticUserMessage) {
       void drainQueuedMessages();
     }
   };

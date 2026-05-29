@@ -481,7 +481,12 @@ export async function resolveApiKeyForProvider(params: {
         resolvedApiKey: resolved.apiKey,
       })
     ) {
-      return resolveApiKeyForProvider({ ...params, profileId: undefined, lockedProfile: true }) //
+      return resolveApiKeyForProvider({
+        ...params,
+        store,
+        profileId: undefined,
+        lockedProfile: true,
+      }) //
         .catch(() => result);
     }
     return result;

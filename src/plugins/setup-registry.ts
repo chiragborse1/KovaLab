@@ -5,7 +5,12 @@ import { normalizeProviderId } from "../agents/provider-id.js";
 import type { KovaConfig } from "../config/types.kova.js";
 import { buildPluginApi } from "./api-builder.js";
 import { collectPluginConfigContractMatches } from "./config-contracts.js";
-import { getCachedPluginJitiLoader, type PluginJitiLoaderCache } from "./jiti-loader-cache.js";
+import {
+  createPluginJitiLoaderCache,
+  getCachedPluginJitiLoader,
+  type PluginJitiLoaderCache,
+  type PluginJitiLoaderFactory,
+} from "./jiti-loader-cache.js";
 import type { PluginManifestRecord } from "./manifest-registry.js";
 import { PluginLruCache, type PluginLruCacheResult } from "./plugin-lru-cache.js";
 import { loadPluginManifestRegistryForPluginRegistry } from "./plugin-registry.js";
@@ -86,7 +91,8 @@ const NOOP_LOGGER: PluginLogger = {
 
 const MAX_SETUP_LOOKUP_CACHE_ENTRIES = 128;
 
-const jitiLoaders: PluginJitiLoaderCache = new Map();
+const jitiLoaders: PluginJitiLoaderCache = createPluginJitiLoaderCache();
+let setupRegistryJitiFactoryForTest: PluginJitiLoaderFactory | undefined;
 const setupRegistryCache = new PluginLruCache<PluginSetupRegistry>(MAX_SETUP_LOOKUP_CACHE_ENTRIES);
 const setupProviderCache = new PluginLruCache<ProviderPlugin | null>(
   MAX_SETUP_LOOKUP_CACHE_ENTRIES,
@@ -120,11 +126,24 @@ export function clearPluginSetupRegistryCache(): void {
   setupCliBackendCache.clear();
 }
 
+export function setPluginSetupRegistryJitiFactoryForTest(
+  factory: PluginJitiLoaderFactory | undefined,
+): void {
+  setupRegistryJitiFactoryForTest = factory;
+  clearPluginSetupRegistryCache();
+}
+
 function getJiti(modulePath: string) {
   return getCachedPluginJitiLoader({
     cache: jitiLoaders,
     modulePath,
     importerUrl: import.meta.url,
+    ...(setupRegistryJitiFactoryForTest
+      ? {
+          createLoader: setupRegistryJitiFactoryForTest,
+          tryNative: false,
+        }
+      : {}),
   });
 }
 
@@ -282,7 +301,8 @@ function resolveRegister(mod: KovaPluginModule): {
 }
 
 function resolveLoadableSetupRuntimeSource(record: PluginManifestRecord): string | null {
-  return record.setupSource ?? resolveSetupApiPath(record.rootDir);
+  const source = record.setupSource ?? resolveSetupApiPath(record.rootDir);
+  return source ? rewriteBundledSetupSourceToBuiltArtifact(source, record) : null;
 }
 
 function resolveDeclaredSetupRuntimeSource(record: PluginManifestRecord): string | null {
@@ -292,6 +312,60 @@ function resolveDeclaredSetupRuntimeSource(record: PluginManifestRecord): string
       includeBundledSourceFallback: false,
     })
   );
+}
+
+function rewriteBundledSetupSourceToBuiltArtifact(
+  source: string,
+  record: PluginManifestRecord,
+): string {
+  if (record.origin !== "bundled") {
+    return source;
+  }
+  const rootDir = path.resolve(record.rootDir);
+  const sourcePath = path.resolve(source);
+  const extensionsDir = path.dirname(rootDir);
+  if (path.basename(extensionsDir) !== "extensions") {
+    return source;
+  }
+  const packageRoot = path.dirname(extensionsDir);
+  if (path.basename(packageRoot) === "dist" || path.basename(packageRoot) === "dist-runtime") {
+    return source;
+  }
+  const relativeSource = path.relative(rootDir, sourcePath);
+  if (relativeSource === "" || relativeSource.startsWith("..") || path.isAbsolute(relativeSource)) {
+    return source;
+  }
+  const artifactRelativePath = relativeSource.replace(/\.[^.]+$/u, ".js");
+  let sourceMtimeMs: number | undefined;
+  try {
+    sourceMtimeMs = fs.statSync(sourcePath).mtimeMs;
+  } catch {
+    sourceMtimeMs = undefined;
+  }
+  for (const artifactRootName of ["dist-runtime", "dist"] as const) {
+    const candidate = path.join(
+      packageRoot,
+      artifactRootName,
+      "extensions",
+      path.basename(rootDir),
+      artifactRelativePath,
+    );
+    if (!fs.existsSync(candidate)) {
+      continue;
+    }
+    if (sourceMtimeMs !== undefined) {
+      try {
+        const artifactMtimeMs = fs.statSync(candidate).mtimeMs;
+        if (sourceMtimeMs > artifactMtimeMs + 1) {
+          return source;
+        }
+      } catch {
+        return source;
+      }
+    }
+    return candidate;
+  }
+  return source;
 }
 
 function resolveSetupRegistration(record: PluginManifestRecord): {

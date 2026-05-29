@@ -5,7 +5,7 @@ import type {
   CodexAppServerModelListResult,
 } from "./src/app-server/models.js";
 
-const DEFAULT_CODEX_HARNESS_PROVIDER_IDS = new Set(["codex"]);
+const DEFAULT_CODEX_HARNESS_PROVIDER_IDS = new Set(["codex", "openai-codex", "openai"]);
 
 export type { CodexAppServerListModelsOptions, CodexAppServerModel, CodexAppServerModelListResult };
 
@@ -14,6 +14,7 @@ export function createCodexAppServerAgentHarness(options?: {
   label?: string;
   providerIds?: Iterable<string>;
   pluginConfig?: unknown;
+  resolvePluginConfig?: () => unknown;
 }): AgentHarness {
   const providerIds = new Set(
     [...(options?.providerIds ?? DEFAULT_CODEX_HARNESS_PROVIDER_IDS)].map((id) =>
@@ -35,11 +36,16 @@ export function createCodexAppServerAgentHarness(options?: {
     },
     runAttempt: async (params) => {
       const { runCodexAppServerAttempt } = await import("./src/app-server/run-attempt.js");
-      return runCodexAppServerAttempt(params, { pluginConfig: options?.pluginConfig });
+      return runCodexAppServerAttempt(params, {
+        pluginConfig: options?.resolvePluginConfig?.() ?? options?.pluginConfig,
+        nativeHookRelay: { enabled: true },
+      });
     },
     compact: async (params) => {
       const { maybeCompactCodexAppServerSession } = await import("./src/app-server/compact.js");
-      return maybeCompactCodexAppServerSession(params, { pluginConfig: options?.pluginConfig });
+      return maybeCompactCodexAppServerSession(params, {
+        pluginConfig: options?.resolvePluginConfig?.() ?? options?.pluginConfig,
+      });
     },
     reset: async (params) => {
       if (params.sessionFile) {

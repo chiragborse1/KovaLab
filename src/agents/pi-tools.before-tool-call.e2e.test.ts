@@ -4,6 +4,7 @@ import {
   onDiagnosticEvent,
   resetDiagnosticEventsForTest,
   type DiagnosticEventPayload,
+  type DiagnosticSkillUsedEvent,
   type DiagnosticToolLoopEvent,
 } from "../infra/diagnostic-events.js";
 import { resetDiagnosticSessionStateForTest } from "../logging/diagnostic-session-state.js";
@@ -104,6 +105,23 @@ describe("before_tool_call loop detection behavior", () => {
     }
   }
 
+  async function withSkillUsedEvents(
+    run: (emitted: DiagnosticSkillUsedEvent[], flush: () => Promise<void>) => Promise<void>,
+  ) {
+    const emitted: DiagnosticSkillUsedEvent[] = [];
+    const stop = onInternalDiagnosticEvent((evt) => {
+      if (evt.type === "skill.used") {
+        emitted.push(evt);
+      }
+    });
+    const flush = () => new Promise<void>((resolve) => setImmediate(resolve));
+    try {
+      await run(emitted, flush);
+    } finally {
+      stop();
+    }
+  }
+
   function createPingPongTools(options?: { withProgress?: boolean }) {
     const readExecute = options?.withProgress
       ? vi.fn().mockImplementation(async (toolCallId: string) => ({
@@ -191,6 +209,30 @@ describe("before_tool_call loop detection behavior", () => {
     await expect(
       tool.execute(`poll-${CRITICAL_THRESHOLD}`, params, undefined, undefined),
     ).rejects.toThrow("CRITICAL");
+  });
+
+  it("emits tool.execution.blocked diagnostics when loop policy blocks a tool", async () => {
+    const { tool, params } = createNoProgressProcessFixture("sess-blocked");
+
+    await withToolExecutionEvents(async (emitted, flush) => {
+      for (let i = 0; i < CRITICAL_THRESHOLD; i += 1) {
+        await tool.execute(`poll-blocked-${i}`, params, undefined, undefined);
+      }
+
+      await expect(
+        tool.execute(`poll-blocked-${CRITICAL_THRESHOLD}`, params, undefined, undefined),
+      ).rejects.toThrow("CRITICAL");
+      await flush();
+
+      const blocked = emitted.at(-1);
+      expect(blocked).toMatchObject({
+        type: "tool.execution.blocked",
+        toolName: "process",
+        toolCallId: `poll-blocked-${CRITICAL_THRESHOLD}`,
+        deniedReason: "tool-loop",
+        paramsSummary: { kind: "object" },
+      });
+    });
   });
 
   it("does nothing when loopDetection.enabled is false", async () => {
@@ -433,6 +475,91 @@ describe("before_tool_call loop detection behavior", () => {
       });
       expect(JSON.stringify(emitted)).not.toContain("sk-1234567890abcdef1234567890abcdef");
       expect(JSON.stringify(emitted)).not.toContain("pwd");
+    });
+  });
+
+  it("emits skill.used diagnostics when a skill file is read", async () => {
+    const execute = vi.fn().mockResolvedValue({
+      content: [{ type: "text", text: "skill instructions" }],
+    });
+    const skillFile = "/workspace/skills/release/SKILL.md";
+    const tool = wrapToolWithBeforeToolCallHook({ name: "read", execute } as any, {
+      agentId: "main",
+      sessionKey: "session-key",
+      sessionId: "session-id",
+      runId: "run-skill-read",
+      workspaceDir: "/workspace",
+      skillsSnapshot: {
+        prompt: "",
+        skills: [],
+        resolvedSkills: [
+          {
+            name: "release-helper",
+            description: "Release helper",
+            filePath: skillFile,
+            baseDir: "/workspace/skills/release",
+            source: "kova-workspace",
+          },
+        ],
+      },
+      loopDetection: { enabled: false },
+    });
+
+    await withSkillUsedEvents(async (emitted, flush) => {
+      await tool.execute("tool-call-skill-read", { path: skillFile }, undefined, undefined);
+      await flush();
+
+      expect(emitted).toHaveLength(1);
+      expect(emitted[0]).toMatchObject({
+        type: "skill.used",
+        agentId: "main",
+        sessionKey: "session-key",
+        sessionId: "session-id",
+        runId: "run-skill-read",
+        skillName: "release-helper",
+        skillSource: "workspace",
+        activation: "read",
+        toolName: "read",
+        toolCallId: "tool-call-skill-read",
+      });
+    });
+  });
+
+  it("emits skill.used diagnostics for native skill command dispatch", async () => {
+    const execute = vi.fn().mockResolvedValue({
+      content: [{ type: "text", text: "done" }],
+    });
+    const tool = wrapToolWithBeforeToolCallHook({ name: "message", execute } as any, {
+      agentId: "main",
+      sessionKey: "session-key",
+      sessionId: "session-id",
+      runId: "run-skill-command",
+      skillCommand: {
+        commandName: "ship",
+        skillName: "release-helper",
+        skillSource: "bundled",
+        toolName: "message",
+      },
+      loopDetection: { enabled: false },
+    });
+
+    await withSkillUsedEvents(async (emitted, flush) => {
+      await tool.execute("tool-call-skill-command", { text: "ok" }, undefined, undefined);
+      await flush();
+
+      expect(emitted).toHaveLength(1);
+      expect(emitted[0]).toMatchObject({
+        type: "skill.used",
+        agentId: "main",
+        sessionKey: "session-key",
+        sessionId: "session-id",
+        runId: "run-skill-command",
+        skillName: "release-helper",
+        skillSource: "bundled",
+        activation: "command",
+        toolName: "message",
+        toolCallId: "tool-call-skill-command",
+      });
     });
   });
 

@@ -22,6 +22,8 @@ export type NormalizedPluginsConfig = {
       hooks?: {
         allowPromptInjection?: boolean;
         allowConversationAccess?: boolean;
+        timeoutMs?: number;
+        timeouts?: Record<string, number>;
       };
       subagent?: {
         allowModelOverride?: boolean;
@@ -83,18 +85,53 @@ function normalizePluginEntries(
               .allowPromptInjection,
             allowConversationAccess: (hooksRaw as { allowConversationAccess?: unknown })
               .allowConversationAccess,
+            timeoutMs: (hooksRaw as { timeoutMs?: unknown }).timeoutMs,
+            timeouts: (hooksRaw as { timeouts?: unknown }).timeouts,
           }
         : undefined;
     const normalizedHooks =
       hooks &&
       (typeof hooks.allowPromptInjection === "boolean" ||
-        typeof hooks.allowConversationAccess === "boolean")
+        typeof hooks.allowConversationAccess === "boolean" ||
+        (typeof hooks.timeoutMs === "number" &&
+          Number.isFinite(hooks.timeoutMs) &&
+          hooks.timeoutMs > 0) ||
+        (hooks.timeouts &&
+          typeof hooks.timeouts === "object" &&
+          !Array.isArray(hooks.timeouts) &&
+          Object.values(hooks.timeouts).some(
+            (timeout) => typeof timeout === "number" && Number.isFinite(timeout) && timeout > 0,
+          )))
         ? {
             ...(typeof hooks.allowPromptInjection === "boolean"
               ? { allowPromptInjection: hooks.allowPromptInjection }
               : {}),
             ...(typeof hooks.allowConversationAccess === "boolean"
               ? { allowConversationAccess: hooks.allowConversationAccess }
+              : {}),
+            ...(typeof hooks.timeoutMs === "number" &&
+            Number.isFinite(hooks.timeoutMs) &&
+            hooks.timeoutMs > 0
+              ? { timeoutMs: Math.floor(hooks.timeoutMs) }
+              : {}),
+            ...(hooks.timeouts &&
+            typeof hooks.timeouts === "object" &&
+            !Array.isArray(hooks.timeouts)
+              ? {
+                  timeouts: Object.fromEntries(
+                    Object.entries(hooks.timeouts).flatMap(([hookName, timeout]) => {
+                      if (
+                        !hookName.trim() ||
+                        typeof timeout !== "number" ||
+                        !Number.isFinite(timeout) ||
+                        timeout <= 0
+                      ) {
+                        return [];
+                      }
+                      return [[hookName.trim(), Math.floor(timeout)]];
+                    }),
+                  ),
+                }
               : {}),
           }
         : undefined;

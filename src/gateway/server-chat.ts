@@ -91,6 +91,11 @@ export type ChatRunEntry = {
   clientRunId: string;
 };
 
+export type BufferedAgentEvent = {
+  sessionKey?: string;
+  payload: AgentEventPayload & { spawnedBy?: string };
+};
+
 export type ChatRunRegistry = {
   add: (sessionId: string, entry: ChatRunEntry) => void;
   peek: (sessionId: string) => ChatRunEntry | undefined;
@@ -155,10 +160,16 @@ export type ChatRunState = {
   registry: ChatRunRegistry;
   rawBuffers: Map<string, string>;
   buffers: Map<string, string>;
+  /** Last time any buffered assistant text changed, including suppressed raw buffers. */
+  bufferUpdatedAt: Map<string, number>;
   deltaSentAt: Map<string, number>;
   /** Length of text at the time of the last broadcast, used to avoid duplicate flushes. */
   deltaLastBroadcastLen: Map<string, number>;
+  deltaLastBroadcastText: Map<string, string>;
+  agentDeltaSentAt: Map<string, number>;
+  bufferedAgentEvents: Map<string, BufferedAgentEvent>;
   abortedRuns: Map<string, number>;
+  clearRun: (runId: string) => void;
   clear: () => void;
 };
 
@@ -166,16 +177,37 @@ export function createChatRunState(): ChatRunState {
   const registry = createChatRunRegistry();
   const rawBuffers = new Map<string, string>();
   const buffers = new Map<string, string>();
+  const bufferUpdatedAt = new Map<string, number>();
   const deltaSentAt = new Map<string, number>();
   const deltaLastBroadcastLen = new Map<string, number>();
+  const deltaLastBroadcastText = new Map<string, string>();
+  const agentDeltaSentAt = new Map<string, number>();
+  const bufferedAgentEvents = new Map<string, BufferedAgentEvent>();
   const abortedRuns = new Map<string, number>();
+
+  const clearRun = (runId: string) => {
+    rawBuffers.delete(runId);
+    buffers.delete(runId);
+    bufferUpdatedAt.delete(runId);
+    deltaSentAt.delete(runId);
+    deltaLastBroadcastLen.delete(runId);
+    deltaLastBroadcastText.delete(runId);
+    for (const key of [runId, `${runId}:assistant`, `${runId}:thinking`]) {
+      agentDeltaSentAt.delete(key);
+      bufferedAgentEvents.delete(key);
+    }
+  };
 
   const clear = () => {
     registry.clear();
     rawBuffers.clear();
     buffers.clear();
+    bufferUpdatedAt.clear();
     deltaSentAt.clear();
     deltaLastBroadcastLen.clear();
+    deltaLastBroadcastText.clear();
+    agentDeltaSentAt.clear();
+    bufferedAgentEvents.clear();
     abortedRuns.clear();
   };
 
@@ -183,9 +215,14 @@ export function createChatRunState(): ChatRunState {
     registry,
     rawBuffers,
     buffers,
+    bufferUpdatedAt,
     deltaSentAt,
     deltaLastBroadcastLen,
+    deltaLastBroadcastText,
+    agentDeltaSentAt,
+    bufferedAgentEvents,
     abortedRuns,
+    clearRun,
     clear,
   };
 }
@@ -409,6 +446,39 @@ function readChatErrorKind(value: unknown): ErrorKind | undefined {
     : undefined;
 }
 
+type BroadcastDelta = { deltaText: string; replace?: true };
+type AgentTextThrottleStream = "assistant" | "thinking";
+
+function resolveBroadcastDelta(params: {
+  text: string;
+  previousBroadcastText: string | undefined;
+}): BroadcastDelta | undefined {
+  if (!params.text) {
+    return undefined;
+  }
+  const previous = params.previousBroadcastText;
+  if (previous === undefined) {
+    return { deltaText: params.text };
+  }
+  if (!params.text.startsWith(previous)) {
+    return { deltaText: params.text, replace: true };
+  }
+  const deltaText = params.text.slice(previous.length);
+  return deltaText ? { deltaText } : undefined;
+}
+
+function agentTextThrottleKey(clientRunId: string, stream: AgentTextThrottleStream): string {
+  return `${clientRunId}:${stream}`;
+}
+
+function agentTextThrottleKeys(clientRunId: string): string[] {
+  return [
+    clientRunId,
+    agentTextThrottleKey(clientRunId, "assistant"),
+    agentTextThrottleKey(clientRunId, "thinking"),
+  ];
+}
+
 export type AgentEventHandlerOptions = {
   broadcast: ChatEventBroadcast;
   broadcastToConnIds: (
@@ -446,10 +516,7 @@ export function createAgentEventHandler({
   const pendingTerminalLifecycleErrors = new Map<string, NodeJS.Timeout>();
 
   const clearBufferedChatState = (clientRunId: string) => {
-    chatRunState.rawBuffers.delete(clientRunId);
-    chatRunState.buffers.delete(clientRunId);
-    chatRunState.deltaSentAt.delete(clientRunId);
-    chatRunState.deltaLastBroadcastLen.delete(clientRunId);
+    chatRunState.clearRun(clientRunId);
   };
 
   const clearPendingTerminalLifecycleError = (runId: string) => {
@@ -554,6 +621,8 @@ export function createAgentEventHandler({
     const isAborted =
       chatRunState.abortedRuns.has(clientRunId) || chatRunState.abortedRuns.has(evt.runId);
 
+    flushBufferedAgentDeltaIfNeeded(clientRunId);
+
     if (isOperatorClientVisible && sessionKey) {
       if (!isAborted) {
         const evtStopReason =
@@ -656,7 +725,9 @@ export function createAgentEventHandler({
     if (!mergedRawText) {
       return;
     }
+    const now = Date.now();
     chatRunState.rawBuffers.set(clientRunId, mergedRawText);
+    chatRunState.bufferUpdatedAt.set(clientRunId, now);
     const projected = projectLiveAssistantBufferedText(mergedRawText);
     const mergedText = projected.text;
     chatRunState.buffers.set(clientRunId, mergedText);
@@ -666,18 +737,27 @@ export function createAgentEventHandler({
     if (shouldHideHeartbeatChatOutput(clientRunId, sourceRunId)) {
       return;
     }
-    const now = Date.now();
     const last = chatRunState.deltaSentAt.get(clientRunId) ?? 0;
     if (now - last < 150) {
       return;
     }
+    const broadcastDelta = resolveBroadcastDelta({
+      text: mergedText,
+      previousBroadcastText: chatRunState.deltaLastBroadcastText.get(clientRunId),
+    });
+    if (!broadcastDelta) {
+      return;
+    }
     chatRunState.deltaSentAt.set(clientRunId, now);
     chatRunState.deltaLastBroadcastLen.set(clientRunId, mergedText.length);
+    chatRunState.deltaLastBroadcastText.set(clientRunId, mergedText);
     const payload = {
       runId: clientRunId,
       sessionKey,
       seq,
       state: "delta" as const,
+      deltaText: broadcastDelta.deltaText,
+      ...(broadcastDelta.replace ? { replace: true as const } : {}),
       message: {
         role: "assistant",
         content: [{ type: "text", text: mergedText }],
@@ -727,8 +807,11 @@ export function createAgentEventHandler({
       return;
     }
 
-    const lastBroadcastLen = chatRunState.deltaLastBroadcastLen.get(clientRunId) ?? 0;
-    if (text.length <= lastBroadcastLen) {
+    const delta = resolveBroadcastDelta({
+      text,
+      previousBroadcastText: chatRunState.deltaLastBroadcastText.get(clientRunId),
+    });
+    if (!delta) {
       return;
     }
 
@@ -738,6 +821,8 @@ export function createAgentEventHandler({
       sessionKey,
       seq,
       state: "delta" as const,
+      deltaText: delta.deltaText,
+      ...(delta.replace ? { replace: true as const } : {}),
       message: {
         role: "assistant",
         content: [{ type: "text", text }],
@@ -747,7 +832,119 @@ export function createAgentEventHandler({
     broadcast("chat", flushPayload, { dropIfSlow: true });
     nodeSendToSession(sessionKey, "chat", flushPayload);
     chatRunState.deltaLastBroadcastLen.set(clientRunId, text.length);
+    chatRunState.deltaLastBroadcastText.set(clientRunId, text);
     chatRunState.deltaSentAt.set(clientRunId, now);
+  };
+
+  const sendAgentPayload = (payload: AgentEventPayload & { spawnedBy?: string }) => {
+    broadcast("agent", payload);
+  };
+
+  const flushBufferedAgentDeltaIfNeeded = (
+    clientRunId: string,
+    stream?: AgentTextThrottleStream,
+  ) => {
+    const keys = stream
+      ? [agentTextThrottleKey(clientRunId, stream)]
+      : agentTextThrottleKeys(clientRunId);
+    const bufferedEntries = keys.flatMap((key) => {
+      const buffered = chatRunState.bufferedAgentEvents.get(key);
+      if (!buffered) {
+        return [];
+      }
+      return [{ key, buffered }];
+    });
+    bufferedEntries.sort((a, b) => a.buffered.payload.seq - b.buffered.payload.seq);
+    for (const { key, buffered } of bufferedEntries) {
+      sendAgentPayload(buffered.payload);
+      chatRunState.bufferedAgentEvents.delete(key);
+      chatRunState.agentDeltaSentAt.set(key, Date.now());
+    }
+    return bufferedEntries.length > 0;
+  };
+
+  const resolveAgentTextThrottleStream = (
+    evt: AgentEventPayload,
+  ): AgentTextThrottleStream | null => {
+    if (evt.stream === "assistant") {
+      return "assistant";
+    }
+    if (evt.stream === "thinking") {
+      return "thinking";
+    }
+    return null;
+  };
+
+  const isAgentTextThrottleEvent = (evt: AgentEventPayload) =>
+    resolveAgentTextThrottleStream(evt) !== null && typeof evt.data?.text === "string";
+
+  const shouldCoalesceAgentTextEvent = (evt: AgentEventPayload) =>
+    isAgentTextThrottleEvent(evt) &&
+    typeof evt.data.delta === "string" &&
+    evt.data.delta.length > 0 &&
+    !(Array.isArray(evt.data.mediaUrls) && evt.data.mediaUrls.length > 0) &&
+    typeof evt.data.mediaUrl !== "string" &&
+    evt.data.replace !== true &&
+    (evt.stream !== "assistant" || !shouldSuppressAssistantEventForLiveChat(evt.data));
+
+  const shouldAdvanceAgentTextThrottle = (evt: AgentEventPayload) =>
+    isAgentTextThrottleEvent(evt) &&
+    (typeof evt.data.delta === "string" || evt.data.replace === true);
+
+  const buildBufferedAgentEvent = (
+    sessionKey: string | undefined,
+    payload: AgentEventPayload & { spawnedBy?: string },
+  ): BufferedAgentEvent => (sessionKey ? { sessionKey, payload } : { payload });
+
+  const mergeBufferedAgentPayload = (
+    previous: BufferedAgentEvent,
+    next: BufferedAgentEvent,
+  ): BufferedAgentEvent => {
+    if (previous.payload.stream !== next.payload.stream) {
+      return next;
+    }
+    const previousDelta = previous.payload.data.delta;
+    const nextDelta = next.payload.data.delta;
+    if (typeof previousDelta !== "string" || typeof nextDelta !== "string") {
+      return next;
+    }
+    return {
+      ...next,
+      payload: {
+        ...next.payload,
+        data: {
+          ...next.payload.data,
+          delta: `${previousDelta}${nextDelta}`,
+        },
+      },
+    };
+  };
+
+  const sendOrBufferAgentTextEvent = (
+    clientRunId: string,
+    sessionKey: string | undefined,
+    payload: AgentEventPayload & { spawnedBy?: string },
+  ) => {
+    const stream = resolveAgentTextThrottleStream(payload);
+    if (!stream) {
+      sendAgentPayload(payload);
+      return;
+    }
+    const now = Date.now();
+    const key = agentTextThrottleKey(clientRunId, stream);
+    const last = chatRunState.agentDeltaSentAt.get(key);
+    if (last !== undefined && now - last < 150) {
+      const nextBuffered = buildBufferedAgentEvent(sessionKey, payload);
+      const buffered = chatRunState.bufferedAgentEvents.get(key);
+      chatRunState.bufferedAgentEvents.set(
+        key,
+        buffered ? mergeBufferedAgentPayload(buffered, nextBuffered) : nextBuffered,
+      );
+      return;
+    }
+    flushBufferedAgentDeltaIfNeeded(clientRunId);
+    sendAgentPayload(payload);
+    chatRunState.agentDeltaSentAt.set(key, now);
   };
 
   const emitChatFinal = (
@@ -768,10 +965,7 @@ export function createAgentEventHandler({
     // suppressed the most recent chunk, leaving the client with stale text.
     // Only flush if the buffer has grown since the last broadcast to avoid duplicates.
     flushBufferedChatDeltaIfNeeded(sessionKey, clientRunId, sourceRunId, seq);
-    chatRunState.deltaLastBroadcastLen.delete(clientRunId);
-    chatRunState.rawBuffers.delete(clientRunId);
-    chatRunState.buffers.delete(clientRunId);
-    chatRunState.deltaSentAt.delete(clientRunId);
+    chatRunState.clearRun(clientRunId);
     if (jobState === "done") {
       const payload = {
         runId: clientRunId,
@@ -882,6 +1076,7 @@ export function createAgentEventHandler({
       // render complete pre-tool text above tool cards (not truncated by delta throttle).
       if (toolPhase === "start" && isOperatorClientVisible && sessionKey && !isAborted) {
         flushBufferedChatDeltaIfNeeded(sessionKey, clientRunId, evt.runId, evt.seq);
+        flushBufferedAgentDeltaIfNeeded(clientRunId);
       }
       // Always broadcast tool events to registered WS recipients with
       // tool-events capability, regardless of verboseLevel. The verbose
@@ -915,8 +1110,21 @@ export function createAgentEventHandler({
       const itemPhase = isItemEvent && typeof evt.data?.phase === "string" ? evt.data.phase : "";
       if (itemPhase === "start" && isOperatorClientVisible && sessionKey && !isAborted) {
         flushBufferedChatDeltaIfNeeded(sessionKey, clientRunId, evt.runId, evt.seq);
+        flushBufferedAgentDeltaIfNeeded(clientRunId);
       }
-      broadcast("agent", agentPayload);
+      if (shouldCoalesceAgentTextEvent(evt)) {
+        sendOrBufferAgentTextEvent(clientRunId, sessionKey, agentPayload);
+      } else {
+        flushBufferedAgentDeltaIfNeeded(clientRunId);
+        sendAgentPayload(agentPayload);
+        const textThrottleStream = resolveAgentTextThrottleStream(evt);
+        if (textThrottleStream && shouldAdvanceAgentTextThrottle(evt)) {
+          chatRunState.agentDeltaSentAt.set(
+            agentTextThrottleKey(clientRunId, textThrottleStream),
+            Date.now(),
+          );
+        }
+      }
     }
 
     if (isOperatorClientVisible && sessionKey) {

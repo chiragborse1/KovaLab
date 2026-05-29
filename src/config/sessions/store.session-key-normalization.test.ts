@@ -10,7 +10,7 @@ import {
   updateLastRoute,
 } from "../sessions.js";
 
-const CANONICAL_KEY = "agent:main:webchat:dm:mixed-user";
+const CANONICAL_KEY = "agent:main:localchat:dm:mixed-user";
 const MIXED_CASE_KEY = "Agent:Main:LocalChat:DM:MiXeD-User";
 
 function createInboundContext(): MsgContext {

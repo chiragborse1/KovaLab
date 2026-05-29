@@ -8,6 +8,8 @@ type HandlerChatLog = {
   updateToolResult: (...args: unknown[]) => void;
   showApproval: (...args: unknown[]) => void;
   addSystem: (...args: unknown[]) => void;
+  addPendingSystem: (...args: unknown[]) => void;
+  dismissPendingSystem: (...args: unknown[]) => void;
   updateAssistant: (...args: unknown[]) => void;
   finalizeAssistant: (...args: unknown[]) => void;
   dropAssistant: (...args: unknown[]) => void;
@@ -22,6 +24,8 @@ type MockChatLog = {
   updateToolResult: MockFn;
   showApproval: MockFn;
   addSystem: MockFn;
+  addPendingSystem: MockFn;
+  dismissPendingSystem: MockFn;
   updateAssistant: MockFn;
   finalizeAssistant: MockFn;
   dropAssistant: MockFn;
@@ -38,6 +42,8 @@ function createMockChatLog(): MockChatLog & HandlerChatLog {
     updateToolResult: vi.fn(),
     showApproval: vi.fn(),
     addSystem: vi.fn(),
+    addPendingSystem: vi.fn(),
+    dismissPendingSystem: vi.fn(),
     updateAssistant: vi.fn(),
     finalizeAssistant: vi.fn(),
     dropAssistant: vi.fn(),
@@ -228,6 +234,48 @@ describe("tui-event-handlers: handleAgentEvent", () => {
 
     handleAgentEvent(evt);
 
+    expect(setActivityStatus).toHaveBeenCalledWith("running");
+    expect(tui.requestRender).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows embedded run progress as the waiting detail", () => {
+    const { state, tui, setActivityStatus, handleAgentEvent } = createHandlersHarness({
+      state: { activeChatRunId: "run-9" },
+    });
+
+    handleAgentEvent({
+      runId: "run-9",
+      stream: "progress",
+      data: { phase: "calling model", detail: "openai-codex/gpt-5.5" },
+    });
+
+    expect(state.activityDetail).toBe("openai-codex/gpt-5.5");
+    expect(setActivityStatus).toHaveBeenCalledWith("waiting");
+    expect(tui.requestRender).toHaveBeenCalledTimes(1);
+  });
+
+  it("binds pending local runs when early progress arrives before chat text", () => {
+    const { state, tui, setActivityStatus, handleAgentEvent, isLocalRunId } = createHandlersHarness(
+      {
+        state: {
+          activeChatRunId: null,
+          pendingChatRunId: "run-pending",
+          pendingOptimisticUserMessage: true,
+        },
+      },
+    );
+
+    handleAgentEvent({
+      runId: "run-pending",
+      stream: "progress",
+      data: { phase: "loading session" },
+    });
+
+    expect(state.activeChatRunId).toBe("run-pending");
+    expect(state.pendingChatRunId).toBeNull();
+    expect(state.pendingOptimisticUserMessage).toBe(false);
+    expect(isLocalRunId("run-pending")).toBe(true);
+    expect(state.activityDetail).toBe("loading session");
     expect(setActivityStatus).toHaveBeenCalledWith("waiting");
     expect(tui.requestRender).toHaveBeenCalledTimes(1);
   });
@@ -995,7 +1043,7 @@ describe("tui-event-handlers: streaming watchdog", () => {
     return { state, chatLog, tui, setActivityStatus, handlers };
   };
 
-  it("resets activityStatus to idle when no stream delta arrives for the watchdog window", () => {
+  it("shows a pending notice when no stream delta arrives for the watchdog window", () => {
     const { state, chatLog, setActivityStatus, handlers } = createHarness({
       streamingWatchdogMs: 5_000,
     });
@@ -1012,10 +1060,15 @@ describe("tui-event-handlers: streaming watchdog", () => {
 
     vi.advanceTimersByTime(5_001);
 
-    expect(setActivityStatus).toHaveBeenLastCalledWith("idle");
-    expect(state.activeChatRunId).toBeNull();
-    expect(chatLog.addSystem).toHaveBeenCalledWith(expect.stringContaining("streaming watchdog"));
-    expect(chatLog.addSystem).toHaveBeenCalledWith(expect.stringContaining("!kova tasks audit"));
+    expect(setActivityStatus).toHaveBeenLastCalledWith("streaming");
+    expect(state.activeChatRunId).toBe("run-stuck");
+    expect(chatLog.addPendingSystem).toHaveBeenCalledWith(
+      "run-stuck",
+      "This response is taking longer than expected. Still waiting for the current run.",
+    );
+    expect(chatLog.addSystem).not.toHaveBeenCalledWith(
+      expect.stringContaining("streaming watchdog"),
+    );
 
     handlers.dispose?.();
   });
@@ -1048,8 +1101,8 @@ describe("tui-event-handlers: streaming watchdog", () => {
 
     vi.advanceTimersByTime(2_500);
 
-    expect(setActivityStatus).toHaveBeenLastCalledWith("idle");
-    expect(state.activeChatRunId).toBeNull();
+    expect(setActivityStatus).toHaveBeenLastCalledWith("streaming");
+    expect(state.activeChatRunId).toBe("run-flow");
 
     handlers.dispose?.();
   });
@@ -1105,7 +1158,7 @@ describe("tui-event-handlers: streaming watchdog", () => {
     handlers.dispose?.();
   });
 
-  it("does not arm the streaming watchdog for empty registration deltas", () => {
+  it("arms the streaming watchdog for empty registration deltas", () => {
     const { state, chatLog, setActivityStatus, handlers } = createHarness({
       streamingWatchdogMs: 5_000,
     });
@@ -1117,20 +1170,20 @@ describe("tui-event-handlers: streaming watchdog", () => {
       message: { role: "assistant", content: [{ type: "text", text: "" }] },
     } satisfies ChatEvent);
 
-    expect(setActivityStatus).toHaveBeenLastCalledWith("waiting");
+    expect(setActivityStatus).toHaveBeenLastCalledWith("streaming");
 
     vi.advanceTimersByTime(10_000);
 
-    expect(setActivityStatus).not.toHaveBeenCalledWith("idle");
-    expect(chatLog.addSystem).not.toHaveBeenCalledWith(
-      expect.stringContaining("streaming watchdog"),
+    expect(chatLog.addPendingSystem).toHaveBeenCalledWith(
+      "run-tool-only",
+      "This response is taking longer than expected. Still waiting for the current run.",
     );
     expect(state.activeChatRunId).toBe("run-tool-only");
 
     handlers.dispose?.();
   });
 
-  it("does not let an older run steal the active run watchdog", () => {
+  it("keeps the pending notice scoped to the timed-out run", () => {
     const { state, chatLog, setActivityStatus, handlers } = createHarness({
       streamingWatchdogMs: 5_000,
     });
@@ -1143,30 +1196,12 @@ describe("tui-event-handlers: streaming watchdog", () => {
     } satisfies ChatEvent);
 
     vi.advanceTimersByTime(5_001);
-    expect(state.activeChatRunId).toBeNull();
-
-    handlers.handleChatEvent({
-      runId: "run-new",
-      sessionKey: state.currentSessionKey,
-      state: "delta",
-      message: { content: "new" },
-    } satisfies ChatEvent);
-    expect(state.activeChatRunId).toBe("run-new");
-
-    vi.advanceTimersByTime(3_000);
-
-    handlers.handleChatEvent({
-      runId: "run-old",
-      sessionKey: state.currentSessionKey,
-      state: "delta",
-      message: { content: "old again" },
-    } satisfies ChatEvent);
-
-    vi.advanceTimersByTime(2_001);
-
-    expect(setActivityStatus).toHaveBeenLastCalledWith("idle");
-    expect(state.activeChatRunId).toBeNull();
-    expect(chatLog.addSystem).toHaveBeenCalledTimes(2);
+    expect(state.activeChatRunId).toBe("run-old");
+    expect(chatLog.addPendingSystem).toHaveBeenCalledWith(
+      "run-old",
+      "This response is taking longer than expected. Still waiting for the current run.",
+    );
+    expect(setActivityStatus).not.toHaveBeenCalledWith("idle");
 
     handlers.dispose?.();
   });

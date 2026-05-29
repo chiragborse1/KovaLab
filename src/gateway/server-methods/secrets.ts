@@ -10,8 +10,17 @@ import type { GatewayRequestHandlers } from "./types.js";
 
 function invalidSecretsResolveField(
   errors: ErrorObject[] | null | undefined,
-): "commandName" | "targetIds" {
+): "allowedPaths" | "commandName" | "forcedActivePaths" | "optionalActivePaths" | "targetIds" {
   for (const issue of errors ?? []) {
+    if (issue.instancePath.startsWith("/allowedPaths")) {
+      return "allowedPaths";
+    }
+    if (issue.instancePath.startsWith("/forcedActivePaths")) {
+      return "forcedActivePaths";
+    }
+    if (issue.instancePath.startsWith("/optionalActivePaths")) {
+      return "optionalActivePaths";
+    }
     if (
       issue.instancePath === "/commandName" ||
       (issue.instancePath === "" &&
@@ -25,7 +34,13 @@ function invalidSecretsResolveField(
 
 export function createSecretsHandlers(params: {
   reloadSecrets: () => Promise<{ warningCount: number }>;
-  resolveSecrets: (params: { commandName: string; targetIds: string[] }) => Promise<{
+  resolveSecrets: (params: {
+    commandName: string;
+    targetIds: string[];
+    allowedPaths?: string[];
+    forcedActivePaths?: string[];
+    optionalActivePaths?: string[];
+  }) => Promise<{
     assignments: Array<{
       path: string;
       pathSegments: string[];
@@ -70,6 +85,15 @@ export function createSecretsHandlers(params: {
       const targetIds = requestParams.targetIds
         .map((entry) => entry.trim())
         .filter((entry) => entry.length > 0);
+      const allowedPaths = requestParams.allowedPaths
+        ?.map((entry) => entry.trim())
+        .filter((entry) => entry.length > 0);
+      const forcedActivePaths = requestParams.forcedActivePaths
+        ?.map((entry) => entry.trim())
+        .filter((entry) => entry.length > 0);
+      const optionalActivePaths = requestParams.optionalActivePaths
+        ?.map((entry) => entry.trim())
+        .filter((entry) => entry.length > 0);
 
       for (const targetId of targetIds) {
         if (!isKnownSecretTargetId(targetId)) {
@@ -89,6 +113,9 @@ export function createSecretsHandlers(params: {
         const result = await params.resolveSecrets({
           commandName,
           targetIds,
+          ...(allowedPaths ? { allowedPaths } : {}),
+          ...(forcedActivePaths ? { forcedActivePaths } : {}),
+          ...(optionalActivePaths ? { optionalActivePaths } : {}),
         });
         const payload = {
           ok: true,

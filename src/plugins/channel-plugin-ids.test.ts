@@ -47,8 +47,14 @@ import {
   resolveConfiguredChannelPresencePolicy,
   resolveConfiguredDeferredChannelPluginIds,
   resolveConfiguredChannelPluginIds,
-  resolveGatewayStartupPluginIds,
+  resolveGatewayStartupPluginPlanFromRegistry,
 } from "./channel-plugin-ids.js";
+import {
+  INSTALLED_PLUGIN_INDEX_MIGRATION_VERSION,
+  INSTALLED_PLUGIN_INDEX_VERSION,
+  type InstalledPluginIndex,
+} from "./installed-plugin-index.js";
+import type { PluginManifestRecord, PluginManifestRegistry } from "./manifest-registry.js";
 
 function withManifestLoadPaths<T extends { id: string }>(plugin: T): T {
   return {
@@ -216,6 +222,58 @@ function createManifestRegistryFixture() {
         cliBackends: [],
       },
       {
+        id: "tavily",
+        channels: [],
+        origin: "bundled",
+        enabledByDefault: undefined,
+        providers: [],
+        cliBackends: [],
+        contracts: {
+          webSearchProviders: ["tavily"],
+        },
+      },
+      {
+        id: "microsoft-speech",
+        channels: [],
+        origin: "bundled",
+        enabledByDefault: true,
+        providers: [],
+        cliBackends: [],
+        contracts: {
+          speechProviders: ["microsoft"],
+        },
+      },
+      {
+        id: "image-provider",
+        channels: [],
+        origin: "bundled",
+        enabledByDefault: true,
+        providers: [],
+        cliBackends: [],
+        contracts: {
+          imageGenerationProviders: ["image-model-provider"],
+        },
+      },
+      {
+        id: "context-engine",
+        channels: [],
+        origin: "bundled",
+        enabledByDefault: undefined,
+        providers: [],
+        cliBackends: [],
+      },
+      {
+        id: "hook-plugin",
+        channels: [],
+        activation: {
+          onCapabilities: ["hook"],
+        },
+        origin: "bundled",
+        enabledByDefault: undefined,
+        providers: [],
+        cliBackends: [],
+      },
+      {
         id: "demo-global-sidecar",
         channels: [],
         origin: "global",
@@ -247,23 +305,92 @@ function createManifestRegistryFixtureWithWorkspaceDemoChannel() {
   };
 }
 
+function listSortedUnique(values: readonly string[] | undefined): readonly string[] {
+  return Array.from(new Set((values ?? []).map((value) => value.trim()).filter(Boolean))).toSorted(
+    (left, right) => left.localeCompare(right),
+  );
+}
+
+function manifestHasKind(record: PluginManifestRecord, kind: string): boolean {
+  const value = record.kind;
+  return value === kind || (Array.isArray(value) && value.includes(kind));
+}
+
+function hasRuntimeContractSurface(record: PluginManifestRecord): boolean {
+  const contracts = record.contracts;
+  return Boolean(
+    record.providers.length > 0 ||
+    record.cliBackends.length > 0 ||
+    contracts?.speechProviders?.length ||
+    contracts?.mediaUnderstandingProviders?.length ||
+    contracts?.documentExtractors?.length ||
+    contracts?.imageGenerationProviders?.length ||
+    contracts?.videoGenerationProviders?.length ||
+    contracts?.musicGenerationProviders?.length ||
+    contracts?.webContentExtractors?.length ||
+    contracts?.webFetchProviders?.length ||
+    contracts?.webSearchProviders?.length ||
+    contracts?.migrationProviders?.length ||
+    contracts?.memoryEmbeddingProviders?.length ||
+    manifestHasKind(record, "memory"),
+  );
+}
+
+function createInstalledPluginIndexFixture(
+  manifestRegistry: PluginManifestRegistry,
+): InstalledPluginIndex {
+  return {
+    version: INSTALLED_PLUGIN_INDEX_VERSION,
+    hostContractVersion: "test",
+    compatRegistryVersion: "test",
+    migrationVersion: INSTALLED_PLUGIN_INDEX_MIGRATION_VERSION,
+    policyHash: "test",
+    generatedAtMs: 0,
+    installRecords: {},
+    diagnostics: [],
+    plugins: manifestRegistry.plugins.map((record) => ({
+      pluginId: record.id,
+      manifestPath: record.manifestPath,
+      manifestHash: "",
+      source: record.source,
+      rootDir: record.rootDir,
+      origin: record.origin,
+      enabled: true,
+      ...(record.enabledByDefault === true ? { enabledByDefault: true } : {}),
+      startup: {
+        sidecar: record.channels.length === 0 && !hasRuntimeContractSurface(record),
+        memory: manifestHasKind(record, "memory"),
+        deferConfiguredChannelFullLoadUntilAfterListen:
+          record.startupDeferConfiguredChannelFullLoadUntilAfterListen === true,
+        agentHarnesses: listSortedUnique([
+          ...(record.activation?.onAgentHarnesses ?? []),
+          ...record.cliBackends,
+        ]),
+      },
+      compat: [],
+    })),
+  };
+}
+
 function expectStartupPluginIds(params: {
   config: KovaConfig;
   activationSourceConfig?: KovaConfig;
   env?: NodeJS.ProcessEnv;
   expected: readonly string[];
 }) {
+  const manifestRegistry = loadPluginManifestRegistry();
+  const index = createInstalledPluginIndexFixture(manifestRegistry);
   expect(
-    resolveGatewayStartupPluginIds({
+    resolveGatewayStartupPluginPlanFromRegistry({
       config: params.config,
       ...(params.activationSourceConfig !== undefined
         ? { activationSourceConfig: params.activationSourceConfig }
         : {}),
-      workspaceDir: "/tmp",
       env: params.env ?? process.env,
-    }),
+      index,
+      manifestRegistry,
+    }).pluginIds,
   ).toEqual(params.expected);
-  expect(loadPluginManifestRegistry).toHaveBeenCalled();
 }
 
 function expectStartupPluginIdsCase(params: {
@@ -831,6 +958,98 @@ describe("resolveGatewayStartupPluginIds", () => {
         },
       } as KovaConfig,
       expected: ["demo-channel", "browser", "memory-core"],
+    });
+  });
+
+  it("starts explicitly enabled web search provider plugins from manifest contracts", () => {
+    expectStartupPluginIdsCase({
+      config: {
+        channels: {},
+        tools: {
+          web: {
+            search: {
+              enabled: true,
+              provider: "tavily",
+            },
+          },
+        },
+        plugins: {
+          entries: {
+            tavily: {
+              enabled: true,
+            },
+          },
+        },
+      } as KovaConfig,
+      expected: ["browser", "memory-core", "tavily"],
+    });
+  });
+
+  it("starts configured speech provider plugins before voice turns need runtime hooks", () => {
+    expectStartupPluginIdsCase({
+      config: {
+        channels: {},
+        messages: {
+          tts: {
+            provider: "edge",
+          },
+        },
+      } as KovaConfig,
+      expected: ["browser", "memory-core", "microsoft-speech"],
+    });
+  });
+
+  it("starts configured image generation provider plugins from agent defaults", () => {
+    expectStartupPluginIdsCase({
+      config: {
+        channels: {},
+        agents: {
+          defaults: {
+            imageGenerationModel: {
+              primary: "image-model-provider/kova-image",
+            },
+          },
+        },
+      } as KovaConfig,
+      expected: ["browser", "memory-core", "image-provider"],
+    });
+  });
+
+  it("starts an explicitly selected context-engine slot plugin", () => {
+    expectStartupPluginIdsCase({
+      config: {
+        channels: {},
+        plugins: {
+          slots: {
+            contextEngine: "context-engine",
+          },
+          entries: {
+            "context-engine": {
+              enabled: true,
+            },
+          },
+        },
+      } as KovaConfig,
+      expected: ["browser", "memory-core", "context-engine"],
+    });
+  });
+
+  it("starts explicitly configured hook plugins without loading every plugin eagerly", () => {
+    expectStartupPluginIdsCase({
+      config: {
+        channels: {},
+        plugins: {
+          entries: {
+            "hook-plugin": {
+              enabled: true,
+              hooks: {
+                timeoutMs: 1000,
+              },
+            },
+          },
+        },
+      } as KovaConfig,
+      expected: ["browser", "memory-core", "hook-plugin"],
     });
   });
 });

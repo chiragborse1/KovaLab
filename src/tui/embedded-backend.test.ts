@@ -7,6 +7,18 @@ const getReplyFromConfigMock = vi.fn();
 const createDefaultDepsMock = vi.fn(() => ({}));
 let registeredListener: ((evt: unknown) => void) | undefined;
 
+function withoutProgressEvents(events: Array<{ event: string; payload: unknown }>) {
+  return events.filter(
+    (entry) =>
+      !(
+        entry.event === "agent" &&
+        typeof entry.payload === "object" &&
+        entry.payload !== null &&
+        (entry.payload as { stream?: string }).stream === "progress"
+      ),
+  );
+}
+
 vi.mock("../agents/agent-command.js", () => ({
   agentCommandFromIngress: (...args: unknown[]) => agentCommandFromIngressMock(...args),
 }));
@@ -99,6 +111,14 @@ vi.mock("../gateway/session-utils.js", () => ({
   resolveSessionModelRef: () => ({ provider: "openai", model: "gpt-5.4" }),
 }));
 
+vi.mock("../gateway/session-entry.js", () => ({
+  loadSessionEntry: (sessionKey: string) => ({
+    cfg: {},
+    canonicalKey: sessionKey,
+    entry: {},
+  }),
+}));
+
 vi.mock("../gateway/server-model-catalog.js", () => ({
   loadGatewayModelCatalog: () => [],
 }));
@@ -109,6 +129,7 @@ vi.mock("../gateway/session-reset-service.js", () => ({
 
 vi.mock("../gateway/session-utils.fs.js", () => ({
   capArrayByJsonBytes: (items: unknown[]) => ({ items }),
+  readSessionMessagesAsync: () => [],
 }));
 
 vi.mock("../gateway/sessions-patch.js", () => ({
@@ -218,7 +239,7 @@ describe("EmbeddedTuiBackend", () => {
     pending.resolve({ payloads: [{ text: "hello" }], meta: {} });
     await flushMicrotasks();
 
-    expect(events).toEqual([
+    expect(withoutProgressEvents(events)).toEqual([
       {
         event: "agent",
         payload: {
@@ -474,7 +495,7 @@ describe("EmbeddedTuiBackend", () => {
     });
     await waitFor(() => events.length >= 2);
 
-    expect(events).toEqual([
+    expect(withoutProgressEvents(events)).toEqual([
       {
         event: "chat.side_result",
         payload: {
@@ -496,9 +517,12 @@ describe("EmbeddedTuiBackend", () => {
     ]);
   });
 
-  it("routes local text slash commands through the reply command pipeline", async () => {
+  it("does not route local text slash commands through the reply command pipeline", async () => {
     const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
-    getReplyFromConfigMock.mockResolvedValueOnce({ text: "Memory status:" });
+    agentCommandFromIngressMock.mockResolvedValueOnce({
+      payloads: [{ text: "Memory status:" }],
+      meta: {},
+    });
 
     const backend = new EmbeddedTuiBackend();
     const events: Array<{ event: string; payload: unknown }> = [];
@@ -512,11 +536,11 @@ describe("EmbeddedTuiBackend", () => {
       message: "/memory",
       runId: "run-memory-command",
     });
-    await waitFor(() => getReplyFromConfigMock.mock.calls.length === 1);
+    await waitFor(() => agentCommandFromIngressMock.mock.calls.length === 1);
 
-    expect(agentCommandFromIngressMock).not.toHaveBeenCalled();
-    expect(getReplyFromConfigMock).toHaveBeenCalledOnce();
-    expect(events).toEqual([
+    expect(agentCommandFromIngressMock).toHaveBeenCalledOnce();
+    expect(getReplyFromConfigMock).not.toHaveBeenCalled();
+    expect(withoutProgressEvents(events)).toEqual([
       {
         event: "chat",
         payload: {
@@ -525,7 +549,6 @@ describe("EmbeddedTuiBackend", () => {
           state: "final",
           message: {
             role: "assistant",
-            command: true,
             content: [{ type: "text", text: "Memory status:" }],
             timestamp: expect.any(Number),
           },
@@ -700,7 +723,7 @@ describe("EmbeddedTuiBackend", () => {
       events.some((entry) => (entry.payload as { state?: string }).state === "final"),
     );
 
-    expect(events).toEqual([
+    expect(withoutProgressEvents(events)).toEqual([
       {
         event: "chat",
         payload: {
@@ -767,6 +790,120 @@ describe("EmbeddedTuiBackend", () => {
 
     expect(result).toEqual({ ok: true, aborted: true });
     expect(capturedSignal?.aborted).toBe(true);
+  });
+
+  it("queues normal same-session messages instead of aborting the active local run", async () => {
+    const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
+    const first = deferred<{
+      payloads: Array<{ text: string }>;
+      meta: Record<string, unknown>;
+    }>();
+    const second = deferred<{
+      payloads: Array<{ text: string }>;
+      meta: Record<string, unknown>;
+    }>();
+    let firstSignal: AbortSignal | undefined;
+    let secondMessage = "";
+    agentCommandFromIngressMock
+      .mockImplementationOnce((opts: { abortSignal?: AbortSignal }) => {
+        firstSignal = opts.abortSignal;
+        return first.promise;
+      })
+      .mockImplementationOnce((opts: { message?: string }) => {
+        secondMessage = opts.message ?? "";
+        return second.promise;
+      });
+
+    const backend = new EmbeddedTuiBackend();
+    const events: Array<{ event: string; payload: unknown }> = [];
+    backend.onEvent = (evt) => {
+      events.push({ event: evt.event, payload: evt.payload });
+    };
+
+    backend.start();
+    await backend.sendChat({
+      sessionKey: "agent:main:main",
+      message: "first",
+      runId: "run-queue-first",
+    });
+    await waitFor(() => agentCommandFromIngressMock.mock.calls.length === 1);
+
+    await backend.sendChat({
+      sessionKey: "agent:main:main",
+      message: "second",
+      runId: "run-queue-second",
+    });
+    await flushAsyncTurn();
+
+    expect(firstSignal?.aborted).toBe(false);
+    expect(agentCommandFromIngressMock).toHaveBeenCalledTimes(1);
+
+    registeredListener?.({
+      runId: "run-queue-first",
+      stream: "lifecycle",
+      data: { phase: "end", stopReason: "stop" },
+    });
+    await flushAsyncTurn();
+    expect(agentCommandFromIngressMock).toHaveBeenCalledTimes(1);
+
+    first.resolve({ payloads: [{ text: "first done" }], meta: {} });
+    await waitFor(() => agentCommandFromIngressMock.mock.calls.length === 2);
+
+    expect(secondMessage).toBe("second");
+    second.resolve({ payloads: [{ text: "second done" }], meta: {} });
+    await waitFor(() =>
+      events.some(
+        (entry) =>
+          entry.event === "chat" &&
+          (entry.payload as { runId?: string; state?: string }).runId === "run-queue-second" &&
+          (entry.payload as { state?: string }).state === "final",
+      ),
+    );
+  });
+
+  it("routes stop text to abort the active local run without starting a queued turn", async () => {
+    const { EmbeddedTuiBackend } = await import("./embedded-backend.js");
+    let capturedSignal: AbortSignal | undefined;
+    agentCommandFromIngressMock.mockImplementationOnce((opts: { abortSignal?: AbortSignal }) => {
+      capturedSignal = opts.abortSignal;
+      return new Promise((_, reject) => {
+        opts.abortSignal?.addEventListener("abort", () => reject(new Error("aborted")), {
+          once: true,
+        });
+      });
+    });
+
+    const backend = new EmbeddedTuiBackend();
+    const events: Array<{ event: string; payload: unknown }> = [];
+    backend.onEvent = (evt) => {
+      events.push({ event: evt.event, payload: evt.payload });
+    };
+
+    backend.start();
+    await backend.sendChat({
+      sessionKey: "agent:main:main",
+      message: "long task",
+      runId: "run-stop-active",
+    });
+    await waitFor(() => capturedSignal !== undefined);
+
+    const result = await backend.sendChat({
+      sessionKey: "agent:main:main",
+      message: "/stop",
+      runId: "run-stop-command",
+    });
+    await waitFor(() => capturedSignal?.aborted === true);
+
+    expect(result).toEqual({ runId: "run-stop-command" });
+    expect(agentCommandFromIngressMock).toHaveBeenCalledTimes(1);
+    expect(events).toContainEqual({
+      event: "chat",
+      payload: {
+        runId: "run-stop-active",
+        sessionKey: "agent:main:main",
+        state: "aborted",
+      },
+    });
   });
 
   it("emits opt-in timing trace events for local turns", async () => {

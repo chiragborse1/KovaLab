@@ -17,6 +17,19 @@ const mocks = vi.hoisted(() => ({
     writeStdout: vi.fn(),
   },
   loadConfig: vi.fn(() => ({})),
+  getRuntimeConfigSourceSnapshot: vi.fn(() => null),
+  setRuntimeConfigSnapshot: vi.fn(),
+  resolveCommandConfigWithSecrets: vi.fn(async ({ config }: { config: unknown }) => ({
+    resolvedConfig: config,
+    effectiveConfig: config,
+    diagnostics: [],
+  })),
+  getCapabilityWebSearchCommandSecretTargets: vi.fn(() => ({
+    targetIds: new Set(["plugins.entries.brave.config.webSearch.apiKey"]),
+  })),
+  getCapabilityWebFetchCommandSecretTargets: vi.fn(() => ({
+    targetIds: new Set(["plugins.entries.firecrawl.config.webFetch.apiKey"]),
+  })),
   loadAuthProfileStoreForRuntime: vi.fn(() => ({ profiles: {}, order: {} })),
   listProfilesForProvider: vi.fn(() => []),
   updateAuthProfileStoreWithLock: vi.fn(
@@ -127,8 +140,24 @@ vi.mock("../runtime.js", () => ({
 }));
 
 vi.mock("../config/config.js", () => ({
+  getRuntimeConfigSourceSnapshot:
+    mocks.getRuntimeConfigSourceSnapshot as typeof import("../config/config.js").getRuntimeConfigSourceSnapshot,
   getRuntimeConfig: mocks.loadConfig as typeof import("../config/config.js").getRuntimeConfig,
   loadConfig: mocks.loadConfig as typeof import("../config/config.js").loadConfig,
+  setRuntimeConfigSnapshot:
+    mocks.setRuntimeConfigSnapshot as typeof import("../config/config.js").setRuntimeConfigSnapshot,
+}));
+
+vi.mock("./command-config-resolution.js", () => ({
+  resolveCommandConfigWithSecrets:
+    mocks.resolveCommandConfigWithSecrets as typeof import("./command-config-resolution.js").resolveCommandConfigWithSecrets,
+}));
+
+vi.mock("./command-secret-targets.js", () => ({
+  getCapabilityWebFetchCommandSecretTargets:
+    mocks.getCapabilityWebFetchCommandSecretTargets as typeof import("./command-secret-targets.js").getCapabilityWebFetchCommandSecretTargets,
+  getCapabilityWebSearchCommandSecretTargets:
+    mocks.getCapabilityWebSearchCommandSecretTargets as typeof import("./command-secret-targets.js").getCapabilityWebSearchCommandSecretTargets,
 }));
 
 vi.mock("../agents/agent-command.js", () => ({
@@ -285,6 +314,21 @@ describe("capability cli", () => {
     mocks.runtime.log.mockClear();
     mocks.runtime.error.mockClear();
     mocks.runtime.writeJson.mockClear();
+    mocks.getRuntimeConfigSourceSnapshot.mockReset().mockReturnValue(null);
+    mocks.setRuntimeConfigSnapshot.mockClear();
+    mocks.resolveCommandConfigWithSecrets
+      .mockReset()
+      .mockImplementation(async ({ config }: { config: unknown }) => ({
+        resolvedConfig: config,
+        effectiveConfig: config,
+        diagnostics: [],
+      }));
+    mocks.getCapabilityWebSearchCommandSecretTargets.mockReset().mockReturnValue({
+      targetIds: new Set(["plugins.entries.brave.config.webSearch.apiKey"]),
+    });
+    mocks.getCapabilityWebFetchCommandSecretTargets.mockReset().mockReturnValue({
+      targetIds: new Set(["plugins.entries.firecrawl.config.webFetch.apiKey"]),
+    });
     mocks.loadModelCatalog
       .mockReset()
       .mockResolvedValue([{ id: "gpt-5.4", provider: "openai", name: "GPT-5.4" }] as never);
@@ -1550,6 +1594,100 @@ describe("capability cli", () => {
         },
       ],
     });
+  });
+
+  it("resolves scoped SecretRefs before local web search", async () => {
+    mocks.loadConfig.mockReturnValue({
+      tools: { web: { search: { provider: "brave" } } },
+    });
+    const webSearchRuntime = await import("../web-search/runtime.js");
+    vi.mocked(webSearchRuntime.runWebSearch).mockResolvedValueOnce({
+      provider: "brave",
+      result: { results: [] },
+    } as never);
+    const targetScope = {
+      targetIds: new Set(["plugins.entries.brave.config.webSearch.apiKey"]),
+      forcedActivePaths: new Set(["plugins.entries.brave.config.webSearch.apiKey"]),
+    };
+    mocks.getCapabilityWebSearchCommandSecretTargets.mockReturnValueOnce(targetScope);
+    const resolvedConfig = {
+      tools: { web: { search: { provider: "brave" } } },
+      plugins: { entries: { brave: { config: { webSearch: { apiKey: "resolved" } } } } },
+    };
+    mocks.resolveCommandConfigWithSecrets.mockResolvedValueOnce({
+      resolvedConfig,
+      effectiveConfig: resolvedConfig,
+      diagnostics: [],
+    });
+
+    await runRegisteredCli({
+      register: registerCapabilityCli as (program: Command) => void,
+      argv: ["capability", "web", "search", "--query", "kova", "--provider", "brave", "--json"],
+    });
+
+    expect(mocks.getCapabilityWebSearchCommandSecretTargets).toHaveBeenCalledWith(
+      expect.objectContaining({ tools: { web: { search: { provider: "brave" } } } }),
+      { providerId: "brave" },
+    );
+    expect(mocks.resolveCommandConfigWithSecrets).toHaveBeenCalledWith(
+      expect.objectContaining({
+        commandName: "infer web search",
+        targetIds: targetScope.targetIds,
+        forcedActivePaths: targetScope.forcedActivePaths,
+      }),
+    );
+    expect(webSearchRuntime.runWebSearch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: resolvedConfig,
+        providerId: "brave",
+      }),
+    );
+  });
+
+  it("resolves scoped SecretRefs before local web fetch", async () => {
+    mocks.loadConfig.mockReturnValue({
+      tools: { web: { fetch: { provider: "firecrawl" } } },
+    });
+    const webFetchRuntime = await import("../web-fetch/runtime.js");
+    vi.mocked(webFetchRuntime.resolveWebFetchDefinition).mockReturnValueOnce({
+      provider: { id: "firecrawl" },
+      definition: {
+        execute: vi.fn(async () => ({ text: "ok" })),
+      },
+    } as never);
+    const targetScope = {
+      targetIds: new Set(["plugins.entries.firecrawl.config.webFetch.apiKey"]),
+      optionalActivePaths: new Set(["plugins.entries.firecrawl.config.webFetch.apiKey"]),
+    };
+    mocks.getCapabilityWebFetchCommandSecretTargets.mockReturnValueOnce(targetScope);
+    const resolvedConfig = {
+      tools: { web: { fetch: { provider: "firecrawl" } } },
+      plugins: { entries: { firecrawl: { config: { webFetch: { apiKey: "resolved" } } } } },
+    };
+    mocks.resolveCommandConfigWithSecrets.mockResolvedValueOnce({
+      resolvedConfig,
+      effectiveConfig: resolvedConfig,
+      diagnostics: [],
+    });
+
+    await runRegisteredCli({
+      register: registerCapabilityCli as (program: Command) => void,
+      argv: ["capability", "web", "fetch", "--url", "https://example.com", "--json"],
+    });
+
+    expect(mocks.resolveCommandConfigWithSecrets).toHaveBeenCalledWith(
+      expect.objectContaining({
+        commandName: "infer web fetch",
+        targetIds: targetScope.targetIds,
+        optionalActivePaths: targetScope.optionalActivePaths,
+      }),
+    );
+    expect(webFetchRuntime.resolveWebFetchDefinition).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: resolvedConfig,
+        providerId: undefined,
+      }),
+    );
   });
 
   it("surfaces selected and configured embedding provider state", async () => {

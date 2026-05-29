@@ -16,6 +16,8 @@ type EventHandlerChatLog = {
   ) => void;
   showApproval: (key: string, summary: ApprovalEventSummary) => void;
   addSystem: (text: string) => void;
+  addPendingSystem: (runId: string, text: string) => void;
+  dismissPendingSystem: (runId: string) => void;
   updateAssistant: (text: string, runId: string) => void;
   finalizeAssistant: (text: string, runId: string) => void;
   dropAssistant: (runId: string) => void;
@@ -54,10 +56,10 @@ type EventHandlerContext = {
 
 const DEFAULT_STREAMING_WATCHDOG_MS = 30_000;
 const DEFAULT_ASSISTANT_DELTA_RENDER_INTERVAL_MS = 32;
+const STREAMING_WATCHDOG_USER_MESSAGE =
+  "This response is taking longer than expected. Still waiting for the current run.";
 const RUN_RECOVERY_HINT =
   "Recovery: session history is preserved; use /sessions to reopen saved sessions, /reset to start clean, or !kova tasks list to inspect detached background work.";
-const STALE_RUN_RECOVERY_HINT =
-  "If detached work was involved, run !kova tasks audit to surface stale or lost background tasks.";
 
 function readApprovalDecisions(value: unknown): ApprovalDecision[] | undefined {
   if (!Array.isArray(value)) {
@@ -134,13 +136,7 @@ export function createEventHandlers(context: EventHandlerContext) {
         return;
       }
       streamingWatchdogRunId = null;
-      state.activeChatRunId = null;
-      setActivityStatus("idle");
-      chatLog.addSystem(
-        `streaming watchdog: no stream updates for ${Math.round(
-          streamingWatchdogMs / 1000,
-        )}s; resetting status. The backend may have dropped this run silently; send a new message to resync. ${STALE_RUN_RECOVERY_HINT}`,
-      );
+      chatLog.addPendingSystem(runId, STREAMING_WATCHDOG_USER_MESSAGE);
       tui.requestRender();
     }, streamingWatchdogMs);
     const maybeUnref = (streamingWatchdogTimer as { unref?: () => void }).unref;
@@ -260,6 +256,7 @@ export function createEventHandlers(context: EventHandlerContext) {
     clearPendingAssistantDeltas();
     pendingHistoryRefresh = false;
     state.pendingOptimisticUserMessage = false;
+    state.pendingChatRunId = null;
     clearLocalRunIds?.();
     clearLocalBtwRunIds?.();
     btw.clear();
@@ -267,7 +264,7 @@ export function createEventHandlers(context: EventHandlerContext) {
   };
 
   const flushPendingHistoryRefreshIfIdle = () => {
-    if (!pendingHistoryRefresh || state.activeChatRunId) {
+    if (!pendingHistoryRefresh || state.activeChatRunId || state.pendingChatRunId) {
       return;
     }
     pendingHistoryRefresh = false;
@@ -303,6 +300,26 @@ export function createEventHandlers(context: EventHandlerContext) {
     }
   };
 
+  const clearPendingRunIfMatch = (runId: string) => {
+    if (state.pendingChatRunId === runId) {
+      state.pendingChatRunId = null;
+    }
+  };
+
+  const bindPendingRunIfMatch = (runId: string) => {
+    if (state.pendingChatRunId !== runId) {
+      return false;
+    }
+    noteSessionRun(runId);
+    state.activeChatRunId = runId;
+    state.pendingChatRunId = null;
+    if (state.pendingOptimisticUserMessage) {
+      noteLocalRunId?.(runId);
+      state.pendingOptimisticUserMessage = false;
+    }
+    return true;
+  };
+
   const finalizeRun = (params: {
     runId: string;
     wasActiveRun: boolean;
@@ -310,6 +327,7 @@ export function createEventHandlers(context: EventHandlerContext) {
   }) => {
     noteFinalizedRun(params.runId);
     clearActiveRunIfMatch(params.runId);
+    clearPendingRunIfMatch(params.runId);
     flushPendingHistoryRefreshIfIdle();
     if (params.wasActiveRun) {
       setActivityStatus(params.status);
@@ -329,6 +347,7 @@ export function createEventHandlers(context: EventHandlerContext) {
     dropPendingAssistantDelta(params.runId);
     sessionRuns.delete(params.runId);
     clearActiveRunIfMatch(params.runId);
+    clearPendingRunIfMatch(params.runId);
     flushPendingHistoryRefreshIfIdle();
     if (params.wasActiveRun) {
       setActivityStatus(params.status);
@@ -412,24 +431,30 @@ export function createEventHandlers(context: EventHandlerContext) {
         return;
       }
     }
+    chatLog.dismissPendingSystem(evt.runId);
     noteSessionRun(evt.runId);
     if (!state.activeChatRunId && !isLocalBtwRunId?.(evt.runId)) {
       state.activeChatRunId = evt.runId;
+      clearPendingRunIfMatch(evt.runId);
       if (state.pendingOptimisticUserMessage) {
         noteLocalRunId?.(evt.runId);
         state.pendingOptimisticUserMessage = false;
       }
+    } else {
+      clearPendingRunIfMatch(evt.runId);
     }
     if (evt.state === "delta") {
-      const displayText = streamAssembler.ingestDelta(evt.runId, evt.message, state.showThinking);
-      if (!displayText) {
-        setActivityStatus("waiting");
-        tui.requestRender();
-        return;
-      }
+      // Mark the run as alive even when the delta is not visible yet (tool-only,
+      // thinking-only, or empty registration deltas). Otherwise the status bar
+      // can spin silently with no pending notice.
       setActivityStatus("streaming");
       if (state.activeChatRunId === evt.runId) {
         armStreamingWatchdog(evt.runId);
+      }
+      const displayText = streamAssembler.ingestDelta(evt.runId, evt.message, state.showThinking);
+      if (!displayText) {
+        tui.requestRender();
+        return;
       }
       scheduleAssistantDeltaRender(evt.runId, displayText);
       return;
@@ -523,12 +548,21 @@ export function createEventHandlers(context: EventHandlerContext) {
     // Agent events (tool streaming, lifecycle) are emitted per-run. Filter against the
     // active chat run id, not the session id. Tool results can arrive after the chat
     // final event, so accept finalized runs for tool updates.
-    const isActiveRun = evt.runId === state.activeChatRunId;
-    const isKnownRun = isActiveRun || sessionRuns.has(evt.runId) || finalizedRuns.has(evt.runId);
+    let isActiveRun = evt.runId === state.activeChatRunId;
+    const isPendingRun = evt.runId === state.pendingChatRunId;
+    if (isPendingRun) {
+      bindPendingRunIfMatch(evt.runId);
+      isActiveRun = evt.runId === state.activeChatRunId;
+    }
+    const isKnownRun =
+      isActiveRun || isPendingRun || sessionRuns.has(evt.runId) || finalizedRuns.has(evt.runId);
     if (!isKnownRun) {
       return;
     }
     if (evt.stream === "tool") {
+      if (isActiveRun) {
+        armStreamingWatchdog(evt.runId);
+      }
       const verbose = state.sessionInfo.verboseLevel ?? "off";
       const allowToolEvents = verbose !== "off";
       const allowToolOutput = verbose === "full";
@@ -604,13 +638,30 @@ export function createEventHandlers(context: EventHandlerContext) {
       tui.requestRender();
       return;
     }
+    if (evt.stream === "progress") {
+      if (!isActiveRun) {
+        return;
+      }
+      armStreamingWatchdog(evt.runId);
+      const data = evt.data ?? {};
+      const detail = asString(data.detail, "") || asString(data.phase, "");
+      if (detail) {
+        state.activityDetail = detail;
+      }
+      setActivityStatus("waiting");
+      tui.requestRender();
+      return;
+    }
     if (evt.stream === "lifecycle") {
       if (!isActiveRun) {
         return;
       }
       const phase = typeof evt.data?.phase === "string" ? evt.data.phase : "";
+      if (phase && phase !== "end" && phase !== "error") {
+        armStreamingWatchdog(evt.runId);
+      }
       if (phase === "start") {
-        setActivityStatus("waiting");
+        setActivityStatus("running");
       }
       if (phase === "end") {
         setActivityStatus("idle");

@@ -53,6 +53,7 @@ function createHarness(params?: {
   isConnected?: boolean;
   activeChatRunId?: string | null;
   pendingOptimisticUserMessage?: boolean;
+  pendingChatRunId?: string | null;
   busyInputMode?: "queue" | "steer" | "interrupt";
   sessionInfo?: SessionInfo;
   opts?: { local?: boolean };
@@ -362,6 +363,7 @@ function createHarness(params?: {
     currentSessionKey: "agent:main:main",
     activeChatRunId: params?.activeChatRunId ?? null,
     pendingOptimisticUserMessage: params?.pendingOptimisticUserMessage ?? false,
+    pendingChatRunId: params?.pendingChatRunId ?? null,
     busyInputMode: params?.busyInputMode ?? "queue",
     queuedMessages: [] as QueuedMessage[],
     isConnected: params?.isConnected ?? true,
@@ -504,6 +506,7 @@ describe("tui command handlers", () => {
     const setActivityStatus = vi.fn();
     const sendChat = vi.fn(async () => {
       harness.state.pendingOptimisticUserMessage = false;
+      harness.state.pendingChatRunId = null;
       harness.state.activeChatRunId = null;
       harness.state.activityStatus = "idle";
       setActivityStatus("idle");
@@ -516,6 +519,26 @@ describe("tui command handlers", () => {
     expect(setActivityStatus).toHaveBeenCalledWith("sending");
     expect(setActivityStatus).toHaveBeenCalledWith("idle");
     expect(setActivityStatus).not.toHaveBeenCalledWith("waiting");
+  });
+
+  it("answers memory help locally without starting an agent turn", async () => {
+    const { handleCommand, addUser, addSystem, sendChat } = createHarness();
+
+    await handleCommand("/memory help");
+
+    expect(addUser).toHaveBeenCalledWith("/memory help");
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Memory commands:"));
+    expect(sendChat).not.toHaveBeenCalled();
+  });
+
+  it("answers persona help locally without starting an agent turn", async () => {
+    const { handleCommand, addUser, addSystem, sendChat } = createHarness();
+
+    await handleCommand("/persona help");
+
+    expect(addUser).toHaveBeenCalledWith("/persona help");
+    expect(addSystem).toHaveBeenCalledWith(expect.stringContaining("Persona commands:"));
+    expect(sendChat).not.toHaveBeenCalled();
   });
 
   it("clears session overrides for default run-control commands", async () => {
@@ -1332,6 +1355,7 @@ describe("tui command handlers", () => {
 
     expect(noteLocalRunId).not.toHaveBeenCalled();
     expect(state.activeChatRunId).toBeNull();
+    expect(state.pendingChatRunId).toBe("r1");
     expect(state.pendingOptimisticUserMessage).toBe(true);
   });
 
@@ -1564,6 +1588,7 @@ describe("tui command handlers", () => {
     expect(addSystem).toHaveBeenCalledWith("send failed: Error: gateway down");
     expect(setActivityStatus).toHaveBeenLastCalledWith("error");
     expect(state.pendingOptimisticUserMessage).toBe(false);
+    expect(state.pendingChatRunId).toBeNull();
   });
 
   it("sanitizes control sequences in /new and /reset failures", async () => {

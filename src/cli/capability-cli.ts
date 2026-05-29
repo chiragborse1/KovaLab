@@ -15,7 +15,11 @@ import { DEFAULT_PROVIDER } from "../agents/defaults.js";
 import { resolveMemorySearchConfig } from "../agents/memory-search.js";
 import { loadModelCatalog } from "../agents/model-catalog.js";
 import { canonicalizeCaseOnlyCatalogModelRef } from "../agents/model-selection.js";
-import { getRuntimeConfig } from "../config/config.js";
+import {
+  getRuntimeConfig,
+  getRuntimeConfigSourceSnapshot,
+  setRuntimeConfigSnapshot,
+} from "../config/config.js";
 import { resolveAgentModelPrimaryValue } from "../config/model-input.js";
 import type { KovaConfig } from "../config/types.kova.js";
 import { callGateway, randomIdempotencyKey } from "../gateway/call.js";
@@ -81,6 +85,11 @@ import {
   runWebSearch,
 } from "../web-search/runtime.js";
 import { runCommandWithRuntime } from "./cli-utils.js";
+import { resolveCommandConfigWithSecrets } from "./command-config-resolution.js";
+import {
+  getCapabilityWebFetchCommandSecretTargets,
+  getCapabilityWebSearchCommandSecretTargets,
+} from "./command-secret-targets.js";
 import { createDefaultDeps } from "./deps.js";
 import { removeCommandByName } from "./program/command-tree.js";
 import { collectOption } from "./program/helpers.js";
@@ -1325,8 +1334,51 @@ async function runTtsStateMutation(params: {
   return { provider };
 }
 
+async function resolveLocalCapabilityRuntimeConfig(params: {
+  commandName: string;
+  targetIds: Set<string>;
+  allowedPaths?: Set<string>;
+  forcedActivePaths?: Set<string>;
+  optionalActivePaths?: Set<string>;
+  config?: KovaConfig;
+}): Promise<KovaConfig> {
+  const cfg = params.config ?? getRuntimeConfig();
+  const sourceConfig = getRuntimeConfigSourceSnapshot();
+  const { effectiveConfig } = await resolveCommandConfigWithSecrets({
+    config: cfg,
+    commandName: params.commandName,
+    targetIds: params.targetIds,
+    ...(params.allowedPaths ? { allowedPaths: params.allowedPaths } : {}),
+    ...(params.forcedActivePaths ? { forcedActivePaths: params.forcedActivePaths } : {}),
+    ...(params.optionalActivePaths ? { optionalActivePaths: params.optionalActivePaths } : {}),
+    runtime: defaultRuntime,
+    autoEnable: true,
+  });
+  if (sourceConfig) {
+    setRuntimeConfigSnapshot(effectiveConfig, sourceConfig);
+  } else {
+    setRuntimeConfigSnapshot(effectiveConfig);
+  }
+  return effectiveConfig;
+}
+
 async function runWebSearchCommand(params: { query: string; provider?: string; limit?: number }) {
-  const cfg = getRuntimeConfig();
+  const rawConfig = getRuntimeConfig();
+  const scopedTargets = getCapabilityWebSearchCommandSecretTargets(rawConfig, {
+    providerId: params.provider,
+  });
+  const cfg = await resolveLocalCapabilityRuntimeConfig({
+    commandName: "infer web search",
+    targetIds: scopedTargets.targetIds,
+    ...(scopedTargets.allowedPaths ? { allowedPaths: scopedTargets.allowedPaths } : {}),
+    ...(scopedTargets.forcedActivePaths
+      ? { forcedActivePaths: scopedTargets.forcedActivePaths }
+      : {}),
+    ...(scopedTargets.optionalActivePaths
+      ? { optionalActivePaths: scopedTargets.optionalActivePaths }
+      : {}),
+    config: rawConfig,
+  });
   const result = await runWebSearch({
     config: cfg,
     providerId: params.provider,
@@ -1347,7 +1399,22 @@ async function runWebSearchCommand(params: { query: string; provider?: string; l
 }
 
 async function runWebFetchCommand(params: { url: string; provider?: string; format?: string }) {
-  const cfg = getRuntimeConfig();
+  const rawConfig = getRuntimeConfig();
+  const scopedTargets = getCapabilityWebFetchCommandSecretTargets(rawConfig, {
+    providerId: params.provider,
+  });
+  const cfg = await resolveLocalCapabilityRuntimeConfig({
+    commandName: "infer web fetch",
+    targetIds: scopedTargets.targetIds,
+    ...(scopedTargets.allowedPaths ? { allowedPaths: scopedTargets.allowedPaths } : {}),
+    ...(scopedTargets.forcedActivePaths
+      ? { forcedActivePaths: scopedTargets.forcedActivePaths }
+      : {}),
+    ...(scopedTargets.optionalActivePaths
+      ? { optionalActivePaths: scopedTargets.optionalActivePaths }
+      : {}),
+    config: rawConfig,
+  });
   const resolved = resolveWebFetchDefinition({
     config: cfg,
     providerId: params.provider,

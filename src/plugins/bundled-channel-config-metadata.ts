@@ -7,7 +7,11 @@ import {
   normalizeBundledPluginStringList,
   trimBundledPluginString,
 } from "./bundled-plugin-scan.js";
-import { getCachedPluginJitiLoader, type PluginJitiLoaderCache } from "./jiti-loader-cache.js";
+import {
+  createPluginJitiLoaderCache,
+  getCachedPluginJitiLoader,
+  type PluginJitiLoaderCache,
+} from "./jiti-loader-cache.js";
 import type { PluginConfigUiHint } from "./manifest-types.js";
 import type {
   KovaPackageManifest,
@@ -32,7 +36,7 @@ type ChannelConfigSurface = {
   runtime?: ChannelConfigRuntimeSchema;
 };
 
-const jitiLoaders: PluginJitiLoaderCache = new Map();
+const jitiLoaders: PluginJitiLoaderCache = createPluginJitiLoaderCache();
 
 function isBuiltChannelConfigSchema(value: unknown): value is ChannelConfigSurface {
   if (!value || typeof value !== "object") {

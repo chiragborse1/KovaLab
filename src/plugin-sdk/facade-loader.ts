@@ -5,6 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { openBoundaryFileSync } from "../infra/boundary-file-read.js";
 import { resolveBundledPluginsDir } from "../plugins/bundled-dir.js";
 import {
+  createPluginJitiLoaderCache,
   getCachedPluginJitiLoader,
   type PluginJitiLoaderCache,
   type PluginJitiLoaderFactory,
@@ -19,7 +20,7 @@ import {
 const CURRENT_MODULE_PATH = fileURLToPath(import.meta.url);
 
 const nodeRequire = createRequire(import.meta.url);
-const jitiLoaders: PluginJitiLoaderCache = new Map();
+const jitiLoaders: PluginJitiLoaderCache = createPluginJitiLoaderCache();
 const loadedFacadeModules = new Map<string, unknown>();
 const loadedFacadePluginIds = new Set<string>();
 const cachedFacadeModuleLocationsByKey = new Map<

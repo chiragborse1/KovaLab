@@ -6,6 +6,7 @@ import {
   clearSessionStoreCacheForTest,
   loadSessionStore,
   saveSessionStore,
+  updateSessionStoreEntry,
 } from "./sessions/store.js";
 import type { SessionEntry } from "./sessions/types.js";
 
@@ -227,5 +228,29 @@ describe("Session Store Cache", () => {
     const loaded2 = loadSessionStore(storePath);
     expect(loaded2["session:2"]).toBeDefined();
     expect(loaded2["session:2"].displayName).toBe("Added");
+  });
+
+  it("patches serialized JSON for one-entry updates without stringifying untouched entries", async () => {
+    await saveSessionStore(storePath, {
+      "session:1": createSessionEntry({ sessionId: "id-1", displayName: "Before" }),
+      "session:2": createSessionEntry({ sessionId: "id-2", displayName: "Untouched" }),
+    });
+    const cached = loadSessionStore(storePath, { clone: false });
+    Object.defineProperty(cached["session:2"], "toJSON", {
+      value: () => {
+        throw new Error("full store stringify touched session:2");
+      },
+    });
+
+    await updateSessionStoreEntry({
+      storePath,
+      sessionKey: "session:1",
+      update: () => ({ displayName: "After", updatedAt: 123 }),
+      takeCacheOwnership: true,
+    });
+
+    const disk = JSON.parse(fs.readFileSync(storePath, "utf8")) as Record<string, SessionEntry>;
+    expect(disk["session:1"].displayName).toBe("After");
+    expect(disk["session:2"].displayName).toBe("Untouched");
   });
 });

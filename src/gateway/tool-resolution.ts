@@ -15,6 +15,7 @@ import {
 } from "../agents/tool-policy-pipeline.js";
 import {
   collectExplicitAllowlist,
+  collectExplicitDenylist,
   mergeAlsoAllowPolicy,
   resolveToolProfilePolicy,
 } from "../agents/tool-policy.js";
@@ -93,6 +94,16 @@ export function resolveGatewayScopedTools(params: {
     config: params.cfg,
     workspaceDir,
     pluginToolAllowlist: collectExplicitAllowlist([
+      profilePolicy,
+      providerProfilePolicy,
+      globalPolicy,
+      globalProviderPolicy,
+      agentPolicy,
+      agentProviderPolicy,
+      groupPolicy,
+      subagentPolicy,
+    ]),
+    pluginToolDenylist: collectExplicitDenylist([
       profilePolicy,
       providerProfilePolicy,
       globalPolicy,

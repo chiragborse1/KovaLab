@@ -127,6 +127,7 @@ export type TuiStateAccess = {
   currentSessionId: string | null;
   activeChatRunId: string | null;
   pendingOptimisticUserMessage?: boolean;
+  pendingChatRunId?: string | null;
   busyInputMode?: TuiBusyInputMode;
   queuedMessages?: QueuedMessage[];
   historyLoaded: boolean;

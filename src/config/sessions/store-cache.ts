@@ -56,6 +56,7 @@ export function readSessionStoreCache(params: {
   storePath: string;
   mtimeMs?: number;
   sizeBytes?: number;
+  clone?: boolean;
 }): Record<string, SessionEntry> | null {
   const cached = SESSION_STORE_CACHE.get(params.storePath);
   if (!cached) {
@@ -65,7 +66,7 @@ export function readSessionStoreCache(params: {
     invalidateSessionStoreCache(params.storePath);
     return null;
   }
-  return structuredClone(cached.store);
+  return params.clone === false ? cached.store : structuredClone(cached.store);
 }
 
 export function writeSessionStoreCache(params: {
@@ -74,9 +75,10 @@ export function writeSessionStoreCache(params: {
   mtimeMs?: number;
   sizeBytes?: number;
   serialized?: string;
+  takeOwnership?: boolean;
 }): void {
   SESSION_STORE_CACHE.set(params.storePath, {
-    store: structuredClone(params.store),
+    store: params.takeOwnership ? params.store : structuredClone(params.store),
     mtimeMs: params.mtimeMs,
     sizeBytes: params.sizeBytes,
     serialized: params.serialized,

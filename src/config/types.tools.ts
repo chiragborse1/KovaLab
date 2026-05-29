@@ -301,6 +301,17 @@ export type FsToolsConfig = {
   workspaceOnly?: boolean;
 };
 
+export type SessionsSpawnToolsConfig = {
+  attachments?: {
+    /** Enable inline attachments for sessions_spawn. */
+    enabled?: boolean;
+    maxTotalBytes?: number;
+    maxFiles?: number;
+    maxFileBytes?: number;
+    retainOnSessionKeep?: boolean;
+  };
+};
+
 export type AgentToolsConfig = {
   /** Base tool profile applied before allow/deny lists. */
   profile?: ToolProfileId;
@@ -639,6 +650,8 @@ export type ToolsConfig = {
   fs?: FsToolsConfig;
   /** Runtime loop detection for repetitive/ stuck tool-call patterns. */
   loopDetection?: ToolLoopDetectionConfig;
+  /** sessions_spawn tool configuration. */
+  sessions_spawn?: SessionsSpawnToolsConfig;
   /** Sub-agent tool policy defaults (deny wins). */
   subagents?: {
     /** Default model selection for spawned sub-agents (string or {primary,fallbacks}). */

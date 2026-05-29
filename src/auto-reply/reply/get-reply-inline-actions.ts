@@ -1,7 +1,6 @@
 import { collectTextContentBlocks } from "../../agents/content-blocks.js";
 import type { BlockReplyChunking } from "../../agents/pi-embedded-block-chunker.js";
 import type { SkillCommandSpec } from "../../agents/skills.js";
-import { applyOwnerOnlyToolPolicy } from "../../agents/tool-policy.js";
 import { getChannelPlugin } from "../../channels/plugins/index.js";
 import type { SessionEntry } from "../../config/sessions.js";
 import type { KovaConfig } from "../../config/types.kova.js";
@@ -12,7 +11,6 @@ import {
   normalizeOptionalLowercaseString,
   normalizeOptionalString,
 } from "../../shared/string-coerce.js";
-import { resolveGatewayMessageChannel } from "../../utils/message-channel.js";
 import {
   listReservedChatSlashCommandNames,
   resolveSkillCommandInvocation,
@@ -36,13 +34,13 @@ import { extractInlineSimpleCommand } from "./reply-inline.js";
 import type { TypingController } from "./typing.js";
 
 type SkillCommandsRuntime = typeof import("../skill-commands.runtime.js");
-type KovaToolsRuntime = typeof import("../../agents/kova-tools.runtime.js");
+type SkillDispatchRuntime = typeof import("../../agents/skills/tool-dispatch.runtime.js");
 type SkillsToolRuntime = typeof import("../../agents/tools/skills-tool.js");
 type AbortCutoffRuntime = typeof import("./abort-cutoff.runtime.js");
 type CommandsRuntime = typeof import("./commands.runtime.js");
 
 let skillCommandsRuntimePromise: Promise<SkillCommandsRuntime> | undefined;
-let kovaToolsRuntimePromise: Promise<KovaToolsRuntime> | undefined;
+let skillDispatchRuntimePromise: Promise<SkillDispatchRuntime> | undefined;
 let skillsToolRuntimePromise: Promise<SkillsToolRuntime> | undefined;
 let abortCutoffRuntimePromise: Promise<AbortCutoffRuntime> | undefined;
 let commandsRuntimePromise: Promise<CommandsRuntime> | undefined;
@@ -53,9 +51,9 @@ function loadSkillCommandsRuntime(): Promise<SkillCommandsRuntime> {
   return skillCommandsRuntimePromise;
 }
 
-function loadKovaToolsRuntime(): Promise<KovaToolsRuntime> {
-  kovaToolsRuntimePromise ??= import("../../agents/kova-tools.runtime.js");
-  return kovaToolsRuntimePromise;
+function loadSkillDispatchRuntime(): Promise<SkillDispatchRuntime> {
+  skillDispatchRuntimePromise ??= import("../../agents/skills/tool-dispatch.runtime.js");
+  return skillDispatchRuntimePromise;
 }
 
 function loadSkillsToolRuntime(): Promise<SkillsToolRuntime> {
@@ -248,6 +246,7 @@ export async function handleInlineActions(params: {
             skillFilter,
           })
         : [];
+  const targetSessionEntry = sessionStore?.[sessionKey] ?? sessionEntry;
 
   const skillInvocation =
     allowTextCommands && skillCommands.length > 0
@@ -268,27 +267,41 @@ export async function handleInlineActions(params: {
     const dispatch = skillInvocation.command.dispatch;
     if (dispatch?.kind === "tool") {
       const rawArgs = (skillInvocation.args ?? "").trim();
-      const channel =
-        resolveGatewayMessageChannel(ctx.Surface) ??
-        resolveGatewayMessageChannel(ctx.Provider) ??
-        undefined;
-
-      const { createKovaTools } = await loadKovaToolsRuntime();
-      const tools = createKovaTools({
-        agentSessionKey: sessionKey,
-        agentChannel: channel,
-        agentAccountId: (ctx as { AccountId?: string }).AccountId,
-        agentTo: ctx.OriginatingTo ?? ctx.To,
-        agentThreadId: ctx.MessageThreadId ?? undefined,
-        agentGroupId: extractExplicitGroupId(ctx.From),
-        requesterAgentIdOverride: agentId,
+      const { resolveSkillDispatchTools } = await loadSkillDispatchRuntime();
+      const authorizedTools = resolveSkillDispatchTools({
+        message: {
+          surface: ctx.Surface,
+          provider: ctx.Provider,
+          accountId: (ctx as { AccountId?: string }).AccountId,
+          senderId: command.senderId,
+          senderName: ctx.SenderName,
+          senderUsername: ctx.SenderUsername,
+          senderE164: ctx.SenderE164,
+          originatingTo: ctx.OriginatingTo,
+          to: ctx.To,
+          messageThreadId: ctx.MessageThreadId,
+          messageId: ctx.MessageSid,
+          memberRoleIds: ctx.MemberRoleIds,
+        },
+        cfg,
+        agentId,
         agentDir,
+        sessionEntry: targetSessionEntry,
+        sessionKey,
         workspaceDir,
-        config: cfg,
-        allowGatewaySubagentBinding: true,
+        provider,
+        model,
+        senderId: command.senderId,
         senderIsOwner: command.senderIsOwner,
+        currentChannelId: command.channelId,
+        groupId: targetSessionEntry?.groupId ?? extractExplicitGroupId(ctx.From),
+        skillCommand: {
+          name: skillInvocation.command.name,
+          skillName: skillInvocation.command.skillName,
+          skillSource: skillInvocation.command.skillSource,
+          toolName: dispatch.toolName,
+        },
       });
-      const authorizedTools = applyOwnerOnlyToolPolicy(tools, command.senderIsOwner);
 
       const tool = authorizedTools.find((candidate) => candidate.name === dispatch.toolName);
       if (!tool) {
@@ -364,7 +377,6 @@ export async function handleInlineActions(params: {
   };
 
   const isStopLikeInbound = isAbortRequestText(command.rawBodyNormalized);
-  const targetSessionEntry = sessionStore?.[sessionKey] ?? sessionEntry;
   if (!isStopLikeInbound && targetSessionEntry) {
     const cutoff = readAbortCutoffFromSessionEntry(targetSessionEntry);
     const incoming = resolveAbortCutoffFromContext(ctx);

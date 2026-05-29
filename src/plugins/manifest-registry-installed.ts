@@ -1,9 +1,12 @@
 import fs from "node:fs";
 import path from "node:path";
 import type { KovaConfig } from "../config/types.kova.js";
+import { readJsonFileSync } from "../infra/json-files.js";
+import { normalizeOptionalString } from "../shared/string-coerce.js";
+import { normalizeOptionalTrimmedStringList } from "../shared/string-normalization.js";
 import { readPluginCacheEnv } from "./cache-controls.js";
 import type { PluginCandidate } from "./discovery.js";
-import { hashJson } from "./installed-plugin-index-hash.js";
+import { hashJson, type InstalledPluginFileSignature } from "./installed-plugin-index-hash.js";
 import { resolveInstalledPluginIndexPolicyHash } from "./installed-plugin-index-policy.js";
 import type { InstalledPluginIndex, InstalledPluginIndexRecord } from "./installed-plugin-index.js";
 import { extractPluginInstallRecordsFromInstalledPluginIndex } from "./installed-plugin-index.js";
@@ -14,9 +17,28 @@ import {
   getPackageManifestMetadata,
   type KovaPackageManifest,
   type PackageManifest,
+  type PluginPackageChannel,
 } from "./manifest.js";
+import { isPathInside, safeRealpathSync } from "./path-safety.js";
+import { tracePluginLifecyclePhase } from "./plugin-lifecycle-trace.js";
+import { registerPluginMetadataProcessMemoLifecycleClear } from "./plugin-metadata-lifecycle.js";
+import {
+  normalizePluginDependencySpecs,
+  type PluginDependencySpecMap,
+} from "./status-dependencies.js";
 
+const installedManifestRegistryIndexFingerprintCache = new WeakMap<InstalledPluginIndex, string>();
+const installedPackageJsonPathCache = new Map<string, string | null>();
+const installedPackageMetadataCache = new Map<string, InstalledPackageMetadata>();
+const MAX_INSTALLED_PACKAGE_JSON_PATH_CACHE_ENTRIES = 256;
+const MAX_INSTALLED_PACKAGE_METADATA_CACHE_ENTRIES = 256;
 const INSTALLED_MANIFEST_REGISTRY_FALLBACK_CACHE_MAX_ENTRIES = 64;
+
+type InstalledPackageMetadata = {
+  packageManifest?: KovaPackageManifest;
+  packageDependencies?: PluginDependencySpecMap;
+  packageOptionalDependencies?: PluginDependencySpecMap;
+};
 
 type InstalledManifestRegistryCacheEntry = {
   registry: PluginManifestRegistry;
@@ -29,6 +51,52 @@ const installedManifestRegistryFallbackCache = new Map<
 >();
 let installedManifestRegistryFallbackCacheTick = 0;
 
+export function clearInstalledManifestRegistryProcessCaches(): void {
+  installedPackageJsonPathCache.clear();
+  installedPackageMetadataCache.clear();
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function isDeepFrozenJsonLike(value: unknown, seen = new WeakSet<object>()): boolean {
+  if (!value || typeof value !== "object") {
+    return true;
+  }
+  if (seen.has(value)) {
+    return true;
+  }
+  if (!Object.isFrozen(value)) {
+    return false;
+  }
+  seen.add(value);
+  return Object.values(value).every((entry) => isDeepFrozenJsonLike(entry, seen));
+}
+
+function hasPersistedFileSignatures(index: InstalledPluginIndex): boolean {
+  return index.plugins.every(
+    (record) =>
+      record.manifestFile !== undefined &&
+      (record.packageJson === undefined || record.packageJson.fileSignature !== undefined),
+  );
+}
+
+function isInstalledManifestRegistryIndexFingerprintCacheable(
+  index: InstalledPluginIndex,
+): boolean {
+  return hasPersistedFileSignatures(index) && isDeepFrozenJsonLike(index);
+}
+
+function isRelativePathInsideOrEqual(relativePath: string): boolean {
+  return (
+    relativePath === "" ||
+    (relativePath !== ".." &&
+      !relativePath.startsWith(`..${path.sep}`) &&
+      !path.isAbsolute(relativePath))
+  );
+}
+
 function normalizePluginIdFilter(pluginIds: readonly string[] | undefined): string[] | undefined {
   if (!pluginIds?.length) {
     return undefined;
@@ -36,17 +104,73 @@ function normalizePluginIdFilter(pluginIds: readonly string[] | undefined): stri
   return [...new Set(pluginIds)].toSorted((left, right) => left.localeCompare(right));
 }
 
-function resolvePackageJsonPath(record: InstalledPluginIndexRecord): string | undefined {
+function resolveInstalledPluginRootDir(record: InstalledPluginIndexRecord): string {
+  return record.rootDir || path.dirname(record.manifestPath || process.cwd());
+}
+
+function buildInstalledPackageJsonPathCacheKey(
+  record: InstalledPluginIndexRecord,
+): string | undefined {
+  if (!record.packageJson?.path || !record.packageJson.hash) {
+    return undefined;
+  }
+  return hashJson({
+    rootDir: path.resolve(resolveInstalledPluginRootDir(record)),
+    packageJson: record.packageJson,
+  });
+}
+
+function rememberInstalledPackageJsonPath(
+  key: string | undefined,
+  packageJsonPath: string | undefined,
+): string | undefined {
+  if (!key) {
+    return packageJsonPath;
+  }
+  installedPackageJsonPathCache.set(key, packageJsonPath ?? null);
+  while (installedPackageJsonPathCache.size > MAX_INSTALLED_PACKAGE_JSON_PATH_CACHE_ENTRIES) {
+    const oldest = installedPackageJsonPathCache.keys().next().value;
+    if (oldest === undefined) {
+      break;
+    }
+    installedPackageJsonPathCache.delete(oldest);
+  }
+  return packageJsonPath;
+}
+
+function resolvePackageJsonPath(
+  record: InstalledPluginIndexRecord,
+  realpathCache: Map<string, string>,
+): string | undefined {
   if (!record.packageJson?.path) {
     return undefined;
   }
-  const rootDir = resolveInstalledPluginRootDir(record);
-  const packageJsonPath = path.resolve(rootDir, record.packageJson.path);
-  const relative = path.relative(rootDir, packageJsonPath);
-  if (relative.startsWith("..") || path.isAbsolute(relative)) {
-    return undefined;
+  const cacheKey = buildInstalledPackageJsonPathCacheKey(record);
+  if (cacheKey) {
+    const cached = installedPackageJsonPathCache.get(cacheKey);
+    if (cached !== undefined) {
+      return cached ?? undefined;
+    }
   }
-  return packageJsonPath;
+  const rootDir = resolveInstalledPluginRootDir(record);
+  const realRootDir = safeRealpathSync(rootDir, realpathCache) ?? path.resolve(rootDir);
+  const packageJsonPath = path.resolve(realRootDir, record.packageJson.path);
+  const relative = path.relative(realRootDir, packageJsonPath);
+  if (!isRelativePathInsideOrEqual(relative)) {
+    return rememberInstalledPackageJsonPath(cacheKey, undefined);
+  }
+  const packageJsonRealPath = safeRealpathSync(packageJsonPath, realpathCache);
+  if (!packageJsonRealPath || !isPathInside(realRootDir, packageJsonRealPath)) {
+    return rememberInstalledPackageJsonPath(cacheKey, undefined);
+  }
+  return rememberInstalledPackageJsonPath(cacheKey, packageJsonPath);
+}
+
+function formatFileSignature(
+  filePath: string,
+  signature: Pick<InstalledPluginFileSignature, "size" | "mtimeMs">,
+): string {
+  return `${filePath}:${signature.size}:${signature.mtimeMs}`;
 }
 
 function safeFileSignature(filePath: string | undefined): string | undefined {
@@ -55,10 +179,75 @@ function safeFileSignature(filePath: string | undefined): string | undefined {
   }
   try {
     const stat = fs.statSync(filePath);
-    return `${filePath}:${stat.size}:${stat.mtimeMs}`;
+    return formatFileSignature(filePath, stat);
   } catch {
     return `${filePath}:missing`;
   }
+}
+
+function buildInstalledManifestRegistryIndexKey(index: InstalledPluginIndex) {
+  const realpathCache = new Map<string, string>();
+  return {
+    version: index.version,
+    hostContractVersion: index.hostContractVersion,
+    compatRegistryVersion: index.compatRegistryVersion,
+    migrationVersion: index.migrationVersion,
+    policyHash: index.policyHash,
+    installRecords: index.installRecords,
+    diagnostics: index.diagnostics,
+    plugins: index.plugins.map((record) => {
+      const packageJsonPath = resolvePackageJsonPath(record, realpathCache);
+      const packageJsonFile = record.packageJson?.fileSignature
+        ? packageJsonPath
+          ? formatFileSignature(packageJsonPath, record.packageJson.fileSignature)
+          : undefined
+        : safeFileSignature(packageJsonPath);
+      return {
+        pluginId: record.pluginId,
+        packageName: record.packageName,
+        packageVersion: record.packageVersion,
+        installRecord: record.installRecord,
+        installRecordHash: record.installRecordHash,
+        packageInstall: record.packageInstall,
+        packageChannel: record.packageChannel,
+        manifestPath: record.manifestPath,
+        manifestHash: record.manifestHash,
+        manifestFile: record.manifestFile
+          ? formatFileSignature(record.manifestPath, record.manifestFile)
+          : safeFileSignature(record.manifestPath),
+        format: record.format,
+        bundleFormat: record.bundleFormat,
+        source: record.source,
+        setupSource: record.setupSource,
+        packageJson: record.packageJson,
+        packageJsonFile,
+        rootDir: record.rootDir,
+        origin: record.origin,
+        enabled: record.enabled,
+        enabledByDefault: record.enabledByDefault,
+        enabledByDefaultOnPlatforms: record.enabledByDefaultOnPlatforms
+          ? [...record.enabledByDefaultOnPlatforms]
+          : undefined,
+        syntheticAuthRefs: record.syntheticAuthRefs,
+        startup: record.startup,
+        compat: record.compat,
+      };
+    }),
+  };
+}
+
+export function resolveInstalledManifestRegistryIndexFingerprint(
+  index: InstalledPluginIndex,
+): string {
+  const cached = installedManifestRegistryIndexFingerprintCache.get(index);
+  if (cached) {
+    return cached;
+  }
+  const fingerprint = hashJson(buildInstalledManifestRegistryIndexKey(index));
+  if (isInstalledManifestRegistryIndexFingerprintCacheable(index)) {
+    installedManifestRegistryIndexFingerprintCache.set(index, fingerprint);
+  }
+  return fingerprint;
 }
 
 function shouldUseInstalledManifestRegistryCache(params: {
@@ -83,43 +272,7 @@ function buildInstalledManifestRegistryCacheKey(params: {
   includeDisabled?: boolean;
 }): string {
   return hashJson({
-    index: {
-      version: params.index.version,
-      hostContractVersion: params.index.hostContractVersion,
-      compatRegistryVersion: params.index.compatRegistryVersion,
-      migrationVersion: params.index.migrationVersion,
-      policyHash: params.index.policyHash,
-      installRecords: params.index.installRecords,
-      diagnostics: params.index.diagnostics,
-      plugins: params.index.plugins.map((record) => {
-        const packageJsonPath = resolvePackageJsonPath(record);
-        return {
-          pluginId: record.pluginId,
-          packageName: record.packageName,
-          packageVersion: record.packageVersion,
-          installRecord: record.installRecord,
-          installRecordHash: record.installRecordHash,
-          packageInstall: record.packageInstall,
-          packageChannel: record.packageChannel,
-          manifestPath: record.manifestPath,
-          manifestHash: record.manifestHash,
-          manifestFile: safeFileSignature(record.manifestPath),
-          format: record.format,
-          bundleFormat: record.bundleFormat,
-          source: record.source,
-          setupSource: record.setupSource,
-          packageJson: record.packageJson,
-          packageJsonFile: safeFileSignature(packageJsonPath),
-          rootDir: record.rootDir,
-          origin: record.origin,
-          enabled: record.enabled,
-          enabledByDefault: record.enabledByDefault,
-          syntheticAuthRefs: record.syntheticAuthRefs,
-          startup: record.startup,
-          compat: record.compat,
-        };
-      }),
-    },
+    indexFingerprint: resolveInstalledManifestRegistryIndexFingerprint(params.index),
     request: {
       workspaceDir: params.workspaceDir,
       pluginIds: normalizePluginIdFilter(params.pluginIds),
@@ -131,43 +284,6 @@ function buildInstalledManifestRegistryCacheKey(params: {
         USERPROFILE: params.env.USERPROFILE,
       },
     },
-  });
-}
-
-export function resolveInstalledManifestRegistryIndexFingerprint(
-  index: InstalledPluginIndex,
-): string {
-  return hashJson({
-    version: index.version,
-    hostContractVersion: index.hostContractVersion,
-    compatRegistryVersion: index.compatRegistryVersion,
-    migrationVersion: index.migrationVersion,
-    policyHash: index.policyHash,
-    installRecords: index.installRecords,
-    diagnostics: index.diagnostics,
-    plugins: index.plugins.map((record) => ({
-      pluginId: record.pluginId,
-      packageName: record.packageName,
-      packageVersion: record.packageVersion,
-      installRecord: record.installRecord,
-      installRecordHash: record.installRecordHash,
-      packageInstall: record.packageInstall,
-      packageChannel: record.packageChannel,
-      manifestPath: record.manifestPath,
-      manifestHash: record.manifestHash,
-      format: record.format,
-      bundleFormat: record.bundleFormat,
-      source: record.source,
-      setupSource: record.setupSource,
-      packageJson: record.packageJson,
-      rootDir: record.rootDir,
-      origin: record.origin,
-      enabled: record.enabled,
-      enabledByDefault: record.enabledByDefault,
-      syntheticAuthRefs: record.syntheticAuthRefs,
-      startup: record.startup,
-      compat: record.compat,
-    })),
   });
 }
 
@@ -210,11 +326,10 @@ function setCachedInstalledManifestRegistry(
 export function clearInstalledManifestRegistryCache(): void {
   installedManifestRegistryFallbackCache.clear();
   installedManifestRegistryFallbackCacheTick = 0;
+  clearInstalledManifestRegistryProcessCaches();
 }
 
-function resolveInstalledPluginRootDir(record: InstalledPluginIndexRecord): string {
-  return record.rootDir || path.dirname(record.manifestPath || process.cwd());
-}
+registerPluginMetadataProcessMemoLifecycleClear(clearInstalledManifestRegistryCache);
 
 function resolveFallbackPluginSource(record: InstalledPluginIndexRecord): string {
   const rootDir = resolveInstalledPluginRootDir(record);
@@ -227,45 +342,329 @@ function resolveFallbackPluginSource(record: InstalledPluginIndexRecord): string
   return path.join(rootDir, DEFAULT_PLUGIN_ENTRY_CANDIDATES[0]);
 }
 
-function resolveInstalledPackageManifest(
-  record: InstalledPluginIndexRecord,
-): KovaPackageManifest | undefined {
-  if (!record.packageChannel) {
+function normalizePackageChannelCommands(
+  commands: unknown,
+): PluginPackageChannel["commands"] | undefined {
+  if (!isRecord(commands)) {
     return undefined;
   }
-  if (record.packageChannel.commands) {
-    return { channel: record.packageChannel };
-  }
-  const rootDir = resolveInstalledPluginRootDir(record);
-  const packageJsonPath = record.packageJson?.path
-    ? path.resolve(rootDir, record.packageJson.path)
+  const nativeCommandsAutoEnabled =
+    typeof commands.nativeCommandsAutoEnabled === "boolean"
+      ? commands.nativeCommandsAutoEnabled
+      : undefined;
+  const nativeSkillsAutoEnabled =
+    typeof commands.nativeSkillsAutoEnabled === "boolean"
+      ? commands.nativeSkillsAutoEnabled
+      : undefined;
+  return nativeCommandsAutoEnabled !== undefined || nativeSkillsAutoEnabled !== undefined
+    ? {
+        ...(nativeCommandsAutoEnabled !== undefined ? { nativeCommandsAutoEnabled } : {}),
+        ...(nativeSkillsAutoEnabled !== undefined ? { nativeSkillsAutoEnabled } : {}),
+      }
     : undefined;
-  if (!packageJsonPath) {
-    return { channel: record.packageChannel };
-  }
-  const relative = path.relative(rootDir, packageJsonPath);
-  if (relative.startsWith("..") || path.isAbsolute(relative)) {
-    return { channel: record.packageChannel };
-  }
-  try {
-    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8")) as PackageManifest;
-    const packageManifest = getPackageManifestMetadata(packageJson);
-    return {
-      channel: {
-        ...record.packageChannel,
-        ...(packageManifest?.channel?.commands
-          ? { commands: packageManifest.channel.commands }
-          : {}),
-      },
-    };
-  } catch {
-    return { channel: record.packageChannel };
-  }
 }
 
-function toPluginCandidate(record: InstalledPluginIndexRecord): PluginCandidate {
+function normalizePackageChannelExposure(
+  exposure: unknown,
+): PluginPackageChannel["exposure"] | undefined {
+  if (!isRecord(exposure)) {
+    return undefined;
+  }
+  const configured = typeof exposure.configured === "boolean" ? exposure.configured : undefined;
+  const setup = typeof exposure.setup === "boolean" ? exposure.setup : undefined;
+  const docs = typeof exposure.docs === "boolean" ? exposure.docs : undefined;
+  return configured !== undefined || setup !== undefined || docs !== undefined
+    ? {
+        ...(configured !== undefined ? { configured } : {}),
+        ...(setup !== undefined ? { setup } : {}),
+        ...(docs !== undefined ? { docs } : {}),
+      }
+    : undefined;
+}
+
+function normalizePackageChannelConfiguredState(
+  configuredState: unknown,
+): PluginPackageChannel["configuredState"] | undefined {
+  if (!isRecord(configuredState)) {
+    return undefined;
+  }
+  const specifier = normalizeOptionalString(configuredState.specifier);
+  const exportName = normalizeOptionalString(configuredState.exportName);
+  return specifier || exportName
+    ? {
+        ...(specifier ? { specifier } : {}),
+        ...(exportName ? { exportName } : {}),
+      }
+    : undefined;
+}
+
+function normalizePackageChannelPersistedAuthState(
+  persistedAuthState: unknown,
+): PluginPackageChannel["persistedAuthState"] | undefined {
+  if (!isRecord(persistedAuthState)) {
+    return undefined;
+  }
+  const specifier = normalizeOptionalString(persistedAuthState.specifier);
+  const exportName = normalizeOptionalString(persistedAuthState.exportName);
+  return specifier || exportName
+    ? {
+        ...(specifier ? { specifier } : {}),
+        ...(exportName ? { exportName } : {}),
+      }
+    : undefined;
+}
+
+function normalizePackageChannelDoctorCapabilities(
+  doctorCapabilities: unknown,
+): PluginPackageChannel["doctorCapabilities"] | undefined {
+  if (!isRecord(doctorCapabilities)) {
+    return undefined;
+  }
+  const dmAllowFromMode =
+    doctorCapabilities.dmAllowFromMode === "topOnly" ||
+    doctorCapabilities.dmAllowFromMode === "topOrNested" ||
+    doctorCapabilities.dmAllowFromMode === "nestedOnly"
+      ? doctorCapabilities.dmAllowFromMode
+      : undefined;
+  const groupModel =
+    doctorCapabilities.groupModel === "sender" ||
+    doctorCapabilities.groupModel === "route" ||
+    doctorCapabilities.groupModel === "hybrid"
+      ? doctorCapabilities.groupModel
+      : undefined;
+  const groupAllowFromFallbackToAllowFrom =
+    typeof doctorCapabilities.groupAllowFromFallbackToAllowFrom === "boolean"
+      ? doctorCapabilities.groupAllowFromFallbackToAllowFrom
+      : undefined;
+  const warnOnEmptyGroupSenderAllowlist =
+    typeof doctorCapabilities.warnOnEmptyGroupSenderAllowlist === "boolean"
+      ? doctorCapabilities.warnOnEmptyGroupSenderAllowlist
+      : undefined;
+  return dmAllowFromMode ||
+    groupModel ||
+    groupAllowFromFallbackToAllowFrom !== undefined ||
+    warnOnEmptyGroupSenderAllowlist !== undefined
+    ? {
+        ...(dmAllowFromMode ? { dmAllowFromMode } : {}),
+        ...(groupModel ? { groupModel } : {}),
+        ...(groupAllowFromFallbackToAllowFrom !== undefined
+          ? { groupAllowFromFallbackToAllowFrom }
+          : {}),
+        ...(warnOnEmptyGroupSenderAllowlist !== undefined
+          ? { warnOnEmptyGroupSenderAllowlist }
+          : {}),
+      }
+    : undefined;
+}
+
+function normalizePackageChannelCliOptions(
+  cliAddOptions: unknown,
+): PluginPackageChannel["cliAddOptions"] | undefined {
+  if (!Array.isArray(cliAddOptions)) {
+    return undefined;
+  }
+  const normalized = cliAddOptions.flatMap((option) => {
+    if (!isRecord(option)) {
+      return [];
+    }
+    const flags = normalizeOptionalString(option.flags);
+    const description = normalizeOptionalString(option.description);
+    if (!flags || !description) {
+      return [];
+    }
+    const defaultValue =
+      typeof option.defaultValue === "boolean" || typeof option.defaultValue === "string"
+        ? option.defaultValue
+        : undefined;
+    return [
+      {
+        flags,
+        description,
+        ...(defaultValue !== undefined ? { defaultValue } : {}),
+      },
+    ];
+  });
+  return normalized.length > 0 ? normalized : undefined;
+}
+
+function normalizePersistedPackageChannel(value: unknown): PluginPackageChannel | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  const id = normalizeOptionalString(value.id);
+  if (!id) {
+    return undefined;
+  }
+  const channel: PluginPackageChannel = { id };
+  for (const key of [
+    "label",
+    "selectionLabel",
+    "detailLabel",
+    "docsPath",
+    "docsLabel",
+    "blurb",
+    "systemImage",
+    "selectionDocsPrefix",
+  ] as const) {
+    const normalized = normalizeOptionalString(value[key]);
+    if (normalized) {
+      channel[key] = normalized;
+    }
+  }
+  if (typeof value.order === "number" && Number.isFinite(value.order)) {
+    channel.order = value.order;
+  }
+  for (const key of ["aliases", "preferOver", "selectionExtras"] as const) {
+    const normalized = normalizeOptionalTrimmedStringList(value[key]);
+    if (normalized?.length) {
+      channel[key] = normalized;
+    }
+  }
+  for (const key of [
+    "selectionDocsOmitLabel",
+    "markdownCapable",
+    "showConfigured",
+    "showInSetup",
+    "quickstartAllowFrom",
+    "forceAccountBinding",
+    "preferSessionLookupForAnnounceTarget",
+  ] as const) {
+    if (typeof value[key] === "boolean") {
+      channel[key] = value[key];
+    }
+  }
+  const exposure = normalizePackageChannelExposure(value.exposure);
+  if (exposure) {
+    channel.exposure = exposure;
+  }
+  const commands = normalizePackageChannelCommands(value.commands);
+  if (commands) {
+    channel.commands = commands;
+  }
+  const configuredState = normalizePackageChannelConfiguredState(value.configuredState);
+  if (configuredState) {
+    channel.configuredState = configuredState;
+  }
+  const persistedAuthState = normalizePackageChannelPersistedAuthState(value.persistedAuthState);
+  if (persistedAuthState) {
+    channel.persistedAuthState = persistedAuthState;
+  }
+  const doctorCapabilities = normalizePackageChannelDoctorCapabilities(value.doctorCapabilities);
+  if (doctorCapabilities) {
+    channel.doctorCapabilities = doctorCapabilities;
+  }
+  const cliAddOptions = normalizePackageChannelCliOptions(value.cliAddOptions);
+  if (cliAddOptions) {
+    channel.cliAddOptions = cliAddOptions;
+  }
+  return channel;
+}
+
+function rememberInstalledPackageMetadata(
+  key: string | undefined,
+  metadata: InstalledPackageMetadata,
+): InstalledPackageMetadata {
+  if (!key) {
+    return metadata;
+  }
+  installedPackageMetadataCache.set(key, metadata);
+  while (installedPackageMetadataCache.size > MAX_INSTALLED_PACKAGE_METADATA_CACHE_ENTRIES) {
+    const oldest = installedPackageMetadataCache.keys().next().value;
+    if (oldest === undefined) {
+      break;
+    }
+    installedPackageMetadataCache.delete(oldest);
+  }
+  return metadata;
+}
+
+function buildInstalledPackageMetadataCacheKey(params: {
+  packageJsonPath?: string;
+  record: InstalledPluginIndexRecord;
+}): string | undefined {
+  if (!params.packageJsonPath || !params.record.packageJson?.hash) {
+    return undefined;
+  }
+  return hashJson({
+    packageJsonPath: path.resolve(params.packageJsonPath),
+    packageJson: params.record.packageJson,
+    packageChannel: params.record.packageChannel ?? null,
+  });
+}
+
+function readPackageManifest(filePath: string): PackageManifest | undefined {
+  const parsed = readJsonFileSync(filePath);
+  return isRecord(parsed) ? (parsed as PackageManifest) : undefined;
+}
+
+function resolveInstalledPackageMetadata(
+  record: InstalledPluginIndexRecord,
+  realpathCache: Map<string, string>,
+): InstalledPackageMetadata {
+  const recordPackageChannel = normalizePersistedPackageChannel(record.packageChannel);
+  const fallbackPackageManifest = recordPackageChannel
+    ? {
+        channel: recordPackageChannel,
+      }
+    : undefined;
+  const packageJsonPath = record.packageJson?.path
+    ? resolvePackageJsonPath(record, realpathCache)
+    : undefined;
+  const cacheKey = buildInstalledPackageMetadataCacheKey({ packageJsonPath, record });
+  const cached = cacheKey ? installedPackageMetadataCache.get(cacheKey) : undefined;
+  if (cached) {
+    return cached;
+  }
+  if (!packageJsonPath) {
+    return rememberInstalledPackageMetadata(
+      cacheKey,
+      fallbackPackageManifest ? { packageManifest: fallbackPackageManifest } : {},
+    );
+  }
+  const packageJson = readPackageManifest(packageJsonPath);
+  if (!packageJson) {
+    return rememberInstalledPackageMetadata(
+      cacheKey,
+      fallbackPackageManifest ? { packageManifest: fallbackPackageManifest } : {},
+    );
+  }
+  const packageManifest = getPackageManifestMetadata(packageJson);
+  const dependencies = normalizePluginDependencySpecs({
+    dependencies: packageJson.dependencies,
+    optionalDependencies: packageJson.optionalDependencies,
+  });
+  if (!packageManifest) {
+    return rememberInstalledPackageMetadata(cacheKey, {
+      ...(fallbackPackageManifest ? { packageManifest: fallbackPackageManifest } : {}),
+      packageDependencies: dependencies.dependencies,
+      packageOptionalDependencies: dependencies.optionalDependencies,
+    });
+  }
+  const packageChannel = normalizePersistedPackageChannel(packageManifest.channel);
+  const channel =
+    recordPackageChannel || packageChannel
+      ? {
+          ...recordPackageChannel,
+          ...packageChannel,
+        }
+      : undefined;
+  const { channel: _ignoredChannel, ...packageManifestWithoutChannel } = packageManifest;
+  return rememberInstalledPackageMetadata(cacheKey, {
+    packageManifest: {
+      ...packageManifestWithoutChannel,
+      ...(channel ? { channel } : {}),
+    },
+    packageDependencies: dependencies.dependencies,
+    packageOptionalDependencies: dependencies.optionalDependencies,
+  });
+}
+
+function toPluginCandidate(
+  record: InstalledPluginIndexRecord,
+  realpathCache: Map<string, string>,
+): PluginCandidate {
   const rootDir = resolveInstalledPluginRootDir(record);
-  const packageManifest = resolveInstalledPackageManifest(record);
+  const packageMetadata = resolveInstalledPackageMetadata(record, realpathCache);
   return {
     idHint: record.pluginId,
     source: record.source ?? resolveFallbackPluginSource(record),
@@ -276,7 +675,15 @@ function toPluginCandidate(record: InstalledPluginIndexRecord): PluginCandidate 
     ...(record.bundleFormat ? { bundleFormat: record.bundleFormat } : {}),
     ...(record.packageName ? { packageName: record.packageName } : {}),
     ...(record.packageVersion ? { packageVersion: record.packageVersion } : {}),
-    ...(packageManifest ? { packageManifest } : {}),
+    ...(packageMetadata.packageManifest
+      ? { packageManifest: packageMetadata.packageManifest }
+      : {}),
+    ...(packageMetadata.packageDependencies
+      ? { packageDependencies: packageMetadata.packageDependencies }
+      : {}),
+    ...(packageMetadata.packageOptionalDependencies
+      ? { packageOptionalDependencies: packageMetadata.packageOptionalDependencies }
+      : {}),
     packageDir: rootDir,
   };
 }
@@ -290,54 +697,65 @@ export function loadPluginManifestRegistryForInstalledIndex(params: {
   includeDisabled?: boolean;
   bundledChannelConfigCollector?: BundledChannelConfigCollector;
 }): PluginManifestRegistry {
-  if (params.pluginIds && params.pluginIds.length === 0) {
-    return { plugins: [], diagnostics: [] };
-  }
-  const env = params.env ?? process.env;
-  const cacheKey = shouldUseInstalledManifestRegistryCache({
-    env,
-    bundledChannelConfigCollector: params.bundledChannelConfigCollector,
-  })
-    ? buildInstalledManifestRegistryCacheKey({
-        index: params.index,
+  return tracePluginLifecyclePhase(
+    "manifest registry",
+    () => {
+      if (params.pluginIds && params.pluginIds.length === 0) {
+        return { plugins: [], diagnostics: [] };
+      }
+      const env = params.env ?? process.env;
+      const cacheKey = shouldUseInstalledManifestRegistryCache({
+        env,
+        bundledChannelConfigCollector: params.bundledChannelConfigCollector,
+      })
+        ? buildInstalledManifestRegistryCacheKey({
+            index: params.index,
+            config: params.config,
+            workspaceDir: params.workspaceDir,
+            env,
+            pluginIds: params.pluginIds,
+            includeDisabled: params.includeDisabled,
+          })
+        : undefined;
+      if (cacheKey) {
+        const cached = getCachedInstalledManifestRegistry(cacheKey);
+        if (cached) {
+          return cached;
+        }
+      }
+      const pluginIdSet = params.pluginIds?.length ? new Set(params.pluginIds) : null;
+      const realpathCache = new Map<string, string>();
+      const diagnostics = pluginIdSet
+        ? params.index.diagnostics.filter((diagnostic) => {
+            const pluginId = diagnostic.pluginId;
+            return !pluginId || pluginIdSet.has(pluginId);
+          })
+        : params.index.diagnostics;
+      const candidates = params.index.plugins
+        .filter((plugin) => params.includeDisabled || plugin.enabled)
+        .filter((plugin) => !pluginIdSet || pluginIdSet.has(plugin.pluginId))
+        .map((plugin) => toPluginCandidate(plugin, realpathCache));
+      const registry = loadPluginManifestRegistry({
         config: params.config,
         workspaceDir: params.workspaceDir,
         env,
-        pluginIds: params.pluginIds,
-        includeDisabled: params.includeDisabled,
-      })
-    : undefined;
-  if (cacheKey) {
-    const cached = getCachedInstalledManifestRegistry(cacheKey);
-    if (cached) {
-      return cached;
-    }
-  }
-  const pluginIdSet = params.pluginIds?.length ? new Set(params.pluginIds) : null;
-  const diagnostics = pluginIdSet
-    ? params.index.diagnostics.filter((diagnostic) => {
-        const pluginId = diagnostic.pluginId;
-        return !pluginId || pluginIdSet.has(pluginId);
-      })
-    : params.index.diagnostics;
-  const candidates = params.index.plugins
-    .filter((plugin) => params.includeDisabled || plugin.enabled)
-    .filter((plugin) => !pluginIdSet || pluginIdSet.has(plugin.pluginId))
-    .map(toPluginCandidate);
-  const registry = loadPluginManifestRegistry({
-    config: params.config,
-    workspaceDir: params.workspaceDir,
-    env,
-    cache: false,
-    candidates,
-    diagnostics: [...diagnostics],
-    installRecords: extractPluginInstallRecordsFromInstalledPluginIndex(params.index),
-    ...(params.bundledChannelConfigCollector
-      ? { bundledChannelConfigCollector: params.bundledChannelConfigCollector }
-      : {}),
-  });
-  if (cacheKey) {
-    setCachedInstalledManifestRegistry(cacheKey, registry);
-  }
-  return registry;
+        cache: false,
+        candidates,
+        diagnostics: [...diagnostics],
+        installRecords: extractPluginInstallRecordsFromInstalledPluginIndex(params.index),
+        ...(params.bundledChannelConfigCollector
+          ? { bundledChannelConfigCollector: params.bundledChannelConfigCollector }
+          : {}),
+      });
+      if (cacheKey) {
+        setCachedInstalledManifestRegistry(cacheKey, registry);
+      }
+      return registry;
+    },
+    {
+      includeDisabled: params.includeDisabled === true,
+      pluginIdCount: params.pluginIds?.length,
+      indexPluginCount: params.index.plugins.length,
+    },
+  );
 }

@@ -1,4 +1,5 @@
 import type { ModelAliasIndex } from "../../agents/model-selection.js";
+import type { SkillCommandSpec } from "../../agents/skills.js";
 import type { KovaConfig } from "../../config/config.js";
 import { createLazyRuntimeModule } from "../../shared/lazy-runtime.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
@@ -14,8 +15,12 @@ import { stripStructuralPrefixes } from "./mentions.js";
 import type { createTypingController } from "./typing.js";
 
 type AgentDefaults = NonNullable<NonNullable<KovaConfig["agents"]>["defaults"]> | undefined;
+type SkillCommandsRuntime = typeof import("../skill-commands.runtime.js");
 
 const loadCommandsRuntime = createLazyRuntimeModule(() => import("./commands.runtime.js"));
+const loadSkillCommandsRuntime = createLazyRuntimeModule<SkillCommandsRuntime>(
+  () => import("../skill-commands.runtime.js"),
+);
 const loadStatusCommandRuntime = createLazyRuntimeModule(() => import("./commands-status.js"));
 
 function resolveNativeSlashCommandName(ctx: MsgContext): string | undefined {
@@ -101,6 +106,17 @@ export async function maybeResolveNativeSlashCommandFastReply(params: {
     };
   }
 
+  let loadedSkillCommands: SkillCommandSpec[] | undefined;
+  const loadNativeSkillCommands = async () => {
+    loadedSkillCommands ??= (await loadSkillCommandsRuntime()).listSkillCommandsForWorkspace({
+      workspaceDir: params.workspaceDir,
+      cfg: params.cfg,
+      agentId: params.agentId,
+      skillFilter: params.skillFilter,
+    });
+    return loadedSkillCommands;
+  };
+
   const commandResult = await (
     await loadCommandsRuntime()
   ).handleCommands({
@@ -136,7 +152,7 @@ export async function maybeResolveNativeSlashCommandFastReply(params: {
     model: params.model,
     contextTokens: params.agentCfg?.contextTokens ?? 0,
     isGroup: sessionState.isGroup,
-    skillCommands: [],
+    loadSkillCommands: loadNativeSkillCommands,
     typing: params.typing,
   });
   if (!commandResult.shouldContinue) {

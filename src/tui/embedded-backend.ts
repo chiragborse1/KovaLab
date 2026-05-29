@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { SkillStatusReport } from "../agents/skills-status.js";
-import type { ReplyPayload } from "../auto-reply/reply-payload.js";
-import type { MsgContext } from "../auto-reply/templating.js";
+import { isChatStopCommandText } from "../gateway/chat-abort.js";
 import {
   normalizeLiveAssistantEventText,
   projectLiveAssistantBufferedText,
@@ -36,9 +35,17 @@ type LocalRunState = {
   registered: boolean;
   finishing: boolean;
   lifecycleEnded: boolean;
+  lifecycleStopReason?: string;
   trace: TuiTurnTrace;
   firstAgentEventSent: boolean;
   firstAssistantEventSent: boolean;
+  queuedRunReady: Promise<void>;
+  markQueuedRunReady: () => void;
+};
+
+type QueuedSessionRun = {
+  run: LocalRunState;
+  promise: Promise<void>;
 };
 
 type DefaultDeps = ReturnType<(typeof import("../cli/deps.js"))["createDefaultDeps"]>;
@@ -49,6 +56,7 @@ type CliSessionHistoryModule = typeof import("../gateway/cli-session-history.js"
 type ServerConstantsModule = typeof import("../gateway/server-constants.js");
 type AgentTimestampModule = typeof import("../gateway/server-methods/agent-timestamp.js");
 type ChatServerMethodsModule = typeof import("../gateway/server-methods/chat.js");
+type SessionEntryModule = typeof import("../gateway/session-entry.js");
 type SessionUtilsFsModule = typeof import("../gateway/session-utils.fs.js");
 type SessionUtilsModule = typeof import("../gateway/session-utils.js");
 type SessionCheckpointActionsModule = typeof import("../gateway/session-checkpoint-actions.js");
@@ -61,6 +69,7 @@ let cliSessionHistoryModulePromise: Promise<CliSessionHistoryModule> | null = nu
 let serverConstantsModulePromise: Promise<ServerConstantsModule> | null = null;
 let agentTimestampModulePromise: Promise<AgentTimestampModule> | null = null;
 let chatServerMethodsModulePromise: Promise<ChatServerMethodsModule> | null = null;
+let sessionEntryModulePromise: Promise<SessionEntryModule> | null = null;
 let sessionUtilsFsModulePromise: Promise<SessionUtilsFsModule> | null = null;
 let sessionUtilsModulePromise: Promise<SessionUtilsModule> | null = null;
 let sessionCheckpointActionsModulePromise: Promise<SessionCheckpointActionsModule> | null = null;
@@ -101,6 +110,11 @@ function getAgentTimestampModule() {
 function getChatServerMethodsModule() {
   chatServerMethodsModulePromise ??= import("../gateway/server-methods/chat.js");
   return chatServerMethodsModulePromise;
+}
+
+function getSessionEntryModule() {
+  sessionEntryModulePromise ??= import("../gateway/session-entry.js");
+  return sessionEntryModulePromise;
 }
 
 function getSessionUtilsFsModule() {
@@ -162,11 +176,26 @@ function timeoutSecondsFromMs(timeoutMs?: number): string | undefined {
   return String(Math.max(0, Math.ceil(timeoutMs / 1000)));
 }
 
-function timeoutSecondsNumberFromMs(timeoutMs?: number): number | undefined {
-  if (typeof timeoutMs !== "number" || !Number.isFinite(timeoutMs) || timeoutMs < 0) {
-    return undefined;
+function createQueuedRunReadiness() {
+  let resolve: (() => void) | undefined;
+  const promise = new Promise<void>((ready) => {
+    resolve = ready;
+  });
+  if (!resolve) {
+    throw new Error("Expected queue readiness resolver to be initialized");
   }
-  return Math.max(0, Math.ceil(timeoutMs / 1000));
+  const resolveReady = resolve;
+  let settled = false;
+  return {
+    promise,
+    markReady: () => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      resolveReady();
+    },
+  };
 }
 
 async function waitForLocalRunShutdown(promises: Promise<void>[]): Promise<boolean> {
@@ -194,17 +223,38 @@ async function waitForLocalRunShutdown(promises: Promise<void>[]): Promise<boole
   return completed;
 }
 
-function shouldUseReplyCommandPipeline(message: string): boolean {
-  const trimmed = message.trim();
-  if (!trimmed.startsWith("/")) {
-    return false;
+async function waitForQueuedLocalRun(previousRun: QueuedSessionRun, runId: string): Promise<void> {
+  await previousRun.run.queuedRunReady;
+  if (!previousRun.run.finishing && !previousRun.run.lifecycleEnded) {
+    await previousRun.promise;
+    return;
   }
-  // /btw is handled as a side-result lane by the TUI so it does not disturb
-  // the active chat run.
-  if (/^\/btw(?::|\s|$)/i.test(trimmed)) {
-    return false;
+  const timeoutMs = resolveLocalRunShutdownGraceMs();
+  if (timeoutMs <= 0) {
+    throw new Error(
+      `timed out waiting for previous local run to finish post-turn maintenance for ${runId}`,
+    );
   }
-  return true;
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      previousRun.promise,
+      new Promise<void>((_, reject) => {
+        timeout = setTimeout(() => {
+          reject(
+            new Error(
+              `timed out waiting for previous local run to finish post-turn maintenance for ${runId}`,
+            ),
+          );
+        }, timeoutMs);
+        timeout.unref?.();
+      }),
+    ]);
+  } finally {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+  }
 }
 
 function buildEmbeddedStatusReply(params: {
@@ -241,10 +291,6 @@ function sanitizeTraceSegment(value: unknown, fallback: string): string {
   return normalized.slice(0, 64) || fallback;
 }
 
-function replyText(reply: ReplyPayload | ReplyPayload[] | undefined): string {
-  return payloadText(reply);
-}
-
 export class EmbeddedTuiBackend implements TuiBackend {
   readonly connection = { url: "local embedded" };
 
@@ -260,6 +306,10 @@ export class EmbeddedTuiBackend implements TuiBackend {
   private unsubscribe?: () => void;
   private warmupTimer?: ReturnType<typeof setTimeout>;
   private warmupPromise?: Promise<void>;
+  private agentRuntimePromise?: Promise<{
+    agentCommandModule: AgentCommandModule;
+    deps: DefaultDeps;
+  }>;
   private previousRuntimeLog?: typeof defaultRuntime.log;
   private previousRuntimeError?: typeof defaultRuntime.error;
   private seq = 0;
@@ -326,10 +376,16 @@ export class EmbeddedTuiBackend implements TuiBackend {
   async sendChat(opts: ChatSendOptions): Promise<{ runId: string }> {
     const runId = opts.runId ?? randomUUID();
     const question = resolveBtwQuestion(opts.message);
-    if (!question) {
+    const abortableSessionRun = this.hasAbortableSessionRun(opts.sessionKey);
+    const stopCommand = abortableSessionRun && isChatStopCommandText(opts.message);
+    const queuedAfter =
+      question || stopCommand ? undefined : this.findQueuedSessionRunPromise(opts.sessionKey);
+    if (stopCommand) {
       this.abortSessionRuns(opts.sessionKey);
+      return { runId };
     }
     const controller = new AbortController();
+    const queuedRunReadiness = createQueuedRunReadiness();
     const trace = new TuiTurnTrace({
       runId,
       sessionKey: opts.sessionKey,
@@ -349,6 +405,8 @@ export class EmbeddedTuiBackend implements TuiBackend {
       trace,
       firstAgentEventSent: false,
       firstAssistantEventSent: false,
+      queuedRunReady: queuedRunReadiness.promise,
+      markQueuedRunReady: queuedRunReadiness.markReady,
     });
 
     const runPromise = this.runTurn({
@@ -359,6 +417,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
       deliver: opts.deliver,
       timeoutMs: opts.timeoutMs,
       controller,
+      queuedAfter,
     });
     this.runPromises.set(runId, runPromise);
     void runPromise.finally(() => {
@@ -405,8 +464,8 @@ export class EmbeddedTuiBackend implements TuiBackend {
         enforceChatHistoryFinalBudget,
         replaceOversizedChatHistoryMessages,
       },
-      { capArrayByJsonBytes },
-      { loadSessionEntry, readSessionMessages, resolveSessionModelRef },
+      { capArrayByJsonBytes, readSessionMessagesAsync },
+      { loadSessionEntry, resolveSessionModelRef },
     ] = await Promise.all([
       getAgentScopeModule(),
       getChatDisplayProjectionModule(),
@@ -420,14 +479,21 @@ export class EmbeddedTuiBackend implements TuiBackend {
     const sessionId = entry?.sessionId;
     const sessionAgentId = resolveSessionAgentId({ sessionKey: opts.sessionKey, config: cfg });
     const resolvedSessionModel = resolveSessionModelRef(cfg, entry, sessionAgentId);
+    const max = Math.min(1000, typeof opts.limit === "number" ? opts.limit : 200);
+    const maxHistoryBytes = getMaxChatHistoryMessagesBytes();
     const localMessages =
-      sessionId && storePath ? readSessionMessages(sessionId, storePath, entry?.sessionFile) : [];
+      sessionId && storePath
+        ? await readSessionMessagesAsync(sessionId, storePath, entry?.sessionFile, {
+            mode: "recent",
+            maxMessages: max,
+            maxBytes: Math.max(maxHistoryBytes * 2, 1024 * 1024),
+          })
+        : [];
     const rawMessages = augmentChatHistoryWithCliSessionImports({
       entry,
       provider: resolvedSessionModel.provider,
       localMessages,
     });
-    const max = Math.min(1000, typeof opts.limit === "number" ? opts.limit : 200);
     const effectiveMaxChars = resolveEffectiveChatHistoryMaxChars(cfg);
     const normalized = augmentChatHistoryWithCanvasBlocks(
       projectRecentChatDisplayMessages(rawMessages, {
@@ -435,7 +501,6 @@ export class EmbeddedTuiBackend implements TuiBackend {
         maxMessages: max,
       }),
     );
-    const maxHistoryBytes = getMaxChatHistoryMessagesBytes();
     const perMessageHardCap = Math.min(CHAT_HISTORY_MAX_SINGLE_MESSAGE_BYTES, maxHistoryBytes);
     const replaced = replaceOversizedChatHistoryMessages({
       messages: normalized,
@@ -822,29 +887,79 @@ export class EmbeddedTuiBackend implements TuiBackend {
     return this.deps as DefaultDeps;
   }
 
+  private async getAgentRuntime() {
+    this.agentRuntimePromise ??= Promise.all([getAgentCommandModule(), this.getDeps()]).then(
+      ([agentCommandModule, deps]) => ({
+        agentCommandModule,
+        deps,
+      }),
+    );
+    return await this.agentRuntimePromise;
+  }
+
+  async whenReadyForFirstTurn(): Promise<void> {
+    if (this.warmupTimer) {
+      clearTimeout(this.warmupTimer);
+      this.warmupTimer = undefined;
+    }
+    await this.warmupForFirstTurn();
+  }
+
   private scheduleWarmup() {
     if (this.warmupTimer || this.warmupPromise) {
       return;
     }
     this.warmupTimer = setTimeout(() => {
       this.warmupTimer = undefined;
-      this.warmupPromise = Promise.allSettled([
-        getConfigModule(),
-        getSessionUtilsModule(),
-        getAgentTimestampModule(),
-        getAgentCommandModule(),
-        this.getDeps(),
-      ]).then(() => undefined);
+      void this.warmupForFirstTurn();
     }, EMBEDDED_TUI_WARMUP_DELAY_MS);
     this.warmupTimer.unref?.();
   }
 
+  private warmupForFirstTurn() {
+    this.warmupPromise ??= Promise.all([
+      getConfigModule().then(({ getRuntimeConfig }) => {
+        getRuntimeConfig();
+      }),
+      getSessionEntryModule(),
+      getAgentTimestampModule(),
+      this.getAgentRuntime(),
+    ]).then(() => undefined);
+    return this.warmupPromise;
+  }
+
+  private findQueuedSessionRunPromise(sessionKey: string): QueuedSessionRun | undefined {
+    let queuedAfter: QueuedSessionRun | undefined;
+    for (const [runId, run] of this.runs) {
+      if (run.sessionKey === sessionKey && !run.isBtw) {
+        const promise = this.runPromises.get(runId);
+        if (promise) {
+          queuedAfter = { run, promise };
+        }
+      }
+    }
+    return queuedAfter;
+  }
+
   private abortSessionRuns(sessionKey: string) {
-    for (const run of this.runs.values()) {
-      if (run.sessionKey === sessionKey && !run.isBtw && !run.finishing && !run.lifecycleEnded) {
+    for (const [runId, run] of this.runs) {
+      if (run.sessionKey === sessionKey && !run.isBtw && this.isAbortableRun(runId, run)) {
         run.controller.abort();
       }
     }
+  }
+
+  private hasAbortableSessionRun(sessionKey: string): boolean {
+    for (const [runId, run] of this.runs) {
+      if (run.sessionKey === sessionKey && !run.isBtw && this.isAbortableRun(runId, run)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private isAbortableRun(runId: string, run: LocalRunState): boolean {
+    return !run.lifecycleEnded || this.runPromises.has(runId);
   }
 
   private nextSeq() {
@@ -882,6 +997,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
   }
 
   private emitChatFinal(runId: string, run: LocalRunState, stopReason?: string) {
+    run.markQueuedRunReady();
     if (run.finalSent) {
       return;
     }
@@ -914,6 +1030,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
   }
 
   private emitChatAborted(runId: string, run: LocalRunState) {
+    run.markQueuedRunReady();
     if (run.finalSent) {
       return;
     }
@@ -931,6 +1048,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
   }
 
   private emitChatError(runId: string, run: LocalRunState, errorMessage?: string) {
+    run.markQueuedRunReady();
     if (run.finalSent) {
       return;
     }
@@ -949,6 +1067,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
   }
 
   private emitChatCommandFinal(runId: string, run: LocalRunState, text: string) {
+    run.markQueuedRunReady();
     if (run.finalSent) {
       return;
     }
@@ -1002,6 +1121,9 @@ export class EmbeddedTuiBackend implements TuiBackend {
       if (phase === "start" || phase === "finishing" || phase === "end" || phase === "error") {
         run.trace.step(`lifecycle.${phase}`);
       }
+    } else if (evt.stream === "progress") {
+      const phase = sanitizeTraceSegment(evt.data?.phase, "event");
+      run.trace.step(`progress.${phase}`);
     } else if (evt.stream === "tool") {
       const phase = sanitizeTraceSegment(evt.data?.phase, "event");
       if (phase === "start" || phase === "result") {
@@ -1052,6 +1174,9 @@ export class EmbeddedTuiBackend implements TuiBackend {
     const aborted = evt.data?.aborted === true || run.controller.signal.aborted;
     if (phase === "finishing") {
       run.finishing = true;
+      run.lifecycleStopReason =
+        typeof evt.data?.stopReason === "string" ? evt.data.stopReason : undefined;
+      run.markQueuedRunReady();
       return;
     }
     if (phase === "end") {
@@ -1061,10 +1186,12 @@ export class EmbeddedTuiBackend implements TuiBackend {
         return;
       }
       run.lifecycleEnded = true;
+      run.lifecycleStopReason =
+        typeof evt.data?.stopReason === "string" ? evt.data.stopReason : undefined;
       if (!run.isBtw) {
-        const stopReason =
-          typeof evt.data?.stopReason === "string" ? evt.data.stopReason : undefined;
-        this.emitChatFinal(evt.runId, run, stopReason);
+        this.emitChatFinal(evt.runId, run, run.lifecycleStopReason);
+      } else {
+        run.markQueuedRunReady();
       }
       return;
     }
@@ -1083,75 +1210,6 @@ export class EmbeddedTuiBackend implements TuiBackend {
     }
   }
 
-  private async runTextCommandTurn(params: {
-    runId: string;
-    sessionKey: string;
-    message: string;
-    timeoutMs?: number;
-    controller: AbortController;
-  }) {
-    const trace = this.runs.get(params.runId)?.trace;
-    trace?.step("command.session.load.start");
-    const [{ loadSessionEntry }, { injectTimestamp, timestampOptsFromConfig }] = await Promise.all([
-      getSessionUtilsModule(),
-      getAgentTimestampModule(),
-    ]);
-    const { cfg, canonicalKey } = loadSessionEntry(params.sessionKey);
-    trace?.step("command.session.load.end");
-    const commandBody = params.message;
-    const stampedMessage = injectTimestamp(params.message, timestampOptsFromConfig(cfg));
-    const ctx: MsgContext = {
-      Body: params.message,
-      BodyForAgent: stampedMessage,
-      BodyForCommands: commandBody,
-      RawBody: params.message,
-      CommandBody: commandBody,
-      InputProvenance: { kind: "external_user", sourceChannel: INTERNAL_MESSAGE_CHANNEL },
-      SessionKey: canonicalKey,
-      Provider: INTERNAL_MESSAGE_CHANNEL,
-      Surface: INTERNAL_MESSAGE_CHANNEL,
-      OriginatingChannel: INTERNAL_MESSAGE_CHANNEL,
-      ChatType: "direct",
-      CommandSource: "text",
-      CommandAuthorized: true,
-      MessageSid: params.runId,
-      SenderId: "tui-local",
-      SenderName: "TUI",
-      SenderUsername: "tui",
-    };
-    let agentRunStarted = false;
-    trace?.step("command.pipeline.import.start");
-    const { getReplyFromConfig } = await import("../auto-reply/reply/get-reply.js");
-    trace?.step("command.pipeline.import.end");
-    trace?.step("command.pipeline.start");
-    const reply = await getReplyFromConfig(
-      ctx,
-      {
-        runId: params.runId,
-        abortSignal: params.controller.signal,
-        timeoutOverrideSeconds: timeoutSecondsNumberFromMs(params.timeoutMs),
-        onAgentRunStart: () => {
-          agentRunStarted = true;
-        },
-      },
-      cfg,
-    );
-    trace?.step("command.pipeline.end");
-    const run = this.runs.get(params.runId);
-    if (!run) {
-      return;
-    }
-    const text = replyText(reply);
-    if (!agentRunStarted) {
-      this.emitChatCommandFinal(params.runId, run, text || "(no output)");
-      return;
-    }
-    if (text && !run.buffer) {
-      run.buffer = text;
-    }
-    this.emitChatFinal(params.runId, run);
-  }
-
   private async runTurn(params: {
     runId: string;
     sessionKey: string;
@@ -1160,8 +1218,34 @@ export class EmbeddedTuiBackend implements TuiBackend {
     deliver?: boolean;
     timeoutMs?: number;
     controller: AbortController;
+    queuedAfter?: QueuedSessionRun;
   }) {
     try {
+      if (params.queuedAfter) {
+        this.runs.get(params.runId)?.trace.step("queue.wait.start");
+        try {
+          await waitForQueuedLocalRun(params.queuedAfter, params.runId);
+        } catch (error) {
+          const run = this.runs.get(params.runId);
+          if (run) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.emitChatError(
+              params.runId,
+              run,
+              `previous run did not finish cleanly: ${errorMessage}`,
+            );
+          }
+          return;
+        }
+        this.runs.get(params.runId)?.trace.step("queue.wait.end");
+        if (params.controller.signal.aborted) {
+          const run = this.runs.get(params.runId);
+          if (run) {
+            this.emitChatAborted(params.runId, run);
+          }
+          return;
+        }
+      }
       this.runs.get(params.runId)?.trace.step("turn.start");
       const fastCommandReply = buildEmbeddedStatusReply({
         message: params.message,
@@ -1176,33 +1260,31 @@ export class EmbeddedTuiBackend implements TuiBackend {
         }
         return;
       }
+      this.emit("agent", {
+        runId: params.runId,
+        stream: "progress",
+        data: { phase: "loading session" },
+      });
       this.runs.get(params.runId)?.trace.step("session.load.start");
-      const [sessionUtils, { injectTimestamp, timestampOptsFromConfig }] = await Promise.all([
-        getSessionUtilsModule(),
-        getAgentTimestampModule(),
-      ]);
-      const session = sessionUtils.loadSessionEntry(params.sessionKey);
+      const [{ loadSessionEntry }, { injectTimestamp, timestampOptsFromConfig }] =
+        await Promise.all([getSessionEntryModule(), getAgentTimestampModule()]);
+      const session = loadSessionEntry(params.sessionKey);
       const { cfg, canonicalKey, entry } = session;
       this.runs
         .get(params.runId)
         ?.trace.step("session.load.end", entry?.sessionId ? "existing session" : "new session");
-      if (shouldUseReplyCommandPipeline(params.message)) {
-        this.runs.get(params.runId)?.trace.step("command.route");
-        await this.runTextCommandTurn({
-          runId: params.runId,
-          sessionKey: params.sessionKey,
-          message: params.message,
-          timeoutMs: params.timeoutMs,
-          controller: params.controller,
-        });
-        return;
-      }
       this.runs.get(params.runId)?.trace.step("agent.imports.start");
-      const [{ agentCommandFromIngress }, deps] = await Promise.all([
-        getAgentCommandModule(),
-        this.getDeps(),
-      ]);
+      this.emit("agent", {
+        runId: params.runId,
+        stream: "progress",
+        data: { phase: "preparing local runtime" },
+      });
+      const agentRuntime = await this.getAgentRuntime();
       this.runs.get(params.runId)?.trace.step("agent.imports.end");
+      const {
+        agentCommandModule: { agentCommandFromIngress },
+        deps,
+      } = agentRuntime;
       this.runs.get(params.runId)?.trace.step("agent.dispatch.start");
       const result = await agentCommandFromIngress(
         {
@@ -1266,6 +1348,7 @@ export class EmbeddedTuiBackend implements TuiBackend {
       const errorMessage = formatTuiRunError(error);
       this.emitChatError(params.runId, run, errorMessage);
     } finally {
+      this.runs.get(params.runId)?.markQueuedRunReady();
       this.runs.delete(params.runId);
     }
   }

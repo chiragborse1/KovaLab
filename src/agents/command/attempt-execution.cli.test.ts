@@ -538,7 +538,7 @@ describe("embedded attempt harness pinning", () => {
     await fs.rm(tmpDir, { recursive: true, force: true });
   });
 
-  it("treats legacy sessions with history as PI-pinned", async () => {
+  it("does not keep legacy sessions with history pinned to PI", async () => {
     const sessionEntry: SessionEntry = {
       sessionId: "legacy-session",
       updatedAt: Date.now(),
@@ -574,11 +574,7 @@ describe("embedded attempt harness pinning", () => {
       sessionHasHistory: true,
     });
 
-    expect(runEmbeddedPiAgent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        agentHarnessId: "pi",
-      }),
-    );
+    expect(runEmbeddedPiAgentMock.mock.calls[0]?.[0]).not.toHaveProperty("agentHarnessId", "pi");
   });
 
   it("pins sessions with history to the configured Codex harness instead of PI", async () => {
@@ -630,7 +626,7 @@ describe("embedded attempt harness pinning", () => {
     );
   });
 
-  it("pins a fresh unpinned session to the default PI harness", async () => {
+  it("does not pin a fresh unpinned session to the default PI harness", async () => {
     const sessionEntry: SessionEntry = {
       sessionId: "fresh-session",
       updatedAt: Date.now(),
@@ -666,11 +662,7 @@ describe("embedded attempt harness pinning", () => {
       sessionHasHistory: false,
     });
 
-    expect(runEmbeddedPiAgent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        agentHarnessId: "pi",
-      }),
-    );
+    expect(runEmbeddedPiAgentMock.mock.calls[0]?.[0]).not.toHaveProperty("agentHarnessId", "pi");
   });
 
   it("does not pass CLI runtime aliases as embedded harness ids for fallback providers", async () => {

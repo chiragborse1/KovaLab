@@ -10,6 +10,7 @@
   "kova": {
     "extensions": [
       "./index.ts"
-    ]
+    ],
+    "setupEntry": "./setup-api.ts"
   }
 }

@@ -286,6 +286,17 @@ function sanitizeDiagnosticEvent(event: DiagnosticEventPayload): DiagnosticStabi
       record.durationMs = event.durationMs;
       assignReasonCode(record, event.errorCategory);
       break;
+    case "tool.execution.blocked":
+      record.toolName = event.toolName;
+      record.outcome = "blocked";
+      assignReasonCode(record, event.deniedReason);
+      break;
+    case "skill.used":
+      record.toolName = event.toolName;
+      record.source = event.skillSource;
+      record.action = event.activation;
+      record.target = event.skillName;
+      break;
     case "exec.process.completed":
       record.target = event.target;
       record.mode = event.mode;

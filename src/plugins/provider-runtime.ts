@@ -109,9 +109,13 @@ function matchesProviderPluginRef(provider: ProviderPlugin, providerId: string):
   );
 }
 
-function resolveProviderHookRefs(provider: string, providerConfig?: ModelProviderConfig): string[] {
+function resolveProviderHookRefs(
+  provider: string,
+  providerConfig?: ModelProviderConfig,
+  modelApi?: string | null,
+): string[] {
   const refs = [provider];
-  const apiRef = normalizeOptionalString(providerConfig?.api);
+  const apiRef = normalizeOptionalString(modelApi ?? providerConfig?.api);
   if (apiRef && normalizeProviderId(apiRef) !== normalizeProviderId(provider)) {
     refs.push(apiRef);
   }
@@ -429,8 +433,16 @@ function resolveProviderCompatHookPlugins(params: {
   config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  context: ProviderNormalizeResolvedModelContext;
 }): ProviderPlugin[] {
-  const candidates = resolveProviderPluginsForHooks(params);
+  const candidates = resolveProviderPluginsForHooks({
+    ...params,
+    providerRefs: resolveProviderHookRefs(
+      params.provider,
+      undefined,
+      params.context.model.api as string | undefined,
+    ),
+  });
   const owner = resolveProviderRuntimePlugin(params);
   if (!owner) {
     return candidates;
@@ -562,7 +574,14 @@ export function normalizeProviderTransportWithPlugin(params: {
     return normalizedMatched;
   }
 
-  for (const candidate of resolveProviderPluginsForHooks(params)) {
+  for (const candidate of resolveProviderPluginsForHooks({
+    ...params,
+    providerRefs: resolveProviderHookRefs(
+      params.provider,
+      undefined,
+      typeof params.context.api === "string" ? params.context.api : undefined,
+    ),
+  })) {
     if (!candidate.normalizeTransport || candidate === matchedPlugin) {
       continue;
     }
@@ -1102,7 +1121,24 @@ export function resolveProviderBuiltInModelSuppression(params: {
   env?: NodeJS.ProcessEnv;
   context: ProviderBuiltInModelSuppressionContext;
 }) {
-  for (const plugin of resolveProviderPluginsForCatalogHooks(params)) {
+  const provider = normalizeOptionalString(params.context.provider);
+  const catalogPlugins = resolveProviderPluginsForCatalogHooks(params);
+  const directPlugins =
+    provider && catalogPlugins.length === 0
+      ? [resolveProviderHookPlugin({ ...params, provider })].filter(
+          (plugin): plugin is ProviderPlugin => Boolean(plugin),
+        )
+      : [];
+  const seenPlugins = new Set<string>();
+  const plugins = [...catalogPlugins, ...directPlugins].filter((plugin) => {
+    const key = `${plugin.pluginId ?? ""}:${plugin.id}`;
+    if (seenPlugins.has(key)) {
+      return false;
+    }
+    seenPlugins.add(key);
+    return true;
+  });
+  for (const plugin of plugins) {
     const result = plugin.suppressBuiltInModel?.(params.context);
     if (result?.suppress) {
       return result;

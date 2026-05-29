@@ -9,6 +9,22 @@ const resolveAgentWorkspaceDirMock = vi.fn<
 const resolveDefaultAgentIdMock = vi.fn<
   typeof import("../../agents/agent-scope.js").resolveDefaultAgentId
 >(() => "default");
+const manifestRegistry = { plugins: [], diagnostics: [] };
+const installRecords = { demo: { source: "npm", spec: "demo" } };
+const resolvePluginMetadataSnapshotMock =
+  vi.fn<typeof import("../plugin-metadata-snapshot.js").resolvePluginMetadataSnapshot>();
+const extractPluginInstallRecordsMock = vi.fn<
+  typeof import("../installed-plugin-index-install-records.js").extractPluginInstallRecordsFromInstalledPluginIndex
+>(() => installRecords as never);
+const setCurrentPluginMetadataSnapshotMock =
+  vi.fn<typeof import("../current-plugin-metadata-snapshot.js").setCurrentPluginMetadataSnapshot>();
+const clearCurrentPluginMetadataSnapshotMock =
+  vi.fn<
+    typeof import("../current-plugin-metadata-snapshot.js").clearCurrentPluginMetadataSnapshot
+  >();
+const isReusableCurrentPluginMetadataSnapshotMock = vi.fn<
+  typeof import("../current-plugin-metadata-snapshot.js").isReusableCurrentPluginMetadataSnapshot
+>(() => true);
 
 let resolvePluginRuntimeLoadContext: typeof import("./load-context.js").resolvePluginRuntimeLoadContext;
 let buildPluginRuntimeLoadOptions: typeof import("./load-context.js").buildPluginRuntimeLoadOptions;
@@ -29,6 +45,20 @@ vi.mock("../../agents/agent-scope.js", () => ({
   resolveDefaultAgentId: resolveDefaultAgentIdMock,
 }));
 
+vi.mock("../plugin-metadata-snapshot.js", () => ({
+  resolvePluginMetadataSnapshot: resolvePluginMetadataSnapshotMock,
+}));
+
+vi.mock("../installed-plugin-index-install-records.js", () => ({
+  extractPluginInstallRecordsFromInstalledPluginIndex: extractPluginInstallRecordsMock,
+}));
+
+vi.mock("../current-plugin-metadata-snapshot.js", () => ({
+  clearCurrentPluginMetadataSnapshot: clearCurrentPluginMetadataSnapshotMock,
+  isReusableCurrentPluginMetadataSnapshot: isReusableCurrentPluginMetadataSnapshotMock,
+  setCurrentPluginMetadataSnapshot: setCurrentPluginMetadataSnapshotMock,
+}));
+
 describe("resolvePluginRuntimeLoadContext", () => {
   beforeEach(async () => {
     vi.resetModules();
@@ -38,10 +68,21 @@ describe("resolvePluginRuntimeLoadContext", () => {
       await import("./load-context.js"));
     loadConfigMock.mockReset();
     applyPluginAutoEnableMock.mockReset();
+    resolvePluginMetadataSnapshotMock.mockReset();
+    extractPluginInstallRecordsMock.mockClear();
+    setCurrentPluginMetadataSnapshotMock.mockClear();
+    clearCurrentPluginMetadataSnapshotMock.mockClear();
+    isReusableCurrentPluginMetadataSnapshotMock.mockClear();
     resolveAgentWorkspaceDirMock.mockClear();
     resolveDefaultAgentIdMock.mockClear();
 
     loadConfigMock.mockReturnValue({ plugins: {} });
+    resolvePluginMetadataSnapshotMock.mockReturnValue({
+      manifestRegistry,
+      index: { installRecords: {} },
+    } as never);
+    extractPluginInstallRecordsMock.mockReturnValue(installRecords as never);
+    isReusableCurrentPluginMetadataSnapshotMock.mockReturnValue(true);
     applyPluginAutoEnableMock.mockImplementation((params) => ({
       config: params.config ?? {},
       changes: [],
@@ -84,12 +125,24 @@ describe("resolvePluginRuntimeLoadContext", () => {
         autoEnabledReasons: {
           demo: ["demo configured"],
         },
+        manifestRegistry,
+        installRecords,
       }),
     );
     expect(applyPluginAutoEnableMock).toHaveBeenCalledWith({
       config: rawConfig,
       env,
+      manifestRegistry,
     });
+    expect(setCurrentPluginMetadataSnapshotMock).toHaveBeenCalledWith(
+      expect.objectContaining({ manifestRegistry }),
+      expect.objectContaining({
+        config: rawConfig,
+        compatibleConfigs: [resolvedConfig, rawConfig],
+        env,
+        workspaceDir: "/resolved-workspace",
+      }),
+    );
     expect(resolveDefaultAgentIdMock).toHaveBeenCalledWith(resolvedConfig);
     expect(resolveAgentWorkspaceDirMock).toHaveBeenCalledWith(resolvedConfig, "default");
   });
@@ -112,6 +165,7 @@ describe("resolvePluginRuntimeLoadContext", () => {
     expect(applyPluginAutoEnableMock).toHaveBeenCalledWith({
       config: runtimeConfig,
       env: process.env,
+      manifestRegistry,
     });
   });
 
@@ -136,6 +190,8 @@ describe("resolvePluginRuntimeLoadContext", () => {
         workspaceDir: "/explicit-workspace",
         env: context.env,
         logger: context.logger,
+        manifestRegistry,
+        installRecords,
         cache: false,
         activate: false,
         onlyPluginIds: ["demo"],

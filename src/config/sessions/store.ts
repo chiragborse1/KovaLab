@@ -149,12 +149,27 @@ type SaveSessionStoreOptions = {
   maintenanceOverride?: Partial<ResolvedSessionMaintenanceConfig>;
   /** Fully resolved maintenance settings when the caller already has config loaded. */
   maintenanceConfig?: ResolvedSessionMaintenanceConfig;
+  /** Internal hot paths can hand writer-owned stores to the cache after persistence. */
+  takeCacheOwnership?: boolean;
+  /** Changed top-level entry when a hot path only updated one existing session. */
+  singleEntryPersistence?: SingleEntryPersistencePatch;
+};
+
+type UpdateSessionStoreOptions<T> = SaveSessionStoreOptions & {
+  /** Changed top-level entry derived from the mutator result. */
+  resolveSingleEntryPersistence?: (result: T) => SingleEntryPersistencePatch | null | undefined;
+};
+
+type SingleEntryPersistencePatch = {
+  sessionKey: string;
+  entry: SessionEntry;
 };
 
 function updateSessionStoreWriteCaches(params: {
   storePath: string;
   store: Record<string, SessionEntry>;
   serialized: string;
+  takeOwnership?: boolean;
 }): void {
   const fileStat = getFileStatSnapshot(params.storePath);
   setSerializedSessionStore(params.storePath, params.serialized);
@@ -168,6 +183,7 @@ function updateSessionStoreWriteCaches(params: {
     mtimeMs: fileStat?.mtimeMs,
     sizeBytes: fileStat?.sizeBytes,
     serialized: params.serialized,
+    takeOwnership: params.takeOwnership,
   });
 }
 
@@ -227,6 +243,73 @@ function preserveExistingAcpMetadata(params: {
       acp: previousAcp,
     };
   }
+}
+
+function findJsonValueEnd(json: string, valueStart: number): number | null {
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let index = valueStart; index < json.length; index += 1) {
+    const char = json[index];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+    if (char === "{" || char === "[") {
+      depth += 1;
+      continue;
+    }
+    if (char !== "}" && char !== "]") {
+      continue;
+    }
+    depth -= 1;
+    if (depth === 0) {
+      return index + 1;
+    }
+    if (depth < 0) {
+      return null;
+    }
+  }
+  return null;
+}
+
+function indentTopLevelEntryJson(json: string): string {
+  return json.replaceAll("\n", "\n  ");
+}
+
+function buildSingleEntrySerializedStore(params: {
+  storePath: string;
+  patch: SingleEntryPersistencePatch;
+}): string | null {
+  const currentSerialized = getSerializedSessionStore(params.storePath);
+  if (currentSerialized === undefined) {
+    return null;
+  }
+  const marker = `\n  ${JSON.stringify(params.patch.sessionKey)}: `;
+  const markerIndex = currentSerialized.indexOf(marker);
+  if (markerIndex < 0) {
+    return null;
+  }
+  const valueStart = markerIndex + marker.length;
+  if (currentSerialized[valueStart] !== "{") {
+    return null;
+  }
+  const valueEnd = findJsonValueEnd(currentSerialized, valueStart);
+  if (valueEnd === null) {
+    return null;
+  }
+  const entryJson = indentTopLevelEntryJson(JSON.stringify(params.patch.entry, null, 2));
+  return currentSerialized.slice(0, valueStart) + entryJson + currentSerialized.slice(valueEnd);
 }
 
 async function saveSessionStoreUnlocked(
@@ -355,9 +438,35 @@ async function saveSessionStoreUnlocked(
   }
 
   await fs.promises.mkdir(path.dirname(storePath), { recursive: true });
+  if (opts?.singleEntryPersistence) {
+    const normalizedEntry = store[opts.singleEntryPersistence.sessionKey];
+    const singleEntrySerialized = buildSingleEntrySerializedStore({
+      storePath,
+      patch: normalizedEntry
+        ? {
+            sessionKey: opts.singleEntryPersistence.sessionKey,
+            entry: normalizedEntry,
+          }
+        : opts.singleEntryPersistence,
+    });
+    if (singleEntrySerialized !== null) {
+      await writeSessionStoreAtomic({
+        storePath,
+        store,
+        serialized: singleEntrySerialized,
+        takeOwnership: opts.takeCacheOwnership,
+      });
+      return;
+    }
+  }
   const json = JSON.stringify(store, null, 2);
   if (getSerializedSessionStore(storePath) === json) {
-    updateSessionStoreWriteCaches({ storePath, store, serialized: json });
+    updateSessionStoreWriteCaches({
+      storePath,
+      store,
+      serialized: json,
+      takeOwnership: opts?.takeCacheOwnership,
+    });
     return;
   }
 
@@ -365,7 +474,12 @@ async function saveSessionStoreUnlocked(
   if (process.platform === "win32") {
     for (let i = 0; i < 5; i++) {
       try {
-        await writeSessionStoreAtomic({ storePath, store, serialized: json });
+        await writeSessionStoreAtomic({
+          storePath,
+          store,
+          serialized: json,
+          takeOwnership: opts?.takeCacheOwnership,
+        });
         return;
       } catch (err) {
         const code = getErrorCode(err);
@@ -385,7 +499,12 @@ async function saveSessionStoreUnlocked(
   }
 
   try {
-    await writeSessionStoreAtomic({ storePath, store, serialized: json });
+    await writeSessionStoreAtomic({
+      storePath,
+      store,
+      serialized: json,
+      takeOwnership: opts?.takeCacheOwnership,
+    });
   } catch (err) {
     const code = getErrorCode(err);
 
@@ -393,7 +512,12 @@ async function saveSessionStoreUnlocked(
       // In tests the temp session-store directory may be deleted while writes are in-flight.
       // Best-effort: try a direct write (recreating the parent dir), otherwise ignore.
       try {
-        await writeSessionStoreAtomic({ storePath, store, serialized: json });
+        await writeSessionStoreAtomic({
+          storePath,
+          store,
+          serialized: json,
+          takeOwnership: opts?.takeCacheOwnership,
+        });
       } catch (err2) {
         const code2 = getErrorCode(err2);
         if (code2 === "ENOENT") {
@@ -421,7 +545,7 @@ export async function saveSessionStore(
 export async function updateSessionStore<T>(
   storePath: string,
   mutator: (store: Record<string, SessionEntry>) => Promise<T> | T,
-  opts?: SaveSessionStoreOptions,
+  opts?: UpdateSessionStoreOptions<T>,
 ): Promise<T> {
   return await withSessionStoreLock(storePath, async () => {
     // Always re-read inside the lock to avoid clobbering concurrent writers.
@@ -433,7 +557,10 @@ export async function updateSessionStore<T>(
       nextStore: store,
       allowDropSessionKeys: opts?.allowDropAcpMetaSessionKeys,
     });
-    await saveSessionStoreUnlocked(storePath, store, opts);
+    await saveSessionStoreUnlocked(storePath, store, {
+      ...opts,
+      singleEntryPersistence: opts?.resolveSingleEntryPersistence?.(result) ?? undefined,
+    });
     return result;
   });
 }
@@ -494,12 +621,14 @@ async function writeSessionStoreAtomic(params: {
   storePath: string;
   store: Record<string, SessionEntry>;
   serialized: string;
+  takeOwnership?: boolean;
 }): Promise<void> {
   await writeTextAtomic(params.storePath, params.serialized, { mode: 0o600 });
   updateSessionStoreWriteCaches({
     storePath: params.storePath,
     store: params.store,
     serialized: params.serialized,
+    takeOwnership: params.takeOwnership,
   });
 }
 
@@ -508,6 +637,8 @@ async function persistResolvedSessionEntry(params: {
   store: Record<string, SessionEntry>;
   resolved: ReturnType<typeof resolveSessionStoreEntry>;
   next: SessionEntry;
+  skipMaintenance?: boolean;
+  takeCacheOwnership?: boolean;
 }): Promise<SessionEntry> {
   params.store[params.resolved.normalizedKey] = params.next;
   for (const legacyKey of params.resolved.legacyKeys) {
@@ -515,6 +646,12 @@ async function persistResolvedSessionEntry(params: {
   }
   await saveSessionStoreUnlocked(params.storePath, params.store, {
     activeSessionKey: params.resolved.normalizedKey,
+    singleEntryPersistence:
+      params.resolved.legacyKeys.length === 0 && params.resolved.existing
+        ? { sessionKey: params.resolved.normalizedKey, entry: params.next }
+        : undefined,
+    skipMaintenance: params.skipMaintenance,
+    takeCacheOwnership: params.takeCacheOwnership,
   });
   return params.next;
 }
@@ -644,7 +781,11 @@ async function withSessionStoreLock<T>(
 export async function updateSessionStoreEntry(params: {
   storePath: string;
   sessionKey: string;
-  update: (entry: SessionEntry) => Promise<Partial<SessionEntry> | null>;
+  update: (
+    entry: SessionEntry,
+  ) => Promise<Partial<SessionEntry> | null> | Partial<SessionEntry> | null;
+  skipMaintenance?: boolean;
+  takeCacheOwnership?: boolean;
 }): Promise<SessionEntry | null> {
   const { storePath, sessionKey, update } = params;
   return await withSessionStoreLock(storePath, async () => {
@@ -664,6 +805,8 @@ export async function updateSessionStoreEntry(params: {
       store,
       resolved,
       next,
+      skipMaintenance: params.skipMaintenance,
+      takeCacheOwnership: params.takeCacheOwnership,
     });
   });
 }

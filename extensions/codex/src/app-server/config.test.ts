@@ -22,6 +22,8 @@ describe("Codex app-server config", () => {
           sandbox: "danger-full-access",
           approvalsReviewer: "guardian_subagent",
           serviceTier: "flex",
+          turnCompletionIdleTimeoutMs: 12_345,
+          postToolRawAssistantCompletionIdleTimeoutMs: 6_789,
         },
       },
       env: {
@@ -36,6 +38,8 @@ describe("Codex app-server config", () => {
         sandbox: "danger-full-access",
         approvalsReviewer: "guardian_subagent",
         serviceTier: "flex",
+        turnCompletionIdleTimeoutMs: 12_345,
+        postToolRawAssistantCompletionIdleTimeoutMs: 6_789,
         start: expect.objectContaining({
           transport: "websocket",
           url: "ws://127.0.0.1:39175",

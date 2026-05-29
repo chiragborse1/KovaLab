@@ -348,6 +348,36 @@ describe("loadWorkspaceSkillEntries", () => {
   );
 
   it.runIf(process.platform !== "win32")(
+    "loads workspace skill symlinks only when their target root is allowed",
+    async () => {
+      const workspaceDir = await createTempWorkspaceDir();
+      const targetRoot = await createTempWorkspaceDir();
+      const targetSkillDir = path.join(targetRoot, "allowed-linked");
+      await writeSkill({
+        dir: targetSkillDir,
+        name: "allowed-linked",
+        description: "Allowed linked skill",
+      });
+      await fs.mkdir(path.join(workspaceDir, "skills"), { recursive: true });
+      await fs.symlink(targetSkillDir, path.join(workspaceDir, "skills", "allowed-linked"), "dir");
+
+      const blocked = loadTestWorkspaceSkillEntries(workspaceDir);
+      const allowed = loadTestWorkspaceSkillEntries(workspaceDir, {
+        config: {
+          skills: {
+            load: {
+              allowSymlinkTargets: [targetRoot],
+            },
+          },
+        },
+      });
+
+      expect(blocked.map((entry) => entry.skill.name)).not.toContain("allowed-linked");
+      expect(allowed.map((entry) => entry.skill.name)).toContain("allowed-linked");
+    },
+  );
+
+  it.runIf(process.platform !== "win32")(
     "calls out bundled symlink escapes with compact home-relative paths",
     async () => {
       const { workspaceDir, bundledDir, requestedPath } = await createEscapedBundledSkillFixture();

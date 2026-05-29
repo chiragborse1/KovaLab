@@ -1,4 +1,3 @@
-import fs from "node:fs";
 import path from "node:path";
 import type { KovaConfig } from "../config/types.js";
 import type { PluginCompatCode } from "./compat/registry.js";
@@ -6,7 +5,7 @@ import { normalizePluginsConfig, resolveEffectiveEnableState } from "./config-st
 import type { PluginCandidate } from "./discovery.js";
 import type { PluginInstallSourceInfo } from "./install-source-info.js";
 import { describePluginInstallSource } from "./install-source-info.js";
-import { hashJson, safeHashFile } from "./installed-plugin-index-hash.js";
+import { hashJson, safeFileSignature, safeHashFile } from "./installed-plugin-index-hash.js";
 import type {
   InstalledPluginIndexRecord,
   InstalledPluginInstallRecordInfo,
@@ -16,7 +15,7 @@ import type {
 import type { PluginManifestRecord, PluginManifestRegistry } from "./manifest-registry.js";
 import type { PluginDiagnostic } from "./manifest-types.js";
 import type { PluginPackageChannel } from "./manifest.js";
-import { safeRealpathSync } from "./path-safety.js";
+import { isPathInside, safeRealpathSync } from "./path-safety.js";
 import { hasKind } from "./slots.js";
 
 function sortUnique(values: readonly string[] | undefined): readonly string[] {
@@ -95,17 +94,35 @@ function collectCompatCodes(record: PluginManifestRecord): readonly PluginCompat
   return sortUnique(codes) as readonly PluginCompatCode[];
 }
 
-function resolvePackageJsonPath(candidate: PluginCandidate | undefined): string | undefined {
+function resolvePackageJsonPath(
+  candidate: PluginCandidate | undefined,
+  realpathCache: Map<string, string>,
+): string | undefined {
   if (!candidate?.packageDir) {
     return undefined;
   }
-  const packageDir = safeRealpathSync(candidate.packageDir) ?? path.resolve(candidate.packageDir);
+  const packageDir =
+    safeRealpathSync(candidate.packageDir, realpathCache) ?? path.resolve(candidate.packageDir);
   const packageJsonPath = path.join(packageDir, "package.json");
-  return fs.existsSync(packageJsonPath) ? packageJsonPath : undefined;
+  const rootDir =
+    candidate.rootDir === candidate.packageDir
+      ? packageDir
+      : (safeRealpathSync(candidate.rootDir, realpathCache) ?? path.resolve(candidate.rootDir));
+  const packageJsonRealPath = safeRealpathSync(packageJsonPath, realpathCache);
+  return packageJsonRealPath && isPathInside(rootDir, packageJsonRealPath)
+    ? packageJsonPath
+    : undefined;
 }
 
-function resolvePackageJsonRelativePath(rootDir: string, packageJsonPath: string): string {
-  const resolvedRootDir = safeRealpathSync(rootDir) ?? path.resolve(rootDir);
+function resolvePackageJsonRelativePath(
+  rootDir: string,
+  packageJsonPath: string,
+  realpathCache: Map<string, string>,
+): string {
+  const resolvedRootDir =
+    rootDir === path.dirname(packageJsonPath)
+      ? path.dirname(packageJsonPath)
+      : (safeRealpathSync(rootDir, realpathCache) ?? path.resolve(rootDir));
   const relativePath = path.relative(resolvedRootDir, packageJsonPath) || "package.json";
   return relativePath.split(path.sep).join("/");
 }
@@ -115,6 +132,7 @@ function resolvePackageJsonRecord(params: {
   packageJsonPath: string | undefined;
   diagnostics: PluginDiagnostic[];
   pluginId: string;
+  realpathCache: Map<string, string>;
 }): InstalledPluginIndexRecord["packageJson"] | undefined {
   if (!params.candidate?.packageDir || !params.packageJsonPath) {
     return undefined;
@@ -128,9 +146,15 @@ function resolvePackageJsonRecord(params: {
   if (!hash) {
     return undefined;
   }
+  const fileSignature = safeFileSignature(params.packageJsonPath);
   return {
-    path: resolvePackageJsonRelativePath(params.candidate.rootDir, params.packageJsonPath),
+    path: resolvePackageJsonRelativePath(
+      params.candidate.rootDir,
+      params.packageJsonPath,
+      params.realpathCache,
+    ),
     hash,
+    ...(fileSignature ? { fileSignature } : {}),
   };
 }
 
@@ -154,19 +178,6 @@ function normalizeStringField(value: unknown): string | undefined {
   return normalized ? normalized : undefined;
 }
 
-function normalizeStringListField(value: unknown): readonly string[] | undefined {
-  if (!Array.isArray(value)) {
-    return undefined;
-  }
-  const normalized = value
-    .flatMap((entry) => {
-      const normalizedEntry = normalizeStringField(entry);
-      return normalizedEntry ? [normalizedEntry] : [];
-    })
-    .filter((entry, index, all) => all.indexOf(entry) === index);
-  return normalized.length > 0 ? normalized : undefined;
-}
-
 function normalizePackageChannel(
   channel: PluginPackageChannel | undefined,
 ): InstalledPluginPackageChannelInfo | undefined {
@@ -174,30 +185,9 @@ function normalizePackageChannel(
   if (!id) {
     return undefined;
   }
-  const label = normalizeStringField(channel?.label);
-  const blurb = normalizeStringField(channel?.blurb);
-  const preferOver = normalizeStringListField(channel?.preferOver);
-  const commands =
-    channel?.commands &&
-    typeof channel.commands === "object" &&
-    !Array.isArray(channel.commands) &&
-    (typeof channel.commands.nativeCommandsAutoEnabled === "boolean" ||
-      typeof channel.commands.nativeSkillsAutoEnabled === "boolean")
-      ? {
-          ...(typeof channel.commands.nativeCommandsAutoEnabled === "boolean"
-            ? { nativeCommandsAutoEnabled: channel.commands.nativeCommandsAutoEnabled }
-            : {}),
-          ...(typeof channel.commands.nativeSkillsAutoEnabled === "boolean"
-            ? { nativeSkillsAutoEnabled: channel.commands.nativeSkillsAutoEnabled }
-            : {}),
-        }
-      : undefined;
   return {
+    ...structuredClone(channel),
     id,
-    ...(label ? { label } : {}),
-    ...(blurb ? { blurb } : {}),
-    ...(preferOver ? { preferOver } : {}),
-    ...(commands ? { commands } : {}),
   };
 }
 
@@ -220,12 +210,15 @@ export function buildInstalledPluginIndexRecords(params: {
 }): InstalledPluginIndexRecord[] {
   const candidateByRootDir = buildCandidateLookup(params.candidates);
   const normalizedConfig = normalizePluginsConfig(params.config?.plugins);
+  const realpathCache = new Map<string, string>();
   return params.registry.plugins.map((record): InstalledPluginIndexRecord => {
     const candidate = candidateByRootDir.get(record.rootDir);
-    const packageJsonPath = resolvePackageJsonPath(candidate);
+    const packageJsonPath = resolvePackageJsonPath(candidate, realpathCache);
     const installRecord = params.installRecords[record.id];
     const packageInstall = describePackageInstallSource(candidate);
-    const packageChannel = normalizePackageChannel(candidate?.packageManifest?.channel);
+    const packageChannel = normalizePackageChannel(
+      record.packageChannel ?? candidate?.packageManifest?.channel,
+    );
     const manifestHash =
       safeHashFile({
         filePath: record.manifestPath,
@@ -233,11 +226,13 @@ export function buildInstalledPluginIndexRecords(params: {
         diagnostics: params.diagnostics,
         required: true,
       }) ?? "";
+    const manifestFile = safeFileSignature(record.manifestPath);
     const packageJson = resolvePackageJsonRecord({
       candidate,
       packageJsonPath,
       diagnostics: params.diagnostics,
       pluginId: record.id,
+      realpathCache,
     });
     const enabled = resolveEffectiveEnableState({
       id: record.id,
@@ -250,6 +245,7 @@ export function buildInstalledPluginIndexRecords(params: {
       pluginId: record.id,
       manifestPath: record.manifestPath,
       manifestHash,
+      ...(manifestFile ? { manifestFile } : {}),
       source: record.source,
       rootDir: record.rootDir,
       origin: record.origin,

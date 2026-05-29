@@ -13,6 +13,7 @@ type PersistedCacheEntry = {
   key: string;
   node: {
     sourceMessage: Message;
+    threadId?: string;
   };
 };
 
@@ -237,6 +238,72 @@ describe("telegram message cache", () => {
           return entry.node.sourceMessage.message_id;
         }),
       ).toEqual([9204, 9205, 9206]);
+    } finally {
+      await rm(persistedPath, { force: true });
+    }
+  });
+
+  it("does not partially parse malformed persisted thread ids", async () => {
+    const storePath = `/tmp/kova-telegram-message-cache-thread-${process.pid}-${Date.now()}.json`;
+    const persistedPath = resolveTelegramMessageCachePath(storePath);
+    await rm(persistedPath, { force: true });
+    try {
+      const entry = persistedCacheEntry(9126, "State topic message");
+      entry.node.threadId = "0x64";
+      await writeFile(persistedPath, `${JSON.stringify(entry)}\n`);
+
+      resetTelegramMessageCacheBucketsForTest();
+      const cache = createTelegramMessageCache({ persistedPath });
+      const recent = cache.recentBefore({
+        accountId: "default",
+        chatId: 7,
+        threadId: 100,
+        messageId: "9127",
+        limit: 10,
+      });
+
+      expect(recent).toEqual([]);
+    } finally {
+      await rm(persistedPath, { force: true });
+    }
+  });
+
+  it("drops unsafe Telegram thread ids from live messages", async () => {
+    const storePath = `/tmp/kova-telegram-message-cache-unsafe-thread-${process.pid}-${Date.now()}.json`;
+    const persistedPath = resolveTelegramMessageCachePath(storePath);
+    await rm(persistedPath, { force: true });
+    try {
+      const cache = createTelegramMessageCache({ persistedPath });
+      const recorded = cache.record({
+        accountId: "default",
+        chatId: 7,
+        msg: {
+          chat: { id: 7, type: "supergroup", title: "Ops" },
+          message_id: 9127,
+          message_thread_id: Number.MAX_SAFE_INTEGER + 1,
+          date: 1736389127,
+          text: "Unsafe topic message",
+          from: { id: 1, is_bot: false, first_name: "Nora" },
+        } as Message,
+      });
+
+      expect(recorded?.threadId).toBeUndefined();
+      const topicRecent = cache.recentBefore({
+        accountId: "default",
+        chatId: 7,
+        threadId: Number.MAX_SAFE_INTEGER + 1,
+        messageId: "9128",
+        limit: 10,
+      });
+      const unscopedRecent = cache.recentBefore({
+        accountId: "default",
+        chatId: 7,
+        messageId: "9128",
+        limit: 10,
+      });
+
+      expect(topicRecent).toEqual([]);
+      expect(unscopedRecent.map((entry) => entry.messageId)).toEqual(["9127"]);
     } finally {
       await rm(persistedPath, { force: true });
     }

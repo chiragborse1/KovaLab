@@ -7,24 +7,27 @@ import type { RuntimeEnv } from "../runtime.js";
 
 export async function resolveAgentRuntimeConfig(
   runtime: RuntimeEnv,
-  params?: { runtimeTargetsChannelSecrets?: boolean },
+  params?: { runtimeTargetsChannelSecrets?: boolean; readSourceSnapshot?: boolean },
 ): Promise<{
   loadedRaw: KovaConfig;
   sourceConfig: KovaConfig;
   cfg: KovaConfig;
 }> {
   const loadedRaw = getRuntimeConfig();
-  const sourceConfig = await (async () => {
-    try {
-      const { snapshot } = await readConfigFileSnapshotForWrite();
-      if (snapshot.valid) {
-        return snapshot.resolved;
-      }
-    } catch {
-      // Fall back to runtime-loaded config when source snapshot is unavailable.
-    }
-    return loadedRaw;
-  })();
+  const sourceConfig =
+    params?.readSourceSnapshot === false
+      ? loadedRaw
+      : await (async () => {
+          try {
+            const { snapshot } = await readConfigFileSnapshotForWrite();
+            if (snapshot.valid) {
+              return snapshot.resolved;
+            }
+          } catch {
+            // Fall back to runtime-loaded config when source snapshot is unavailable.
+          }
+          return loadedRaw;
+        })();
   const includeChannelTargets = params?.runtimeTargetsChannelSecrets === true;
   const cfg = hasAgentRuntimeSecretRefs({
     config: loadedRaw,

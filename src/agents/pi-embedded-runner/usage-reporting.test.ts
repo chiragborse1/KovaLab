@@ -36,7 +36,7 @@ describe("runEmbeddedPiAgent usage reporting", () => {
     mockedRunEmbeddedAttempt.mockReset();
   });
 
-  it("bootstraps runtime plugins with the resolved workspace before running", async () => {
+  it("defers runtime plugin bootstrap for plain user runs", async () => {
     mockedRunEmbeddedAttempt.mockResolvedValueOnce(
       makeAttemptResult({
         assistantTexts: ["Response 1"],
@@ -53,9 +53,52 @@ describe("runEmbeddedPiAgent usage reporting", () => {
       runId: "run-plugin-bootstrap",
     });
 
+    expect(mockedEnsureRuntimePluginsLoaded).not.toHaveBeenCalled();
+  });
+
+  it("defers runtime plugin bootstrap for internal TUI/webchat runs", async () => {
+    mockedRunEmbeddedAttempt.mockResolvedValueOnce(
+      makeAttemptResult({
+        assistantTexts: ["Response 1"],
+      }),
+    );
+
+    await runEmbeddedPiAgent({
+      sessionId: "test-session",
+      sessionKey: "test-key",
+      sessionFile: "/tmp/session.json",
+      workspaceDir: "/tmp/workspace",
+      prompt: "hello",
+      timeoutMs: 30000,
+      runId: "run-internal-channel-bootstrap",
+      messageChannel: "webchat",
+    });
+
+    expect(mockedEnsureRuntimePluginsLoaded).not.toHaveBeenCalled();
+  });
+
+  it("preloads runtime plugins for deliverable channel runs", async () => {
+    mockedRunEmbeddedAttempt.mockResolvedValueOnce(
+      makeAttemptResult({
+        assistantTexts: ["Response 1"],
+      }),
+    );
+
+    await runEmbeddedPiAgent({
+      sessionId: "test-session",
+      sessionKey: "test-key",
+      sessionFile: "/tmp/session.json",
+      workspaceDir: "/tmp/workspace",
+      prompt: "hello",
+      timeoutMs: 30000,
+      runId: "run-channel-bootstrap",
+      messageChannel: "telegram",
+    });
+
     expect(mockedEnsureRuntimePluginsLoaded).toHaveBeenCalledWith({
       config: undefined,
       workspaceDir: "/tmp/workspace",
+      allowGatewaySubagentBinding: undefined,
     });
   });
 

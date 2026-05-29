@@ -18,7 +18,12 @@ import {
 } from "../utils/message-channel.js";
 import { resolveSafeTimeoutDelayMs } from "../utils/timer-delay.js";
 import { VERSION } from "../version.js";
-import { GatewayClient, type GatewayClientOptions } from "./client.js";
+import { startGatewayClientWhenEventLoopReady } from "./client-start-readiness.js";
+import {
+  GatewayClient,
+  type GatewayClientOptions,
+  type GatewayClientRequestOptions,
+} from "./client.js";
 import {
   buildGatewayConnectionDetailsWithResolvers,
   readGatewayUrlEnv,
@@ -52,6 +57,9 @@ type CallGatewayBaseOptions = {
   params?: unknown;
   expectFinal?: boolean;
   timeoutMs?: number;
+  signal?: AbortSignal;
+  onAccepted?: GatewayClientRequestOptions["onAccepted"];
+  onSignalAbort?: (request: GatewayRequestFunction) => Promise<void> | void;
   clientName?: GatewayClientName;
   clientDisplayName?: string;
   clientVersion?: string;
@@ -80,6 +88,60 @@ export type CallGatewayCliOptions = CallGatewayBaseOptions & {
 export type CallGatewayOptions = CallGatewayBaseOptions & {
   scopes?: OperatorScope[];
 };
+
+export type GatewayRequestFunction = <T = Record<string, unknown>>(
+  method: string,
+  params?: unknown,
+  opts?: GatewayClientRequestOptions,
+) => Promise<T>;
+
+export type GatewayTransportErrorKind = "closed" | "timeout";
+
+export class GatewayTransportError extends Error {
+  readonly kind: GatewayTransportErrorKind;
+  readonly connectionDetails: GatewayConnectionDetails;
+  readonly code?: number;
+  readonly reason?: string;
+  readonly timeoutMs?: number;
+
+  constructor(params: {
+    kind: GatewayTransportErrorKind;
+    message: string;
+    connectionDetails: GatewayConnectionDetails;
+    code?: number;
+    reason?: string;
+    timeoutMs?: number;
+  }) {
+    super(params.message);
+    this.name = "GatewayTransportError";
+    this.kind = params.kind;
+    this.connectionDetails = params.connectionDetails;
+    if (params.code !== undefined) {
+      this.code = params.code;
+    }
+    if (params.reason !== undefined) {
+      this.reason = params.reason;
+    }
+    if (params.timeoutMs !== undefined) {
+      this.timeoutMs = params.timeoutMs;
+    }
+  }
+}
+
+export function isGatewayTransportError(value: unknown): value is GatewayTransportError {
+  if (value instanceof GatewayTransportError) {
+    return true;
+  }
+  if (!(value instanceof Error) || value.name !== "GatewayTransportError") {
+    return false;
+  }
+  const candidate = value as Partial<GatewayTransportError>;
+  return (
+    (candidate.kind === "closed" || candidate.kind === "timeout") &&
+    typeof candidate.connectionDetails === "object" &&
+    candidate.connectionDetails !== null
+  );
+}
 
 const defaultCreateGatewayClient = (opts: GatewayClientOptions) => new GatewayClient(opts);
 const defaultGatewayCallDeps = {
@@ -467,6 +529,39 @@ function formatGatewayTimeoutError(
   return `gateway timeout after ${timeoutMs}ms\n${connectionDetails.message}`;
 }
 
+function createGatewayCloseTransportError(params: {
+  code: number;
+  reason: string;
+  connectionDetails: GatewayConnectionDetails;
+}): GatewayTransportError {
+  const reasonText = normalizeOptionalString(params.reason) || "no close reason";
+  return new GatewayTransportError({
+    kind: "closed",
+    code: params.code,
+    reason: reasonText,
+    connectionDetails: params.connectionDetails,
+    message: formatGatewayCloseError(params.code, params.reason, params.connectionDetails),
+  });
+}
+
+function createGatewayTimeoutTransportError(params: {
+  timeoutMs: number;
+  connectionDetails: GatewayConnectionDetails;
+}): GatewayTransportError {
+  return new GatewayTransportError({
+    kind: "timeout",
+    timeoutMs: params.timeoutMs,
+    connectionDetails: params.connectionDetails,
+    message: formatGatewayTimeoutError(params.timeoutMs, params.connectionDetails),
+  });
+}
+
+function createGatewayRequestAbortError(method: string): Error {
+  const err = new Error(`gateway request aborted for ${method}`);
+  err.name = "AbortError";
+  return err;
+}
+
 function ensureGatewaySupportsRequiredMethods(params: {
   requiredMethods: string[] | undefined;
   methods: string[] | undefined;
@@ -509,30 +604,77 @@ async function executeGatewayRequestWithScopes<T>(params: {
 }): Promise<T> {
   const { opts, scopes, url, token, password, tlsFingerprint, timeoutMs, safeTimerTimeoutMs } =
     params;
-  // Yield to the event loop before starting the WebSocket connection.
-  // On Windows with large dist bundles, heavy synchronous module loading
-  // can starve the event loop, preventing timely processing of the
-  // connect.challenge frame and causing handshake timeouts (#48736).
-  await new Promise<void>((r) => setImmediate(r));
   return await new Promise<T>((resolve, reject) => {
+    if (opts.signal?.aborted) {
+      reject(createGatewayRequestAbortError(opts.method));
+      return;
+    }
     let settled = false;
     let ignoreClose = false;
-    const stop = (err?: Error, value?: T) => {
-      if (settled) {
-        return;
+    const startAbort = new AbortController();
+    let abortHandler: (() => void) | undefined;
+    let client: GatewayClient | undefined;
+    let timer: NodeJS.Timeout | undefined;
+    let primaryRequestStarted = false;
+    const cleanup = () => {
+      startAbort.abort();
+      if (abortHandler) {
+        opts.signal?.removeEventListener("abort", abortHandler);
       }
-      settled = true;
-      clearTimeout(timer);
-      void stopGatewayClient(client).finally(() => {
+      if (timer) {
+        clearTimeout(timer);
+      }
+    };
+    const stopClientThenSettle = (
+      activeClient: GatewayClient | undefined,
+      err?: Error,
+      value?: T,
+    ) => {
+      const complete = () => {
         if (err) {
           reject(err);
         } else {
           resolve(value as T);
         }
-      });
+      };
+      if (!activeClient) {
+        complete();
+        return;
+      }
+      void stopGatewayClient(activeClient).finally(complete);
     };
+    const stop = (err?: Error, value?: T) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      cleanup();
+      stopClientThenSettle(client, err, value);
+    };
+    abortHandler = () => {
+      if (settled) {
+        return;
+      }
+      ignoreClose = true;
+      settled = true;
+      cleanup();
+      const err = createGatewayRequestAbortError(opts.method);
+      const activeClient = client;
+      const stopAfterAbortHook = () => stopClientThenSettle(activeClient, err);
+      if (!activeClient || !opts.onSignalAbort || !primaryRequestStarted) {
+        stopAfterAbortHook();
+        return;
+      }
+      const request: GatewayRequestFunction = activeClient.request.bind(activeClient);
+      void Promise.resolve()
+        .then(() => opts.onSignalAbort?.(request))
+        .catch(() => {})
+        .finally(stopAfterAbortHook);
+    };
+    opts.signal?.addEventListener("abort", abortHandler, { once: true });
+    const requestStartedAt = Date.now();
 
-    const client = gatewayCallDeps.createGatewayClient({
+    client = gatewayCallDeps.createGatewayClient({
       url,
       token,
       password,
@@ -558,9 +700,16 @@ async function executeGatewayRequestWithScopes<T>(params: {
             methods: hello.features?.methods,
             attemptedMethod: opts.method,
           });
-          const result = await client.request<T>(opts.method, opts.params, {
+          const activeClient = client;
+          if (!activeClient) {
+            throw new Error("gateway client not initialized");
+          }
+          primaryRequestStarted = true;
+          const result = await activeClient.request<T>(opts.method, opts.params, {
             expectFinal: opts.expectFinal,
             timeoutMs: opts.timeoutMs,
+            signal: opts.signal,
+            onAccepted: opts.onAccepted,
           });
           ignoreClose = true;
           stop(undefined, result);
@@ -574,16 +723,84 @@ async function executeGatewayRequestWithScopes<T>(params: {
           return;
         }
         ignoreClose = true;
-        stop(new Error(formatGatewayCloseError(code, reason, params.connectionDetails)));
+        stop(
+          createGatewayCloseTransportError({
+            code,
+            reason,
+            connectionDetails: params.connectionDetails,
+          }),
+        );
+      },
+      onConnectError: (err) => {
+        if (settled) {
+          return;
+        }
+        ignoreClose = true;
+        stop(err);
       },
     });
 
-    const timer = setTimeout(() => {
-      ignoreClose = true;
-      stop(new Error(formatGatewayTimeoutError(timeoutMs, params.connectionDetails)));
-    }, safeTimerTimeoutMs);
+    const armWrapperTimeout = () => {
+      if (timer || settled) {
+        return;
+      }
+      const elapsedMs = Math.max(0, Date.now() - requestStartedAt);
+      const remainingMs = safeTimerTimeoutMs - elapsedMs;
+      if (remainingMs <= 0) {
+        ignoreClose = true;
+        stop(
+          createGatewayTimeoutTransportError({
+            timeoutMs,
+            connectionDetails: params.connectionDetails,
+          }),
+        );
+        return;
+      }
+      timer = setTimeout(() => {
+        if (settled) {
+          return;
+        }
+        ignoreClose = true;
+        stop(
+          createGatewayTimeoutTransportError({
+            timeoutMs,
+            connectionDetails: params.connectionDetails,
+          }),
+        );
+      }, remainingMs);
+    };
 
-    client.start();
+    void startGatewayClientWhenEventLoopReady(client, {
+      timeoutMs: safeTimerTimeoutMs,
+      consecutiveReadyChecks: 1,
+      signal: startAbort.signal,
+    })
+      .then((readiness) => {
+        if (settled || readiness.aborted) {
+          return;
+        }
+        if (readiness.ready) {
+          armWrapperTimeout();
+          return;
+        }
+        if (settled) {
+          return;
+        }
+        ignoreClose = true;
+        stop(
+          createGatewayTimeoutTransportError({
+            timeoutMs,
+            connectionDetails: params.connectionDetails,
+          }),
+        );
+      })
+      .catch((err) => {
+        if (settled) {
+          return;
+        }
+        ignoreClose = true;
+        stop(err instanceof Error ? err : new Error(String(err)));
+      });
   });
 }
 

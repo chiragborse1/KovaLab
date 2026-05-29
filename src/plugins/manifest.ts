@@ -140,6 +140,8 @@ export type PluginManifestProviderRequest = {
 export type PluginManifestActivationCapability = "provider" | "channel" | "tool" | "hook";
 
 export type PluginManifestActivation = {
+  /** Start this plugin during gateway startup. Use sparingly; prefer narrower activation metadata. */
+  onStartup?: boolean;
   /**
    * Provider ids that should include this plugin in activation/load plans.
    * This is planner metadata only; runtime behavior still comes from register().
@@ -329,6 +331,8 @@ export type PluginManifest = {
     string,
     PluginManifestMediaUnderstandingProviderMetadata
   >;
+  /** Cheap plugin-tool availability metadata without importing plugin runtime. */
+  toolMetadata?: Record<string, PluginManifestToolMetadata>;
   /** Manifest-owned config behavior consumed by generic core helpers. */
   configContracts?: PluginManifestConfigContracts;
   channelConfigs?: Record<string, PluginManifestChannelConfig>;
@@ -366,6 +370,43 @@ export type PluginManifestMediaUnderstandingProviderMetadata = {
   defaultModels?: Partial<Record<PluginManifestMediaUnderstandingCapability, string>>;
   autoPriority?: Partial<Record<PluginManifestMediaUnderstandingCapability, number>>;
   nativeDocumentInputs?: Array<"pdf">;
+};
+
+export type PluginManifestProviderBaseUrlGuard = {
+  provider: string;
+  defaultBaseUrl?: string;
+  allowedBaseUrls: string[];
+};
+
+export type PluginManifestCapabilityProviderAuthSignal = {
+  provider: string;
+  providerBaseUrl?: PluginManifestProviderBaseUrlGuard;
+};
+
+export type PluginManifestCapabilityProviderModeConfigSignal = {
+  path?: string;
+  default?: string;
+  allowed?: string[];
+  disallowed?: string[];
+};
+
+export type PluginManifestCapabilityProviderConfigSignal = {
+  rootPath: string;
+  overlayPath?: string;
+  required?: string[];
+  requiredAny?: string[];
+  mode?: PluginManifestCapabilityProviderModeConfigSignal;
+};
+
+export type PluginManifestCapabilityProviderMetadata = {
+  aliases?: string[];
+  authProviders?: string[];
+  authSignals?: PluginManifestCapabilityProviderAuthSignal[];
+  configSignals?: PluginManifestCapabilityProviderConfigSignal[];
+};
+
+export type PluginManifestToolMetadata = PluginManifestCapabilityProviderMetadata & {
+  optional?: boolean;
 };
 
 export type PluginManifestProviderAuthChoice = {
@@ -523,6 +564,141 @@ function normalizeMediaUnderstandingProviderMetadata(
     } satisfies PluginManifestMediaUnderstandingProviderMetadata;
     if (Object.keys(metadata).length > 0) {
       normalized[providerId] = metadata;
+    }
+  }
+  return Object.keys(normalized).length > 0 ? normalized : undefined;
+}
+
+function normalizeProviderBaseUrlGuard(
+  value: unknown,
+): PluginManifestProviderBaseUrlGuard | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  const provider = normalizeOptionalString(value.provider);
+  const allowedBaseUrls = normalizeTrimmedStringList(value.allowedBaseUrls);
+  if (!provider || allowedBaseUrls.length === 0) {
+    return undefined;
+  }
+  const defaultBaseUrl = normalizeOptionalString(value.defaultBaseUrl);
+  return {
+    provider,
+    ...(defaultBaseUrl ? { defaultBaseUrl } : {}),
+    allowedBaseUrls,
+  };
+}
+
+function normalizeCapabilityProviderAuthSignals(
+  value: unknown,
+): PluginManifestCapabilityProviderAuthSignal[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  const signals: PluginManifestCapabilityProviderAuthSignal[] = [];
+  for (const rawSignal of value) {
+    if (!isRecord(rawSignal)) {
+      continue;
+    }
+    const provider = normalizeOptionalString(rawSignal.provider);
+    if (!provider) {
+      continue;
+    }
+    const providerBaseUrl = normalizeProviderBaseUrlGuard(rawSignal.providerBaseUrl);
+    signals.push({
+      provider,
+      ...(providerBaseUrl ? { providerBaseUrl } : {}),
+    });
+  }
+  return signals.length > 0 ? signals : undefined;
+}
+
+function normalizeCapabilityProviderModeConfigSignal(
+  value: unknown,
+): PluginManifestCapabilityProviderModeConfigSignal | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  const path = normalizeOptionalString(value.path);
+  const defaultValue = normalizeOptionalString(value.default);
+  const allowed = normalizeTrimmedStringList(value.allowed);
+  const disallowed = normalizeTrimmedStringList(value.disallowed);
+  const signal = {
+    ...(path ? { path } : {}),
+    ...(defaultValue ? { default: defaultValue } : {}),
+    ...(allowed.length > 0 ? { allowed } : {}),
+    ...(disallowed.length > 0 ? { disallowed } : {}),
+  } satisfies PluginManifestCapabilityProviderModeConfigSignal;
+  return Object.keys(signal).length > 0 ? signal : undefined;
+}
+
+function normalizeCapabilityProviderConfigSignals(
+  value: unknown,
+): PluginManifestCapabilityProviderConfigSignal[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  const signals: PluginManifestCapabilityProviderConfigSignal[] = [];
+  for (const rawSignal of value) {
+    if (!isRecord(rawSignal)) {
+      continue;
+    }
+    const rootPath = normalizeOptionalString(rawSignal.rootPath);
+    if (!rootPath) {
+      continue;
+    }
+    const overlayPath = normalizeOptionalString(rawSignal.overlayPath);
+    const required = normalizeTrimmedStringList(rawSignal.required);
+    const requiredAny = normalizeTrimmedStringList(rawSignal.requiredAny);
+    const mode = normalizeCapabilityProviderModeConfigSignal(rawSignal.mode);
+    const signal = {
+      rootPath,
+      ...(overlayPath ? { overlayPath } : {}),
+      ...(required.length > 0 ? { required } : {}),
+      ...(requiredAny.length > 0 ? { requiredAny } : {}),
+      ...(mode ? { mode } : {}),
+    } satisfies PluginManifestCapabilityProviderConfigSignal;
+    if (required.length > 0 || requiredAny.length > 0 || mode) {
+      signals.push(signal);
+    }
+  }
+  return signals.length > 0 ? signals : undefined;
+}
+
+function normalizeCapabilityProviderMetadataEntry(
+  rawMetadata: Record<string, unknown>,
+): PluginManifestCapabilityProviderMetadata | undefined {
+  const aliases = normalizeTrimmedStringList(rawMetadata.aliases);
+  const authProviders = normalizeTrimmedStringList(rawMetadata.authProviders);
+  const authSignals = normalizeCapabilityProviderAuthSignals(rawMetadata.authSignals);
+  const configSignals = normalizeCapabilityProviderConfigSignals(rawMetadata.configSignals);
+  const metadata = {
+    ...(aliases.length > 0 ? { aliases } : {}),
+    ...(authProviders.length > 0 ? { authProviders } : {}),
+    ...(authSignals ? { authSignals } : {}),
+    ...(configSignals ? { configSignals } : {}),
+  } satisfies PluginManifestCapabilityProviderMetadata;
+  return Object.keys(metadata).length > 0 ? metadata : undefined;
+}
+
+function normalizePluginToolMetadata(
+  value: unknown,
+): Record<string, PluginManifestToolMetadata> | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+  const normalized: Record<string, PluginManifestToolMetadata> = Object.create(null);
+  for (const [rawToolName, rawMetadata] of Object.entries(value)) {
+    const toolName = normalizeOptionalString(rawToolName) ?? "";
+    if (!toolName || isBlockedObjectKey(toolName) || !isRecord(rawMetadata)) {
+      continue;
+    }
+    const providerMetadata = normalizeCapabilityProviderMetadataEntry(rawMetadata);
+    const metadata = {
+      ...providerMetadata,
+      ...(rawMetadata.optional === true ? { optional: true } : {}),
+    } satisfies PluginManifestToolMetadata;
+    if (Object.keys(metadata).length > 0) {
+      normalized[toolName] = metadata;
     }
   }
   return Object.keys(normalized).length > 0 ? normalized : undefined;
@@ -929,6 +1105,7 @@ function normalizeManifestActivation(value: unknown): PluginManifestActivation |
   );
 
   const activation = {
+    ...(value.onStartup === true ? { onStartup: true } : {}),
     ...(onProviders.length > 0 ? { onProviders } : {}),
     ...(onAgentHarnesses.length > 0 ? { onAgentHarnesses } : {}),
     ...(onCommands.length > 0 ? { onCommands } : {}),
@@ -1240,6 +1417,7 @@ export function loadPluginManifest(
   const mediaUnderstandingProviderMetadata = normalizeMediaUnderstandingProviderMetadata(
     raw.mediaUnderstandingProviderMetadata,
   );
+  const toolMetadata = normalizePluginToolMetadata(raw.toolMetadata);
   const configContracts = normalizeManifestConfigContracts(raw.configContracts);
   const channelConfigs = normalizeChannelConfigs(raw.channelConfigs);
 
@@ -1286,6 +1464,7 @@ export function loadPluginManifest(
       uiHints,
       contracts,
       mediaUnderstandingProviderMetadata,
+      toolMetadata,
       configContracts,
       channelConfigs,
     },
@@ -1398,6 +1577,8 @@ export type PackageManifest = {
   name?: string;
   version?: string;
   description?: string;
+  dependencies?: Record<string, unknown>;
+  optionalDependencies?: Record<string, unknown>;
 } & Partial<Record<ManifestKey, KovaPackageManifest>>;
 
 export function getPackageManifestMetadata(

@@ -97,6 +97,7 @@ import {
   loadGatewaySessionRow,
   loadSessionEntry,
   migrateAndPruneGatewaySessionStoreKey,
+  resolveGatewaySessionStoreTarget,
   resolveGatewayModelSupportsImages,
   resolveSessionModelRef,
 } from "../session-utils.js";
@@ -488,19 +489,25 @@ export const agentHandlers: GatewayRequestHandlers = {
 
       let baseProvider: string | undefined;
       let baseModel: string | undefined;
+      let requestedSessionEntry: SessionEntry | undefined;
       if (requestedSessionKeyRaw) {
         const { cfg: sessCfg, entry: sessEntry } = loadSessionEntry(requestedSessionKeyRaw);
+        requestedSessionEntry = sessEntry;
         const modelRef = resolveSessionModelRef(sessCfg, sessEntry, undefined);
         baseProvider = modelRef.provider;
         baseModel = modelRef.model;
       }
       const effectiveProvider = providerOverride || baseProvider;
       const effectiveModel = modelOverride || baseModel;
-      const supportsImages = await resolveGatewayModelSupportsImages({
-        loadGatewayModelCatalog: context.loadGatewayModelCatalog,
-        provider: effectiveProvider,
-        model: effectiveModel,
-      });
+      const isConfirmedAcpSession =
+        isAcpSessionKey(requestedSessionKeyRaw) && requestedSessionEntry?.acp != null;
+      const supportsImages = isConfirmedAcpSession
+        ? true
+        : await resolveGatewayModelSupportsImages({
+            loadGatewayModelCatalog: context.loadGatewayModelCatalog,
+            provider: effectiveProvider,
+            model: effectiveModel,
+          });
 
       try {
         const parsed = await parseMessageWithAttachments(message, normalizedAttachments, {
@@ -911,16 +918,48 @@ export const agentHandlers: GatewayRequestHandlers = {
       const agentId = resolveAgentIdFromSessionKey(canonicalSessionKey);
       const mainSessionKey = resolveAgentMainSessionKey({ cfg, agentId });
       if (storePath) {
-        const persisted = await updateSessionStore(storePath, (store) => {
-          const { primaryKey } = migrateAndPruneGatewaySessionStoreKey({
-            cfg,
-            key: requestedSessionKey,
-            store,
-          });
-          const merged = mergeSessionEntry(store[primaryKey], nextEntryPatch);
-          store[primaryKey] = merged;
-          return merged;
-        });
+        let singleEntryPersistence:
+          | {
+              sessionKey: string;
+              entry: SessionEntry;
+            }
+          | undefined;
+        const persisted = await updateSessionStore(
+          storePath,
+          (store) => {
+            const storeKeysBeforeMigration = new Set(Object.keys(store));
+            const preMigrationTarget = resolveGatewaySessionStoreTarget({
+              cfg,
+              key: requestedSessionKey,
+              store,
+            });
+            const hadLegacyStoreKey = preMigrationTarget.storeKeys.some(
+              (storeKey) =>
+                storeKey !== preMigrationTarget.canonicalKey &&
+                Object.prototype.hasOwnProperty.call(store, storeKey),
+            );
+            const { target, primaryKey } = migrateAndPruneGatewaySessionStoreKey({
+              cfg,
+              key: requestedSessionKey,
+              store,
+            });
+            const prunedStoreKey = [...storeKeysBeforeMigration].some(
+              (storeKey) => !Object.prototype.hasOwnProperty.call(store, storeKey),
+            );
+            const merged = mergeSessionEntry(store[primaryKey], nextEntryPatch);
+            store[primaryKey] = merged;
+            const canonicalKeyChanged = target.canonicalKey !== preMigrationTarget.canonicalKey;
+            singleEntryPersistence =
+              !hadLegacyStoreKey && !canonicalKeyChanged && !prunedStoreKey
+                ? { sessionKey: primaryKey, entry: merged }
+                : undefined;
+            return merged;
+          },
+          {
+            takeCacheOwnership: true,
+            resolveSingleEntryPersistence: () => singleEntryPersistence,
+          },
+        );
         sessionEntry = persisted;
       }
       if (canonicalSessionKey === mainSessionKey || canonicalSessionKey === "global") {

@@ -2,12 +2,14 @@ import { ensureAuthProfileStore, listProfilesForProvider } from "../agents/auth-
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
 import { hasUsableCustomProviderApiKey, resolveEnvApiKey } from "../agents/model-auth.js";
 import { loadModelCatalog } from "../agents/model-catalog.js";
+import type { ModelCatalogEntry } from "../agents/model-catalog.js";
 import {
   isModelPickerVisibleModelRef,
   isModelPickerVisibleProvider,
 } from "../agents/model-picker-visibility.js";
 import {
   buildAllowedModelSet,
+  buildConfiguredModelCatalog,
   buildModelAliasIndex,
   type ModelAliasIndex,
   modelKey,
@@ -15,6 +17,7 @@ import {
   resolveConfiguredModelRef,
   resolveModelRefFromString,
 } from "../agents/model-selection.js";
+import { loadStaticManifestCatalogRowsForList } from "../commands/models/list.manifest-catalog.js";
 import { formatTokenK } from "../commands/models/shared.js";
 import {
   resolveAgentModelFallbackValues,
@@ -99,6 +102,152 @@ function createProviderAuthChecker(params: {
     authCache.set(provider, value);
     return value;
   };
+}
+
+function toPickerCatalogEntry(
+  row: ReturnType<typeof loadStaticManifestCatalogRowsForList>[number],
+): ModelCatalogEntry {
+  return {
+    id: row.id,
+    name: row.name,
+    provider: row.provider,
+    ...(row.contextWindow !== undefined ? { contextWindow: row.contextWindow } : {}),
+    reasoning: row.reasoning,
+    input: row.input,
+  };
+}
+
+function configuredPickerCatalogForProvider(params: {
+  cfg: KovaConfig;
+  preferredProvider: string;
+}): ModelCatalogEntry[] {
+  const configured = buildConfiguredModelCatalog({ cfg: params.cfg });
+  if (configured.length === 0) {
+    return [];
+  }
+  const preferredProvider = normalizeProviderId(params.preferredProvider);
+  return configured.filter((entry) => normalizeProviderId(entry.provider) === preferredProvider);
+}
+
+function fallbackPickerCatalogForProvider(providerRaw: string | undefined): ModelCatalogEntry[] {
+  const provider = normalizeProviderId(providerRaw ?? "");
+  switch (provider) {
+    case "openai":
+      return [
+        {
+          provider,
+          id: "gpt-5.5",
+          name: "GPT-5.5",
+          contextWindow: 272_000,
+          reasoning: true,
+          input: ["text", "image"],
+        },
+        {
+          provider,
+          id: "gpt-5.4-mini",
+          name: "GPT-5.4 mini",
+          contextWindow: 272_000,
+          reasoning: true,
+          input: ["text", "image"],
+        },
+      ];
+    case "openai-codex":
+      return [
+        {
+          provider,
+          id: "gpt-5.5",
+          name: "GPT-5.5",
+          contextWindow: 272_000,
+          reasoning: true,
+          input: ["text", "image"],
+        },
+        {
+          provider,
+          id: "gpt-5.4",
+          name: "GPT-5.4",
+          contextWindow: 272_000,
+          reasoning: true,
+          input: ["text", "image"],
+        },
+      ];
+    case "openrouter":
+      return [
+        {
+          provider,
+          id: "auto",
+          name: "OpenRouter Auto",
+          contextWindow: 200_000,
+          reasoning: false,
+          input: ["text", "image"],
+        },
+        {
+          provider,
+          id: "moonshotai/kimi-k2.6",
+          name: "MoonshotAI: Kimi K2.6",
+          contextWindow: 262_144,
+          reasoning: true,
+          input: ["text", "image"],
+        },
+      ];
+    case "xai":
+      return [
+        {
+          provider,
+          id: "grok-4.3",
+          name: "Grok 4.3",
+          contextWindow: 1_000_000,
+          reasoning: true,
+          input: ["text", "image"],
+        },
+        {
+          provider,
+          id: "grok-4-fast",
+          name: "Grok 4 Fast",
+          contextWindow: 2_000_000,
+          reasoning: true,
+          input: ["text", "image"],
+        },
+      ];
+    default:
+      return [];
+  }
+}
+
+function loadPickerModelCatalog(
+  cfg: KovaConfig,
+  opts: {
+    env?: NodeJS.ProcessEnv;
+    preferredProvider?: string;
+    forceDynamic?: boolean;
+  } = {},
+): ReturnType<typeof loadModelCatalog> {
+  if (cfg.models?.mode === "replace") {
+    return Promise.resolve(buildConfiguredModelCatalog({ cfg }));
+  }
+  if (opts.preferredProvider && !opts.forceDynamic) {
+    const manifestRows = loadStaticManifestCatalogRowsForList({
+      cfg,
+      providerFilter: opts.preferredProvider,
+      env: opts.env,
+    });
+    if (manifestRows.length > 0) {
+      return Promise.resolve(manifestRows.map(toPickerCatalogEntry));
+    }
+    const configuredRows = configuredPickerCatalogForProvider({
+      cfg,
+      preferredProvider: opts.preferredProvider,
+    });
+    if (configuredRows.length > 0) {
+      return Promise.resolve(configuredRows);
+    }
+    const fallbackRows = fallbackPickerCatalogForProvider(opts.preferredProvider);
+    if (fallbackRows.length > 0) {
+      return Promise.resolve(fallbackRows);
+    }
+  }
+  return loadModelCatalog({
+    config: cfg,
+  });
 }
 
 function resolveConfiguredModelRaw(cfg: KovaConfig): string {
@@ -391,8 +540,19 @@ async function resolveProviderPluginSetupOptions(params: {
   cfg: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  preferredProvider?: string;
 }): Promise<WizardSelectOption[]> {
   const runtime = await loadResolvedModelPickerRuntime();
+  const providerRefs = params.preferredProvider
+    ? [params.preferredProvider]
+    : runtime
+        .resolvePluginProviders({
+          config: params.cfg,
+          workspaceDir: params.workspaceDir,
+          env: params.env,
+          mode: "setup",
+        })
+        .map((provider) => provider.id);
   const providerModelPickerOptions =
     "resolveProviderModelPickerContributions" in runtime &&
     typeof runtime.resolveProviderModelPickerContributions === "function"
@@ -401,12 +561,14 @@ async function resolveProviderPluginSetupOptions(params: {
             config: params.cfg,
             workspaceDir: params.workspaceDir,
             env: params.env,
+            providerRefs: providerRefs.length > 0 ? providerRefs : undefined,
           })
           .map((contribution) => contribution.option)
       : runtime.resolveProviderModelPickerEntries({
           config: params.cfg,
           workspaceDir: params.workspaceDir,
           env: params.env,
+          providerRefs,
         });
   return providerModelPickerOptions.map((entry) =>
     Object.assign(
@@ -520,6 +682,7 @@ export async function promptDefaultModel(
   const resolvedKey = modelKey(resolved.provider, resolved.model);
   const configuredKey = configuredRaw ? resolvedKey : "";
 
+  let forceDynamicCatalog = false;
   if (loadCatalog && browseCatalogOnDemand && preferredProvider && allowKeep) {
     const resolvedProvider = normalizeProviderId(resolved.provider);
     const options: WizardSelectOption[] = [
@@ -564,6 +727,7 @@ export async function promptDefaultModel(
     if (selection !== BROWSE_VALUE) {
       return { model: selection };
     }
+    forceDynamicCatalog = true;
   }
 
   if (!loadCatalog) {
@@ -617,7 +781,11 @@ export async function promptDefaultModel(
   const catalogProgress = params.prompter.progress("Loading available models");
   let catalog: Awaited<ReturnType<typeof loadModelCatalog>>;
   try {
-    catalog = await loadModelCatalog({ config: cfg });
+    catalog = await loadPickerModelCatalog(cfg, {
+      preferredProvider,
+      env: params.env,
+      forceDynamic: forceDynamicCatalog,
+    });
   } finally {
     catalogProgress.stop();
   }
@@ -699,6 +867,7 @@ export async function promptDefaultModel(
         cfg,
         workspaceDir: params.workspaceDir,
         env: params.env,
+        preferredProvider,
       })),
     );
   }
@@ -781,6 +950,7 @@ export async function promptModelAllowlist(params: {
   initialSelections?: string[];
   preferredProvider?: string;
   loadCatalog?: boolean;
+  env?: NodeJS.ProcessEnv;
 }): Promise<PromptModelAllowlistResult> {
   const cfg = params.config;
   const existingKeys = resolveConfiguredModelKeys(cfg);
@@ -889,7 +1059,10 @@ export async function promptModelAllowlist(params: {
   const allowlistProgress = params.prompter.progress("Loading available models");
   let catalog: Awaited<ReturnType<typeof loadModelCatalog>>;
   try {
-    catalog = await loadModelCatalog({ config: cfg });
+    catalog = await loadPickerModelCatalog(cfg, {
+      preferredProvider,
+      env: params.env,
+    });
   } finally {
     allowlistProgress.stop();
   }

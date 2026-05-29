@@ -1,3 +1,4 @@
+import { resolveAcpInlineImageAttachments } from "../auto-reply/reply/dispatch-acp-attachments.js";
 import {
   formatThinkingLevels,
   isThinkingLevelSupported,
@@ -78,10 +79,8 @@ type CliCompactionRuntime = typeof import("./command/cli-compaction.js");
 type TranscriptResolveRuntime = typeof import("../config/sessions/transcript-resolve.runtime.js");
 type CliDepsRuntime = typeof import("../cli/deps.js");
 type ExecDefaultsRuntime = typeof import("./exec-defaults.js");
-type SkillsRuntime = typeof import("./skills.js");
-type SkillsFilterRuntime = typeof import("./skills/filter.js");
-type SkillsRefreshStateRuntime = typeof import("./skills/refresh-state.js");
 type SkillsRemoteRuntime = typeof import("../infra/skills-remote.js");
+type SkillsSessionSnapshotRuntime = typeof import("./skills/session-snapshot.js");
 
 let attemptExecutionRuntimePromise: Promise<AttemptExecutionRuntime> | undefined;
 let acpManagerRuntimePromise: Promise<AcpManagerRuntime> | undefined;
@@ -94,10 +93,8 @@ let cliCompactionRuntimePromise: Promise<CliCompactionRuntime> | undefined;
 let transcriptResolveRuntimePromise: Promise<TranscriptResolveRuntime> | undefined;
 let cliDepsRuntimePromise: Promise<CliDepsRuntime> | undefined;
 let execDefaultsRuntimePromise: Promise<ExecDefaultsRuntime> | undefined;
-let skillsRuntimePromise: Promise<SkillsRuntime> | undefined;
-let skillsFilterRuntimePromise: Promise<SkillsFilterRuntime> | undefined;
-let skillsRefreshStateRuntimePromise: Promise<SkillsRefreshStateRuntime> | undefined;
 let skillsRemoteRuntimePromise: Promise<SkillsRemoteRuntime> | undefined;
+let skillsSessionSnapshotRuntimePromise: Promise<SkillsSessionSnapshotRuntime> | undefined;
 
 function loadAttemptExecutionRuntime(): Promise<AttemptExecutionRuntime> {
   attemptExecutionRuntimePromise ??= import("./command/attempt-execution.runtime.js");
@@ -154,24 +151,14 @@ function loadExecDefaultsRuntime(): Promise<ExecDefaultsRuntime> {
   return execDefaultsRuntimePromise;
 }
 
-function loadSkillsRuntime(): Promise<SkillsRuntime> {
-  skillsRuntimePromise ??= import("./skills.js");
-  return skillsRuntimePromise;
-}
-
-function loadSkillsFilterRuntime(): Promise<SkillsFilterRuntime> {
-  skillsFilterRuntimePromise ??= import("./skills/filter.js");
-  return skillsFilterRuntimePromise;
-}
-
-function loadSkillsRefreshStateRuntime(): Promise<SkillsRefreshStateRuntime> {
-  skillsRefreshStateRuntimePromise ??= import("./skills/refresh-state.js");
-  return skillsRefreshStateRuntimePromise;
-}
-
 function loadSkillsRemoteRuntime(): Promise<SkillsRemoteRuntime> {
   skillsRemoteRuntimePromise ??= import("../infra/skills-remote.js");
   return skillsRemoteRuntimePromise;
+}
+
+function loadSkillsSessionSnapshotRuntime(): Promise<SkillsSessionSnapshotRuntime> {
+  skillsSessionSnapshotRuntimePromise ??= import("./skills/session-snapshot.js");
+  return skillsSessionSnapshotRuntimePromise;
 }
 
 async function resolveAgentCommandDeps(deps: CliDeps | undefined): Promise<CliDeps> {
@@ -263,6 +250,7 @@ async function prepareAgentCommandExecution(
 
   const { cfg } = await resolveAgentRuntimeConfig(runtime, {
     runtimeTargetsChannelSecrets: opts.deliver === true,
+    readSourceSnapshot: false,
   });
   const normalizedSpawned = normalizeSpawnedRunMetadata({
     spawnedBy: opts.spawnedBy,
@@ -294,6 +282,7 @@ async function prepareAgentCommandExecution(
     cfg,
     defaultProvider: DEFAULT_PROVIDER,
     defaultModel: DEFAULT_MODEL,
+    allowPluginNormalization: false,
   });
   const thinkingLevelsHint = formatThinkingLevels(configuredModel.provider, configuredModel.model);
 
@@ -414,8 +403,22 @@ async function agentCommandInternal(
   runtime: RuntimeEnv = defaultRuntime,
   deps?: CliDeps,
 ) {
+  const progressRunId =
+    opts.runId?.trim() || opts.sessionId?.trim() || opts.sessionKey?.trim() || "agent-command";
+  const reportProgress = (phase: string, detail?: string) => {
+    emitAgentEvent({
+      runId: progressRunId,
+      stream: "progress",
+      data: {
+        phase,
+        ...(detail ? { detail } : {}),
+      },
+    });
+  };
+  reportProgress("reading config");
   const resolvedDeps = await resolveAgentCommandDeps(deps);
   const prepared = await prepareAgentCommandExecution(opts, runtime);
+  reportProgress("preparing session");
   const {
     body,
     transcriptBody,
@@ -486,10 +489,12 @@ async function agentCommandInternal(
           throw agentPolicyError;
         }
 
+        const acpImageAttachments = resolveAcpInlineImageAttachments(opts.images);
         await acpManager.runTurn({
           cfg,
           sessionKey,
           text: body,
+          attachments: acpImageAttachments.length > 0 ? acpImageAttachments : undefined,
           mode: "prompt",
           requestId: runId,
           signal: opts.abortSignal,
@@ -589,45 +594,38 @@ async function agentCommandInternal(
       });
     }
 
-    const [{ getSkillsSnapshotVersion, shouldRefreshSnapshotForVersion }, { matchesSkillFilter }] =
-      await Promise.all([loadSkillsRefreshStateRuntime(), loadSkillsFilterRuntime()]);
-    const skillsSnapshotVersion = getSkillsSnapshotVersion(workspaceDir);
     const skillFilter = resolveAgentSkillsFilter(cfg, sessionAgentId);
     const currentSkillsSnapshot = sessionEntry?.skillsSnapshot;
-    const shouldRefreshSkillsSnapshot =
-      !currentSkillsSnapshot ||
-      shouldRefreshSnapshotForVersion(currentSkillsSnapshot.version, skillsSnapshotVersion) ||
-      !matchesSkillFilter(currentSkillsSnapshot.skillFilter, skillFilter);
-    const needsSkillsSnapshot = isNewSession || shouldRefreshSkillsSnapshot;
-    const skillsSnapshot = needsSkillsSnapshot
-      ? await (async () => {
-          const [
-            { buildWorkspaceSkillSnapshot },
-            { getRemoteSkillEligibility },
-            { canExecRequestNode },
-          ] = await Promise.all([
-            loadSkillsRuntime(),
-            loadSkillsRemoteRuntime(),
-            loadExecDefaultsRuntime(),
-          ]);
-          return buildWorkspaceSkillSnapshot(workspaceDir, {
-            config: cfg,
-            eligibility: {
-              remote: getRemoteSkillEligibility({
-                advertiseExecNode: canExecRequestNode({
-                  cfg,
-                  sessionEntry,
-                  sessionKey,
-                  agentId: sessionAgentId,
-                }),
-              }),
-            },
-            snapshotVersion: skillsSnapshotVersion,
-            skillFilter,
+    const [
+      { resolveReusableWorkspaceSkillSnapshot },
+      { getRemoteSkillEligibility },
+      { canExecRequestNode },
+    ] = await Promise.all([
+      loadSkillsSessionSnapshotRuntime(),
+      loadSkillsRemoteRuntime(),
+      loadExecDefaultsRuntime(),
+    ]);
+    const skillSnapshotState = resolveReusableWorkspaceSkillSnapshot({
+      workspaceDir,
+      config: cfg,
+      agentId: sessionAgentId,
+      existingSnapshot: isNewSession ? undefined : currentSkillsSnapshot,
+      skillFilter,
+      eligibility: {
+        remote: getRemoteSkillEligibility({
+          advertiseExecNode: canExecRequestNode({
+            cfg,
+            sessionEntry,
+            sessionKey,
             agentId: sessionAgentId,
-          });
-        })()
-      : currentSkillsSnapshot;
+          }),
+        }),
+      },
+      watch: false,
+    });
+    const needsSkillsSnapshot =
+      isNewSession || !currentSkillsSnapshot || skillSnapshotState.shouldRefresh;
+    const skillsSnapshot = skillSnapshotState.snapshot;
 
     if (skillsSnapshot && sessionStore && sessionKey && needsSkillsSnapshot) {
       const now = Date.now();
@@ -652,6 +650,7 @@ async function agentCommandInternal(
       sessionEntry = next;
     }
 
+    reportProgress("updating session");
     // Persist explicit /command overrides to the session store when we have a key.
     if (sessionStore && sessionKey) {
       const now = Date.now();
@@ -677,9 +676,11 @@ async function agentCommandInternal(
       sessionEntry = next;
     }
 
+    reportProgress("resolving model");
     const configuredDefaultRef = resolveDefaultModelForAgent({
       cfg,
       agentId: sessionAgentId,
+      allowPluginNormalization: false,
     });
     const { provider: defaultProvider, model: defaultModel } = normalizeModelRef(
       configuredDefaultRef.provider,
@@ -718,6 +719,7 @@ async function agentCommandInternal(
         defaultProvider,
         defaultModel,
         agentId: sessionAgentId,
+        allowPluginNormalization: false,
       });
       allowedModelKeys = allowed.allowedKeys;
       allowedModelCatalog = allowed.allowedCatalog;
@@ -858,6 +860,7 @@ async function agentCommandInternal(
         }
       }
     }
+    reportProgress("opening transcript");
     const { resolveSessionTranscriptFile } = await loadTranscriptResolveRuntime();
     let sessionFile: string | undefined;
     if (sessionStore && sessionKey) {
@@ -888,6 +891,7 @@ async function agentCommandInternal(
 
     const startedAt = Date.now();
     let lifecycleEnded = false;
+    reportProgress("loading agent runtime");
     const attemptExecutionRuntime = await loadAttemptExecutionRuntime();
     const runContext = resolveAgentRunContext(opts);
     const messageChannel = resolveMessageChannel(
@@ -918,6 +922,7 @@ async function agentCommandInternal(
         });
 
         let fallbackAttemptIndex = 0;
+        reportProgress("starting model request", `${provider}/${model}`);
         const fallbackResult = await runWithModelFallback({
           cfg,
           provider,
@@ -928,6 +933,7 @@ async function agentCommandInternal(
           run: async (providerOverride, modelOverride, runOptions) => {
             const isFallbackRetry = fallbackAttemptIndex > 0;
             fallbackAttemptIndex += 1;
+            reportProgress("calling model", `${providerOverride}/${modelOverride}`);
             return attemptExecutionRuntime.runAgentAttempt({
               providerOverride,
               modelOverride,
@@ -957,7 +963,7 @@ async function agentCommandInternal(
               sessionHasHistory:
                 !isNewSession || (await attemptExecutionRuntime.sessionFileHasContent(sessionFile)),
               onAgentEvent: (evt) => {
-                if (evt.stream.startsWith("codex_app_server.")) {
+                if (evt.stream === "progress" || evt.stream.startsWith("codex_app_server.")) {
                   emitAgentEvent({
                     runId,
                     stream: evt.stream,
@@ -1088,13 +1094,19 @@ async function agentCommandInternal(
       }
     }
 
+    const rotatedSessionFile = result.meta.agentMeta?.sessionFile;
+    const effectiveSessionId = rotatedSessionFile
+      ? (result.meta.agentMeta?.sessionId ?? sessionId)
+      : sessionId;
+    const effectiveSessionFile = rotatedSessionFile ?? sessionFile;
+
     // Update token+model fields in the session store.
     if (sessionStore && sessionKey) {
       const { updateSessionStoreAfterAgentRun } = await loadSessionStoreRuntime();
       await updateSessionStoreAfterAgentRun({
         cfg,
         contextTokensOverride: agentCfg?.contextTokens,
-        sessionId,
+        sessionId: effectiveSessionId,
         sessionKey,
         storePath,
         sessionStore,
@@ -1117,9 +1129,15 @@ async function agentCommandInternal(
           body,
           transcriptBody,
           result,
-          sessionId,
-          sessionKey: sessionKey ?? sessionId,
-          sessionEntry,
+          sessionId: effectiveSessionId,
+          sessionKey: sessionKey ?? effectiveSessionId,
+          sessionEntry: sessionEntry
+            ? {
+                ...sessionEntry,
+                sessionId: effectiveSessionId,
+                sessionFile: effectiveSessionFile,
+              }
+            : sessionEntry,
           sessionStore,
           storePath,
           sessionAgentId,
@@ -1130,8 +1148,8 @@ async function agentCommandInternal(
           await loadCliCompactionRuntime()
         ).runCliTurnCompactionLifecycle({
           cfg,
-          sessionId,
-          sessionKey: sessionKey ?? sessionId,
+          sessionId: effectiveSessionId,
+          sessionKey: sessionKey ?? effectiveSessionId,
           sessionEntry,
           sessionStore,
           storePath,
@@ -1162,7 +1180,7 @@ async function agentCommandInternal(
             const { loadSessionStore } = await loadSessionStoreRuntime();
             const freshStore = loadSessionStore(storePath, { skipCache: true });
             const freshEntry = freshStore[sessionKey];
-            if (!freshEntry || freshEntry.sessionId !== sessionId) {
+            if (!freshEntry || freshEntry.sessionId !== effectiveSessionId) {
               return undefined;
             }
             sessionStore[sessionKey] = freshEntry;
@@ -1183,7 +1201,7 @@ async function agentCommandInternal(
       resolveFreshSessionEntryForDelivery
         ? {
             ...deliveryParams,
-            expectedSessionIdForFreshDelivery: sessionId,
+            expectedSessionIdForFreshDelivery: effectiveSessionId,
             resolveFreshSessionEntryForDelivery,
           }
         : deliveryParams,

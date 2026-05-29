@@ -692,6 +692,8 @@ export async function runMemoryFlushIfNeeded(params: {
         const updatedEntry = await updateSessionStoreEntry({
           storePath: params.storePath,
           sessionKey: params.sessionKey,
+          skipMaintenance: true,
+          takeCacheOwnership: true,
           update: async () => ({ totalTokens: transcriptPromptTokens, totalTokensFresh: true }),
         });
         if (updatedEntry) {
@@ -887,6 +889,8 @@ export async function runMemoryFlushIfNeeded(params: {
         const updatedEntry = await memoryDeps.updateSessionStoreEntry({
           storePath: params.storePath,
           sessionKey: params.sessionKey,
+          skipMaintenance: true,
+          takeCacheOwnership: true,
           update: async () => ({
             memoryFlushAt: memoryDeps.now(),
             memoryFlushCompactionCount,

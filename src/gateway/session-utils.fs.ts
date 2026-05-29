@@ -143,6 +143,123 @@ export function readSessionMessages(
   return messages;
 }
 
+export type ReadRecentSessionMessagesOptions = {
+  maxMessages: number;
+  maxBytes?: number;
+  maxLines?: number;
+};
+
+export type ReadSessionMessagesAsyncOptions =
+  | {
+      mode: "full";
+      reason: string;
+    }
+  | ({
+      mode: "recent";
+    } & ReadRecentSessionMessagesOptions);
+
+const RECENT_SESSION_MESSAGES_DEFAULT_MAX_BYTES = 8 * 1024 * 1024;
+
+function parseTranscriptLineToMessage(line: string, seq: number): unknown | null {
+  try {
+    const parsed = JSON.parse(line) as Record<string, unknown>;
+    const message = parsed.message;
+    if (message) {
+      return attachKovaTranscriptMeta(message, {
+        ...(typeof parsed.id === "string" ? { id: parsed.id } : {}),
+        seq,
+      });
+    }
+    if (parsed.type === "compaction") {
+      const ts = typeof parsed.timestamp === "string" ? Date.parse(parsed.timestamp) : Number.NaN;
+      const timestamp = Number.isFinite(ts) ? ts : Date.now();
+      return {
+        role: "system",
+        content: [{ type: "text", text: "Compaction" }],
+        timestamp,
+        __kova: {
+          kind: "compaction",
+          id: typeof parsed.id === "string" ? parsed.id : undefined,
+          seq,
+        },
+      };
+    }
+  } catch {
+    // ignore malformed transcript lines
+  }
+  return null;
+}
+
+async function readRecentTranscriptLines(
+  filePath: string,
+  stat: fs.Stats,
+  opts: ReadRecentSessionMessagesOptions,
+): Promise<string[]> {
+  const maxMessages = Math.max(0, Math.floor(opts.maxMessages));
+  const maxBytes = Math.max(
+    1024,
+    Math.floor(opts.maxBytes ?? RECENT_SESSION_MESSAGES_DEFAULT_MAX_BYTES),
+  );
+  const readLen = Math.min(stat.size, maxBytes);
+  const readStart = Math.max(0, stat.size - readLen);
+  const maxLines = Math.max(maxMessages, Math.floor(opts.maxLines ?? maxMessages * 20 + 20));
+  const handle = await fs.promises.open(filePath, "r");
+  try {
+    const buffer = Buffer.alloc(readLen);
+    const { bytesRead } = await handle.read(buffer, 0, readLen, readStart);
+    if (bytesRead <= 0) {
+      return [];
+    }
+    return buffer
+      .toString("utf-8", 0, bytesRead)
+      .split(/\r?\n/)
+      .slice(readStart > 0 ? 1 : 0)
+      .filter((line) => line.trim().length > 0)
+      .slice(-maxLines);
+  } finally {
+    await handle.close();
+  }
+}
+
+export async function readSessionMessagesAsync(
+  sessionId: string,
+  storePath: string | undefined,
+  sessionFile: string | undefined,
+  opts: ReadSessionMessagesAsyncOptions,
+): Promise<unknown[]> {
+  if (opts.mode === "full") {
+    return readSessionMessages(sessionId, storePath, sessionFile);
+  }
+
+  const maxMessages = Math.max(0, Math.floor(opts.maxMessages));
+  if (maxMessages === 0) {
+    return [];
+  }
+  const candidates = resolveSessionTranscriptCandidates(sessionId, storePath, sessionFile);
+  const filePath = candidates.find((p) => fs.existsSync(p));
+  if (!filePath) {
+    return [];
+  }
+  let stat: fs.Stats;
+  try {
+    stat = await fs.promises.stat(filePath);
+  } catch {
+    return [];
+  }
+  if (stat.size === 0) {
+    return [];
+  }
+  const lines = await readRecentTranscriptLines(filePath, stat, opts);
+  const messages: unknown[] = [];
+  for (const line of lines) {
+    const message = parseTranscriptLineToMessage(line, messages.length + 1);
+    if (message) {
+      messages.push(message);
+    }
+  }
+  return messages.slice(-maxMessages);
+}
+
 export {
   archiveFileOnDisk,
   archiveSessionTranscripts,

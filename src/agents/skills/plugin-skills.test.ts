@@ -1,3 +1,4 @@
+import fsSync from "node:fs";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
@@ -28,6 +29,7 @@ vi.mock("../../plugins/plugin-registry.js", () => ({
 }));
 
 let resolvePluginSkillDirs: typeof import("./plugin-skills.js").resolvePluginSkillDirs;
+let pluginSkillsTesting: typeof import("./plugin-skills.js").__testing;
 
 const tempDirs = createTrackedTempDirs();
 
@@ -113,6 +115,15 @@ async function setupPluginOutsideSkills() {
   return { workspaceDir, pluginRoot, outsideSkills };
 }
 
+async function resolveTestPluginSkillDirs(
+  params: Omit<Parameters<typeof resolvePluginSkillDirs>[0], "pluginSkillsDir"> & {
+    pluginSkillsDir?: string;
+  },
+) {
+  const pluginSkillsDir = params.pluginSkillsDir ?? (await tempDirs.make("kova-plugin-skills-"));
+  return resolvePluginSkillDirs({ ...params, pluginSkillsDir });
+}
+
 function registerHealthyAcpBackend() {
   registerAcpRuntimeBackend({
     id: "acpx",
@@ -142,7 +153,9 @@ afterEach(async () => {
 
 describe("resolvePluginSkillDirs", () => {
   beforeAll(async () => {
-    ({ resolvePluginSkillDirs } = await import("./plugin-skills.js"));
+    const pluginSkillsModule = await import("./plugin-skills.js");
+    ({ resolvePluginSkillDirs } = pluginSkillsModule);
+    pluginSkillsTesting = pluginSkillsModule.__testing;
   });
 
   beforeEach(() => {
@@ -187,7 +200,7 @@ describe("resolvePluginSkillDirs", () => {
       registerHealthyAcpBackend();
     }
 
-    const dirs = resolvePluginSkillDirs({
+    const dirs = await resolveTestPluginSkillDirs({
       workspaceDir,
       config: {
         acp: { enabled: acpEnabled },
@@ -216,7 +229,7 @@ describe("resolvePluginSkillDirs", () => {
       }),
     );
 
-    const dirs = resolvePluginSkillDirs({
+    const dirs = await resolveTestPluginSkillDirs({
       workspaceDir,
       config: {
         plugins: {
@@ -247,7 +260,7 @@ describe("resolvePluginSkillDirs", () => {
       }),
     );
 
-    const dirs = resolvePluginSkillDirs({
+    const dirs = await resolveTestPluginSkillDirs({
       workspaceDir,
       config: {
         plugins: {
@@ -275,7 +288,7 @@ describe("resolvePluginSkillDirs", () => {
       }),
     );
 
-    const dirs = resolvePluginSkillDirs({
+    const dirs = await resolveTestPluginSkillDirs({
       workspaceDir,
       config: {
         plugins: {
@@ -305,7 +318,7 @@ describe("resolvePluginSkillDirs", () => {
       }),
     );
 
-    const dirs = resolvePluginSkillDirs({
+    const dirs = await resolveTestPluginSkillDirs({
       workspaceDir,
       config: {
         plugins: {
@@ -317,5 +330,54 @@ describe("resolvePluginSkillDirs", () => {
     });
 
     expect(dirs).toEqual([path.resolve(pluginRoot, "skills")]);
+  });
+
+  it("publishes generated plugin skill symlinks and removes stale generated entries", async () => {
+    const pluginSkillsDir = await tempDirs.make("kova-plugin-skills-");
+    const skillParent = await tempDirs.make("kova-plugin-skill-parent-");
+    const currentSkill = path.join(skillParent, "current-skill");
+    const staleSkill = path.join(skillParent, "stale-skill");
+    await fs.mkdir(staleSkill, { recursive: true });
+    await fs.symlink(
+      staleSkill,
+      path.join(pluginSkillsDir, "stale-skill"),
+      process.platform === "win32" ? "junction" : "dir",
+    );
+    await fs.mkdir(currentSkill, { recursive: true });
+    await fs.writeFile(
+      path.join(currentSkill, "SKILL.md"),
+      "---\nname: current-skill\ndescription: Current plugin skill\n---\n",
+      "utf8",
+    );
+
+    pluginSkillsTesting.publishPluginSkills([currentSkill], { pluginSkillsDir });
+
+    const currentLink = path.join(pluginSkillsDir, "current-skill");
+    expect(fsSync.existsSync(currentLink)).toBe(true);
+    expect(fsSync.existsSync(path.join(pluginSkillsDir, "stale-skill"))).toBe(false);
+  });
+
+  it("expands plugin skill container directories when publishing generated links", async () => {
+    const pluginSkillsDir = await tempDirs.make("kova-plugin-skills-");
+    const containerDir = await tempDirs.make("kova-plugin-skill-container-");
+    const browserSkill = path.join(containerDir, "browser");
+    const memorySkill = path.join(containerDir, "memory");
+    await fs.mkdir(browserSkill, { recursive: true });
+    await fs.mkdir(memorySkill, { recursive: true });
+    await fs.writeFile(
+      path.join(browserSkill, "SKILL.md"),
+      "---\nname: browser\ndescription: Browser skill\n---\n",
+      "utf8",
+    );
+    await fs.writeFile(
+      path.join(memorySkill, "SKILL.md"),
+      "---\nname: memory\ndescription: Memory skill\n---\n",
+      "utf8",
+    );
+
+    pluginSkillsTesting.publishPluginSkills([containerDir], { pluginSkillsDir });
+
+    expect(fsSync.existsSync(path.join(pluginSkillsDir, "browser"))).toBe(true);
+    expect(fsSync.existsSync(path.join(pluginSkillsDir, "memory"))).toBe(true);
   });
 });

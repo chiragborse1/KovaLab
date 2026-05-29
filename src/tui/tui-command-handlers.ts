@@ -537,6 +537,89 @@ function formatPulseSummary(status: unknown): string {
   return lines.join("\n");
 }
 
+function formatMemoryHelpText(): string {
+  return [
+    "Memory commands:",
+    "- /memory status",
+    "- /memory sync [force]",
+    "- /memory search <query>",
+    "- /memory read <path[:line[-end]]> [from=<line>] [lines=<count>]",
+    "- /memory dreams [lines=<count>|all]",
+    "",
+    "Terminal equivalents:",
+    "- kova memory status --deep",
+    "- kova memory index --force",
+    '- kova memory search "<query>"',
+    "- kova memory dreams --lines 80",
+  ].join("\n");
+}
+
+function formatMemoryTerminalCommand(args: string): string {
+  const trimmed = args.trim();
+  const [actionRaw, ...rest] = trimmed.split(/\s+/).filter(Boolean);
+  const action = normalizeLowercaseStringOrEmpty(actionRaw ?? "status");
+  if (!trimmed || action === "status") {
+    return [
+      "Memory status",
+      "- Fast terminal view: available",
+      "- Deep backend/index probe: kova memory status --deep",
+      "- Search: /memory search <query>",
+      "- Help: /memory help",
+    ].join("\n");
+  }
+  if (action === "help" || action === "?") {
+    return formatMemoryHelpText();
+  }
+  if (action === "sync") {
+    const force = rest.some((part) => part.toLowerCase() === "force" || part === "--force");
+    return `Memory sync is CLI-owned in terminal mode.\nUse: kova memory index${force ? " --force" : ""}`;
+  }
+  if (action === "search") {
+    const query = rest.join(" ").trim();
+    return query
+      ? `Memory search is CLI-owned in terminal mode.\nUse: kova memory search ${JSON.stringify(query)}`
+      : "Usage: /memory search <query>";
+  }
+  if (action === "read") {
+    return rest.length > 0
+      ? `Memory read is CLI-owned in terminal mode.\nUse: kova memory read ${rest.join(" ")}`
+      : "Usage: /memory read <path[:line[-end]]> [from=<line>] [lines=<count>]";
+  }
+  if (action === "dreams") {
+    const suffix = rest.length > 0 ? ` ${rest.join(" ")}` : " --lines 80";
+    return `Dream Diary is CLI-owned in terminal mode.\nUse: kova memory dreams${suffix}`;
+  }
+  return formatMemoryHelpText();
+}
+
+function formatPersonaHelpText(): string {
+  return [
+    "Persona commands:",
+    "- /persona status",
+    "- /persona show [lines=<count>|all]",
+    "- /persona path",
+    "",
+    "Terminal equivalents:",
+    "- kova persona show --agent main",
+    "- kova persona edit --agent main",
+  ].join("\n");
+}
+
+function parsePersonaShowArgs(args: string): { all?: boolean; lines?: number } {
+  const result: { all?: boolean; lines?: number } = {};
+  for (const token of args.split(/\s+/).filter(Boolean)) {
+    if (token.toLowerCase() === "all" || token === "--all") {
+      result.all = true;
+      continue;
+    }
+    const linesMatch = /^lines=(\d+)$/i.exec(token);
+    if (linesMatch?.[1]) {
+      result.lines = Number.parseInt(linesMatch[1], 10);
+    }
+  }
+  return result;
+}
+
 type TuiUpdateAction = "help" | "run" | "status";
 
 function parseTuiUpdateAction(args: string): TuiUpdateAction | null {
@@ -1146,6 +1229,55 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     }
   };
 
+  const showMemory = (args: string) => {
+    chatLog.addSystem(formatMemoryTerminalCommand(args));
+  };
+
+  const showPersona = async (args: string) => {
+    const [actionRaw, ...rest] = args.trim().split(/\s+/).filter(Boolean);
+    const action = normalizeLowercaseStringOrEmpty(actionRaw ?? "status");
+    if (action === "help" || action === "?") {
+      chatLog.addSystem(formatPersonaHelpText());
+      return;
+    }
+    if (!client.getConfig) {
+      chatLog.addSystem("persona status unavailable: backend cannot read config");
+      return;
+    }
+    try {
+      const snapshot = await client.getConfig();
+      const cfg = snapshot.runtimeConfig ?? snapshot.config;
+      if (!cfg) {
+        chatLog.addSystem("persona status unavailable: config snapshot missing");
+        return;
+      }
+      const {
+        formatPersonaContent,
+        formatPersonaStatus,
+        resolvePersonaContent,
+        resolvePersonaStatus,
+        resolvePersonaTarget,
+      } = await import("../commands/persona.js");
+      if (action === "path") {
+        chatLog.addSystem(resolvePersonaTarget({ cfg, agent: state.currentAgentId }).personaPath);
+        return;
+      }
+      if (action === "show") {
+        const file = await resolvePersonaContent({ cfg, agent: state.currentAgentId });
+        chatLog.addSystem(formatPersonaContent(file, parsePersonaShowArgs(rest.join(" "))));
+        return;
+      }
+      if (!action || action === "status") {
+        const status = await resolvePersonaStatus({ cfg, agent: state.currentAgentId });
+        chatLog.addSystem(formatPersonaStatus(status));
+        return;
+      }
+      chatLog.addSystem(formatPersonaHelpText());
+    } catch (err) {
+      chatLog.addSystem(`persona failed: ${sanitizeRenderableText(String(err))}`);
+    }
+  };
+
   const showPermissions = async () => {
     let configSnapshot: TuiConfigSnapshot | null = null;
     let tools: TuiToolCatalog | null = null;
@@ -1583,7 +1715,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
           chatLog.addSystem("checkpoint restore is unavailable in this backend");
           return;
         }
-        if (state.activeChatRunId || state.pendingOptimisticUserMessage) {
+        if (state.activeChatRunId || state.pendingChatRunId || state.pendingOptimisticUserMessage) {
           chatLog.addSystem("stop the active run before restoring a checkpoint");
           return;
         }
@@ -1729,7 +1861,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
           chatLog.addSystem("auth login is only available in local embedded mode");
           break;
         }
-        if (state.activeChatRunId || state.pendingOptimisticUserMessage) {
+        if (state.activeChatRunId || state.pendingChatRunId || state.pendingOptimisticUserMessage) {
           chatLog.addSystem("abort the current run before /auth");
           break;
         }
@@ -1815,6 +1947,14 @@ export function createCommandHandlers(context: CommandHandlerContext) {
       case "plugins":
         echoCommand();
         await showPlugins(args);
+        break;
+      case "memory":
+        echoCommand();
+        showMemory(args);
+        break;
+      case "persona":
+        echoCommand();
+        await showPersona(args);
         break;
       case "permissions":
         echoCommand();
@@ -2215,7 +2355,11 @@ export function createCommandHandlers(context: CommandHandlerContext) {
     }
     const isBtw = isBtwCommand(text);
     const queueIfBusy = options?.queueIfBusy ?? true;
-    if (!isBtw && queueIfBusy && (state.activeChatRunId || state.pendingOptimisticUserMessage)) {
+    if (
+      !isBtw &&
+      queueIfBusy &&
+      (state.activeChatRunId || state.pendingChatRunId || state.pendingOptimisticUserMessage)
+    ) {
       const busyMode = getBusyInputMode();
       if (busyMode === "steer" && state.activeChatRunId) {
         const steered = await steerMessage(text);
@@ -2233,6 +2377,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
       if (!isBtw) {
         chatLog.addUser(text);
         state.pendingOptimisticUserMessage = true;
+        state.pendingChatRunId = runId;
         setActivityStatus("sending");
       } else {
         noteLocalBtwRunId?.(runId);
@@ -2248,8 +2393,12 @@ export function createCommandHandlers(context: CommandHandlerContext) {
       });
       if (!isBtw) {
         const effectiveRunId = result.runId || runId;
+        if (state.pendingChatRunId === runId && effectiveRunId !== runId) {
+          state.pendingChatRunId = effectiveRunId;
+        }
         const shouldKeepWaiting =
           state.pendingOptimisticUserMessage ||
+          state.pendingChatRunId === effectiveRunId ||
           (state.activeChatRunId === effectiveRunId && state.activityStatus === "sending");
         if (shouldKeepWaiting) {
           setActivityStatus("waiting");
@@ -2265,6 +2414,7 @@ export function createCommandHandlers(context: CommandHandlerContext) {
       }
       if (!isBtw) {
         state.pendingOptimisticUserMessage = false;
+        state.pendingChatRunId = null;
         state.activeChatRunId = null;
       }
       chatLog.addSystem(`${isBtw ? "btw failed" : "send failed"}: ${String(err)}`);

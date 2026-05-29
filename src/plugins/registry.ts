@@ -90,6 +90,11 @@ import { withPluginRuntimePluginIdScope } from "./runtime/gateway-request-scope.
 import type { PluginRuntime } from "./runtime/types.js";
 import { defaultSlotIdForKey, hasKind } from "./slots.js";
 import {
+  findUndeclaredPluginToolNames,
+  normalizePluginToolContractNames,
+  normalizePluginToolNames,
+} from "./tool-contracts.js";
+import {
   isConversationHookName,
   isPluginHookName,
   isPromptInjectionHookName,
@@ -413,7 +418,17 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
     if (pluginsWithChannelRegistrationConflict.has(record.id)) {
       return;
     }
-    const names = opts?.names ?? (opts?.name ? [opts.name] : []);
+    const declaredNames = normalizePluginToolContractNames(record.contracts);
+    if (declaredNames.length === 0) {
+      pushDiagnostic({
+        level: "error",
+        pluginId: record.id,
+        source: record.source,
+        message: "plugin must declare contracts.tools before registering agent tools",
+      });
+      return;
+    }
+    const names = [...(opts?.names ?? []), ...(opts?.name ? [opts.name] : [])];
     const optional = opts?.optional === true;
     const factory: KovaPluginToolFactory =
       typeof tool === "function" ? tool : (_ctx: KovaPluginToolContext) => tool;
@@ -422,7 +437,20 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       names.push(tool.name);
     }
 
-    const normalized = names.map((name) => name.trim()).filter(Boolean);
+    const normalized = normalizePluginToolNames(names);
+    const undeclared = findUndeclaredPluginToolNames({
+      declaredNames,
+      toolNames: normalized,
+    });
+    if (undeclared.length > 0) {
+      pushDiagnostic({
+        level: "error",
+        pluginId: record.id,
+        source: record.source,
+        message: `plugin must declare contracts.tools for: ${undeclared.join(", ")}`,
+      });
+      return;
+    }
     if (normalized.length > 0) {
       record.toolNames.push(...normalized);
     }
@@ -431,6 +459,7 @@ export function createPluginRegistry(registryParams: PluginRegistryParams) {
       pluginName: record.name,
       factory,
       names: normalized,
+      declaredNames,
       optional,
       source: record.source,
       rootDir: record.rootDir,

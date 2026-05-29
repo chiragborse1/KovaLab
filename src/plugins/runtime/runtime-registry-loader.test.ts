@@ -2,6 +2,8 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createEmptyPluginRegistry } from "../registry.js";
 
 const mocks = vi.hoisted(() => ({
+  manifestRegistry: { plugins: [], diagnostics: [] },
+  installRecords: { demo: { source: "npm", spec: "demo" } },
   loadKovaPlugins: vi.fn<typeof import("../loader.js").loadKovaPlugins>(),
   resolveRuntimePluginRegistry: vi.fn<typeof import("../loader.js").resolveRuntimePluginRegistry>(),
   getActivePluginRegistry: vi.fn<typeof import("../runtime.js").getActivePluginRegistry>(),
@@ -17,6 +19,24 @@ const mocks = vi.hoisted(() => ({
   resolveDefaultAgentId: vi.fn<typeof import("../../agents/agent-scope.js").resolveDefaultAgentId>(
     () => "default",
   ),
+  resolvePluginMetadataSnapshot:
+    vi.fn<typeof import("../plugin-metadata-snapshot.js").resolvePluginMetadataSnapshot>(),
+  extractPluginInstallRecordsFromInstalledPluginIndex:
+    vi.fn<
+      typeof import("../installed-plugin-index-install-records.js").extractPluginInstallRecordsFromInstalledPluginIndex
+    >(),
+  clearCurrentPluginMetadataSnapshot:
+    vi.fn<
+      typeof import("../current-plugin-metadata-snapshot.js").clearCurrentPluginMetadataSnapshot
+    >(),
+  isReusableCurrentPluginMetadataSnapshot:
+    vi.fn<
+      typeof import("../current-plugin-metadata-snapshot.js").isReusableCurrentPluginMetadataSnapshot
+    >(),
+  setCurrentPluginMetadataSnapshot:
+    vi.fn<
+      typeof import("../current-plugin-metadata-snapshot.js").setCurrentPluginMetadataSnapshot
+    >(),
 }));
 
 let ensurePluginRegistryLoaded: typeof import("./runtime-registry-loader.js").ensurePluginRegistryLoaded;
@@ -55,6 +75,30 @@ vi.mock("../../agents/agent-scope.js", () => ({
     mocks.resolveDefaultAgentId(...args),
 }));
 
+vi.mock("../plugin-metadata-snapshot.js", () => ({
+  resolvePluginMetadataSnapshot: (
+    ...args: Parameters<typeof mocks.resolvePluginMetadataSnapshot>
+  ) => mocks.resolvePluginMetadataSnapshot(...args),
+}));
+
+vi.mock("../installed-plugin-index-install-records.js", () => ({
+  extractPluginInstallRecordsFromInstalledPluginIndex: (
+    ...args: Parameters<typeof mocks.extractPluginInstallRecordsFromInstalledPluginIndex>
+  ) => mocks.extractPluginInstallRecordsFromInstalledPluginIndex(...args),
+}));
+
+vi.mock("../current-plugin-metadata-snapshot.js", () => ({
+  clearCurrentPluginMetadataSnapshot: (
+    ...args: Parameters<typeof mocks.clearCurrentPluginMetadataSnapshot>
+  ) => mocks.clearCurrentPluginMetadataSnapshot(...args),
+  isReusableCurrentPluginMetadataSnapshot: (
+    ...args: Parameters<typeof mocks.isReusableCurrentPluginMetadataSnapshot>
+  ) => mocks.isReusableCurrentPluginMetadataSnapshot(...args),
+  setCurrentPluginMetadataSnapshot: (
+    ...args: Parameters<typeof mocks.setCurrentPluginMetadataSnapshot>
+  ) => mocks.setCurrentPluginMetadataSnapshot(...args),
+}));
+
 describe("ensurePluginRegistryLoaded", () => {
   beforeAll(async () => {
     const mod = await import("./runtime-registry-loader.js");
@@ -69,6 +113,11 @@ describe("ensurePluginRegistryLoaded", () => {
     mocks.resolveConfiguredChannelPluginIds.mockReset();
     mocks.resolveChannelPluginIds.mockReset();
     mocks.applyPluginAutoEnable.mockReset();
+    mocks.resolvePluginMetadataSnapshot.mockReset();
+    mocks.extractPluginInstallRecordsFromInstalledPluginIndex.mockReset();
+    mocks.clearCurrentPluginMetadataSnapshot.mockReset();
+    mocks.isReusableCurrentPluginMetadataSnapshot.mockReset();
+    mocks.setCurrentPluginMetadataSnapshot.mockReset();
     mocks.resolveAgentWorkspaceDir.mockClear();
     mocks.resolveDefaultAgentId.mockClear();
     resetPluginRegistryLoadedForTests();
@@ -78,6 +127,14 @@ describe("ensurePluginRegistryLoaded", () => {
     mocks.resolveRuntimePluginRegistry.mockImplementation(
       (...args: Parameters<typeof mocks.loadKovaPlugins>) => mocks.loadKovaPlugins(...args),
     );
+    mocks.resolvePluginMetadataSnapshot.mockReturnValue({
+      manifestRegistry: mocks.manifestRegistry,
+      index: { installRecords: {} },
+    } as never);
+    mocks.extractPluginInstallRecordsFromInstalledPluginIndex.mockReturnValue(
+      mocks.installRecords as never,
+    );
+    mocks.isReusableCurrentPluginMetadataSnapshot.mockReturnValue(true);
     mocks.applyPluginAutoEnable.mockImplementation((params) => ({
       config:
         params.config && typeof params.config === "object"
@@ -128,6 +185,7 @@ describe("ensurePluginRegistryLoaded", () => {
     expect(mocks.applyPluginAutoEnable).toHaveBeenCalledWith({
       config: rawConfig,
       env,
+      manifestRegistry: mocks.manifestRegistry,
     });
     expect(mocks.loadKovaPlugins).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -153,6 +211,8 @@ describe("ensurePluginRegistryLoaded", () => {
           demo: ["demo configured"],
         },
         workspaceDir: "/resolved-workspace",
+        manifestRegistry: mocks.manifestRegistry,
+        installRecords: mocks.installRecords,
         onlyPluginIds: ["demo-channel"],
         throwOnLoadError: true,
       }),

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { importFreshModule } from "../../test/helpers/import-fresh.ts";
+import type { PluginJitiLoaderFactory } from "./jiti-loader-cache.js";
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -14,13 +15,18 @@ async function loadCachedPluginJitiLoader(scope: string) {
       options,
     }),
   );
-  vi.doMock("jiti", () => ({
-    createJiti,
-  }));
 
-  const { getCachedPluginJitiLoader } = await importFreshModule<
-    typeof import("./jiti-loader-cache.js")
-  >(import.meta.url, `./jiti-loader-cache.js?scope=${scope}`);
+  const pluginJitiLoaderCache = await importFreshModule<typeof import("./jiti-loader-cache.js")>(
+    import.meta.url,
+    `./jiti-loader-cache.js?scope=${scope}`,
+  );
+  const getCachedPluginJitiLoader: typeof pluginJitiLoaderCache.getCachedPluginJitiLoader = (
+    params,
+  ) =>
+    pluginJitiLoaderCache.getCachedPluginJitiLoader({
+      ...params,
+      createLoader: params.createLoader ?? (createJiti as PluginJitiLoaderFactory),
+    });
 
   return { createJiti, getCachedPluginJitiLoader };
 }
@@ -43,6 +49,8 @@ describe("getCachedPluginJitiLoader", () => {
     const second = getCachedPluginJitiLoader(params);
 
     expect(second).toBe(first);
+    expect(createJiti).not.toHaveBeenCalled();
+    first("/repo/extensions/demo/index.ts");
     expect(createJiti).toHaveBeenCalledTimes(1);
     expect(cache.size).toBe(1);
   });
@@ -70,6 +78,8 @@ describe("getCachedPluginJitiLoader", () => {
     });
 
     expect(second).not.toBe(first);
+    first("/repo/dist/extensions/demo/api.ts");
+    second("/repo/dist/extensions/demo/api.ts");
     expect(createJiti).toHaveBeenNthCalledWith(
       1,
       "file:///repo/src/plugins/public-surface-loader.ts",
@@ -119,6 +129,7 @@ describe("getCachedPluginJitiLoader", () => {
     });
 
     expect(second).toBe(first);
+    first("/repo/extensions/demo/index.ts");
     expect(createJiti).toHaveBeenCalledTimes(1);
     expect(createJiti).toHaveBeenCalledWith(
       "file:///repo/src/plugins/loader.ts",
@@ -132,7 +143,7 @@ describe("getCachedPluginJitiLoader", () => {
     );
   });
 
-  it("lets callers intentionally share loaders behind a custom cache scope key", async () => {
+  it("lets callers intentionally share loaders behind an explicit shared cache scope key", async () => {
     const { createJiti, getCachedPluginJitiLoader } =
       await loadCachedPluginJitiLoader("cache-scope-key");
 
@@ -146,7 +157,7 @@ describe("getCachedPluginJitiLoader", () => {
         demo: "/repo/demo-a.js",
       },
       tryNative: true,
-      cacheScopeKey: "bundled:native",
+      sharedCacheScopeKey: "bundled:native",
     });
     const second = getCachedPluginJitiLoader({
       cache,
@@ -157,11 +168,11 @@ describe("getCachedPluginJitiLoader", () => {
         demo: "/repo/demo-b.js",
       },
       tryNative: true,
-      cacheScopeKey: "bundled:native",
+      sharedCacheScopeKey: "bundled:native",
     });
 
     expect(second).toBe(first);
-    expect(createJiti).toHaveBeenCalledTimes(1);
+    expect(createJiti).not.toHaveBeenCalled();
     expect(cache.size).toBe(1);
   });
 
@@ -180,7 +191,7 @@ describe("getCachedPluginJitiLoader", () => {
         beta: "alpha/sub",
       },
       tryNative: false,
-    });
+    })("/repo/extensions/demo-a/index.ts");
     getCachedPluginJitiLoader({
       cache,
       modulePath: "/repo/extensions/demo-b/index.ts",
@@ -191,7 +202,7 @@ describe("getCachedPluginJitiLoader", () => {
         alpha: "/repo/alpha",
       },
       tryNative: false,
-    });
+    })("/repo/extensions/demo-b/index.ts");
 
     const marker = Symbol.for("pathe:normalizedAlias");
     const firstAlias = (createJiti.mock.calls[0]?.[1] as { alias?: Record<string, string> }).alias;
@@ -207,7 +218,6 @@ describe("getCachedPluginJitiLoader", () => {
   it("serves compiled .js targets from native require without invoking the jiti loader", async () => {
     const jitiLoader = vi.fn();
     const createJiti = vi.fn(() => jitiLoader);
-    vi.doMock("jiti", () => ({ createJiti }));
     vi.doMock("./native-module-require.js", () => ({
       isJavaScriptModulePath: (p: string) =>
         p.endsWith(".js") || p.endsWith(".mjs") || p.endsWith(".cjs"),
@@ -226,6 +236,7 @@ describe("getCachedPluginJitiLoader", () => {
       modulePath: "/repo/dist/extensions/demo/api.js",
       importerUrl: "file:///repo/src/plugins/public-surface-loader.ts",
       jitiFilename: "file:///repo/src/plugins/public-surface-loader.ts",
+      createLoader: createJiti as PluginJitiLoaderFactory,
     });
 
     const result = loader("/repo/dist/extensions/demo/api.js") as { loadedFrom: string };
@@ -238,7 +249,6 @@ describe("getCachedPluginJitiLoader", () => {
   it("falls back to jiti when the native-require helper declines", async () => {
     const jitiLoader = vi.fn(() => ({ fromJiti: true }));
     const createJiti = vi.fn(() => jitiLoader);
-    vi.doMock("jiti", () => ({ createJiti }));
     vi.doMock("./native-module-require.js", () => ({
       isJavaScriptModulePath: () => true,
       tryNativeRequireJavaScriptModule: () => ({ ok: false }),
@@ -253,6 +263,7 @@ describe("getCachedPluginJitiLoader", () => {
       modulePath: "/repo/dist/extensions/demo/api.js",
       importerUrl: "file:///repo/src/plugins/public-surface-loader.ts",
       jitiFilename: "file:///repo/src/plugins/public-surface-loader.ts",
+      createLoader: createJiti as PluginJitiLoaderFactory,
     });
 
     const result = loader("/repo/dist/extensions/demo/api.js") as { fromJiti: boolean };
@@ -264,7 +275,6 @@ describe("getCachedPluginJitiLoader", () => {
     vi.spyOn(process, "platform", "get").mockReturnValue("win32");
     const jitiLoader = vi.fn(() => ({ fromJiti: true }));
     const createJiti = vi.fn(() => jitiLoader);
-    vi.doMock("jiti", () => ({ createJiti }));
     vi.doMock("./native-module-require.js", () => ({
       isJavaScriptModulePath: () => true,
       tryNativeRequireJavaScriptModule: () => ({ ok: false }),
@@ -280,6 +290,7 @@ describe("getCachedPluginJitiLoader", () => {
       importerUrl: "file:///C:/Users/alice/kova/dist/src/plugins/public-surface-loader.js",
       jitiFilename: "C:\\Users\\alice\\kova\\dist\\extensions\\feishu\\api.js",
       tryNative: true,
+      createLoader: createJiti as PluginJitiLoaderFactory,
     });
 
     loader("C:\\Users\\alice\\kova\\dist\\extensions\\feishu\\api.js");
@@ -296,7 +307,6 @@ describe("getCachedPluginJitiLoader", () => {
   it("skips the native-require fast path when tryNative is explicitly false", async () => {
     const jitiLoader = vi.fn(() => ({ fromJiti: true }));
     const createJiti = vi.fn(() => jitiLoader);
-    vi.doMock("jiti", () => ({ createJiti }));
     const nativeStub = vi.fn(() => ({ ok: true, moduleExport: { fromNative: true } }));
     vi.doMock("./native-module-require.js", () => ({
       isJavaScriptModulePath: () => true,
@@ -314,6 +324,7 @@ describe("getCachedPluginJitiLoader", () => {
       jitiFilename: "file:///repo/src/plugins/bundled-capability-runtime.ts",
       aliasMap: { "getkova/plugin-sdk": "/repo/shim.js" },
       tryNative: false,
+      createLoader: createJiti as PluginJitiLoaderFactory,
     });
 
     const result = loader("/repo/dist/extensions/demo/api.js") as { fromJiti: boolean };
@@ -328,7 +339,6 @@ describe("getCachedPluginJitiLoader", () => {
     vi.spyOn(process, "platform", "get").mockReturnValue("win32");
     const jitiLoader = vi.fn(() => ({ fromJiti: true }));
     const createJiti = vi.fn(() => jitiLoader);
-    vi.doMock("jiti", () => ({ createJiti }));
     const nativeStub = vi.fn(() => ({ ok: true, moduleExport: { fromNative: true } }));
     vi.doMock("./native-module-require.js", () => ({
       isJavaScriptModulePath: () => true,
@@ -345,6 +355,7 @@ describe("getCachedPluginJitiLoader", () => {
       importerUrl: "file:///C:/Users/alice/kova/src/plugins/loader.ts",
       jitiFilename: "C:\\Users\\alice\\kova\\extensions\\feishu\\api.ts",
       tryNative: false,
+      createLoader: createJiti as PluginJitiLoaderFactory,
     });
 
     loader("C:\\Users\\alice\\kova\\extensions\\feishu\\api.ts");
@@ -360,7 +371,6 @@ describe("getCachedPluginJitiLoader", () => {
   it("forwards extra loader arguments through to the jiti fallback", async () => {
     const jitiLoader = vi.fn(() => ({ fromJiti: true }));
     const createJiti = vi.fn(() => jitiLoader);
-    vi.doMock("jiti", () => ({ createJiti }));
     vi.doMock("./native-module-require.js", () => ({
       isJavaScriptModulePath: () => true,
       tryNativeRequireJavaScriptModule: () => ({ ok: false }),
@@ -375,6 +385,7 @@ describe("getCachedPluginJitiLoader", () => {
       modulePath: "/repo/dist/extensions/demo/api.js",
       importerUrl: "file:///repo/src/plugins/public-surface-loader.ts",
       jitiFilename: "file:///repo/src/plugins/public-surface-loader.ts",
+      createLoader: createJiti as PluginJitiLoaderFactory,
     });
 
     const loose = loader as unknown as (t: string, ...a: unknown[]) => unknown;

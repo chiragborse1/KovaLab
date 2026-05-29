@@ -170,6 +170,7 @@ type AgentCallParams = {
   threadId?: string;
   lane?: string;
   timeout?: number;
+  attachments?: unknown[];
 };
 type CrossAgentWorkspaceFixture = {
   workspaceRoot: string;
@@ -723,6 +724,32 @@ describe("spawnAcpDirect", () => {
     expect(transcriptCalls).toHaveLength(2);
     expect(transcriptCalls[0]?.threadId).toBeUndefined();
     expect(transcriptCalls[1]?.threadId).toBe("child-thread");
+  });
+
+  it("forwards initial image attachments through the gateway agent call", async () => {
+    const result = await spawnAcpDirect(
+      createSpawnRequest({
+        attachments: [{ mediaType: "image/png", data: "cG5n" }],
+      }),
+      {
+        agentSessionKey: "agent:main:main",
+        agentChannel: "discord",
+        agentAccountId: "default",
+        agentTo: "channel:parent-channel",
+      },
+    );
+
+    expectAcceptedSpawn(result);
+    expect(findAgentGatewayCall()?.params?.attachments).toEqual([
+      {
+        type: "image",
+        source: {
+          type: "base64",
+          media_type: "image/png",
+          data: "cG5n",
+        },
+      },
+    ]);
   });
 
   it("passes model and thinking overrides into ACP session initialization", async () => {

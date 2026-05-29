@@ -92,7 +92,7 @@ const DEFAULT_RUNS = 1;
 const DEFAULT_WARMUP = 0;
 const DEFAULT_TIMEOUT_MS = 15_000;
 const DEFAULT_TUI_COMMAND = "/status";
-const DEFAULT_TUI_BACKEND: TuiBackendMode = "local-process";
+const DEFAULT_TUI_BACKEND: TuiBackendMode = "embedded";
 const DEFAULT_OUTPUT = ".artifacts/kova-baseline/latest.json";
 
 function defaultMarkdownOutput(outputPath: string): string {
@@ -521,6 +521,7 @@ async function runTuiBenchmarkInline(options: CliOptions): Promise<TuiBenchResul
 function runTuiBenchmarkWorker(options: CliOptions, outputPath: string): TuiBenchResult {
   const startedAt = performance.now();
   const timeoutMs = options.timeoutMs * Math.max(1, options.runs + options.warmup) + 5_000;
+  rmSync(outputPath, { force: true });
   const args = [
     "--import",
     "tsx",

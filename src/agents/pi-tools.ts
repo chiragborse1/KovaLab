@@ -52,6 +52,7 @@ import {
 import { cleanToolSchemaForGemini, normalizeToolParameters } from "./pi-tools.schema.js";
 import type { AnyAgentTool } from "./pi-tools.types.js";
 import type { SandboxContext } from "./sandbox.js";
+import type { SkillSnapshot } from "./skills.js";
 import {
   isSubagentEnvelopeSession,
   resolveSubagentCapabilityStore,
@@ -68,6 +69,7 @@ import {
 import {
   applyOwnerOnlyToolPolicy,
   collectExplicitAllowlist,
+  collectExplicitDenylist,
   mergeAlsoAllowPolicy,
   resolveToolProfilePolicy,
 } from "./tool-policy.js";
@@ -347,6 +349,8 @@ export function createKovaCodingTools(options?: {
   forceMessageTool?: boolean;
   /** Active auth profile store for plugin-owned tools. */
   authProfileStore?: AuthProfileStore;
+  /** Skills visible to this run, used by diagnostics and workspace sync. */
+  skillsSnapshot?: SkillSnapshot;
   /** Whether the sender is an owner (required for owner-only tools). */
   senderIsOwner?: boolean;
   /** Callback invoked when sessions_yield tool is called. */
@@ -409,7 +413,10 @@ export function createKovaCodingTools(options?: {
   // Prefer sessionKey for process isolation scope to prevent cross-session process visibility/killing.
   // Fallback to agentId if no sessionKey is available (e.g. legacy or global contexts).
   const scopeKey =
-    options?.exec?.scopeKey ?? options?.sessionKey ?? (agentId ? `agent:${agentId}` : undefined);
+    options?.exec?.scopeKey ??
+    options?.sessionKey ??
+    options?.sessionId ??
+    (agentId ? `agent:${agentId}` : undefined);
   const subagentStore = resolveSubagentCapabilityStore(options?.sessionKey, {
     cfg: options?.config,
   });
@@ -625,6 +632,17 @@ export function createKovaCodingTools(options?: {
         sandboxToolPolicy,
         subagentPolicy,
       ]),
+      pluginToolDenylist: collectExplicitDenylist([
+        profilePolicy,
+        providerProfilePolicy,
+        globalPolicy,
+        globalProviderPolicy,
+        agentPolicy,
+        agentProviderPolicy,
+        groupPolicy,
+        sandboxToolPolicy,
+        subagentPolicy,
+      ]),
       currentChannelId: options?.currentChannelId,
       currentThreadTs: options?.currentThreadTs,
       currentMessageId: options?.currentMessageId,
@@ -723,6 +741,10 @@ export function createKovaCodingTools(options?: {
       sessionId: options?.sessionId,
       runId: options?.runId,
       ...(options?.trace ? { trace: options.trace } : {}),
+      config: options?.config,
+      cwd: workspaceRoot,
+      workspaceDir: workspaceRoot,
+      skillsSnapshot: options?.skillsSnapshot,
       loopDetection: resolveToolLoopDetectionConfig({ cfg: options?.config, agentId }),
     }),
   );

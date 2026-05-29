@@ -24,6 +24,8 @@ const ACP_BACKEND_READY_TIMEOUT_MS = 5_000;
 const ACP_BACKEND_READY_POLL_MS = 50;
 const PRIMARY_MODEL_PREWARM_TIMEOUT_MS = 5_000;
 const STARTUP_PROVIDER_DISCOVERY_TIMEOUT_MS = 5_000;
+const QMD_STARTUP_IDLE_DELAY_MS = 120_000;
+const SESSION_LOCK_CLEANUP_CONCURRENCY = 4;
 const SKIP_STARTUP_MODEL_PREWARM_ENVS = [
   "KOVA_SKIP_STARTUP_MODEL_PREWARM",
   "KOVA_SKIP_STARTUP_MODEL_PREWARM",
@@ -34,6 +36,11 @@ const SKIP_STARTUP_MODEL_CATALOG_PREWARM_ENVS = [
 ] as const;
 
 type Awaitable<T> = T | Promise<T>;
+
+type GatewayMemoryStartupPolicy =
+  | { mode: "off" }
+  | { mode: "immediate" }
+  | { mode: "idle"; delayMs: number };
 
 type GatewayStartupTrace = {
   mark: (name: string) => void;
@@ -70,8 +77,51 @@ function shouldSkipStartupModelCatalogPrewarm(env: NodeJS.ProcessEnv = process.e
   return hasTruthyEnv(SKIP_STARTUP_MODEL_CATALOG_PREWARM_ENVS, env);
 }
 
-function shouldStartGatewayMemoryBackend(cfg: KovaConfig): boolean {
-  return cfg.memory?.backend === "qmd";
+function resolveGatewayMemoryStartupPolicy(cfg: KovaConfig): GatewayMemoryStartupPolicy {
+  if (cfg.memory?.backend !== "qmd") {
+    return { mode: "off" };
+  }
+  if (cfg.memory.qmd?.update?.onBoot === false) {
+    return { mode: "off" };
+  }
+  const startup = cfg.memory.qmd?.update?.startup;
+  if (startup === "immediate") {
+    return { mode: "immediate" };
+  }
+  if (startup === "idle") {
+    const rawDelayMs = cfg.memory.qmd?.update?.startupDelayMs;
+    const delayMs =
+      typeof rawDelayMs === "number" && Number.isFinite(rawDelayMs) && rawDelayMs >= 0
+        ? Math.floor(rawDelayMs)
+        : QMD_STARTUP_IDLE_DELAY_MS;
+    return { mode: "idle", delayMs };
+  }
+  return { mode: "off" };
+}
+
+function scheduleGatewayMemoryBackend(params: {
+  cfg: KovaConfig;
+  log: { warn: (msg: string) => void };
+  policy: GatewayMemoryStartupPolicy;
+}): void {
+  if (params.policy.mode === "off") {
+    return;
+  }
+  const start = () => {
+    void import("./server-startup-memory.js")
+      .then(({ startGatewayMemoryBackend }) =>
+        startGatewayMemoryBackend({ cfg: params.cfg, log: params.log }),
+      )
+      .catch((err) => {
+        params.log.warn(`qmd memory startup initialization failed: ${String(err)}`);
+      });
+  };
+  if (params.policy.mode === "immediate") {
+    setImmediate(start);
+    return;
+  }
+  const timer = setTimeout(start, params.policy.delayMs);
+  timer.unref?.();
 }
 
 function schedulePostAttachUpdateSentinelRefresh(params: {
@@ -99,14 +149,31 @@ function schedulePostReadySidecarTask(params: {
   startupTrace?: GatewayStartupTrace;
   name: string;
   log: { warn: (msg: string) => void };
-  run: () => Awaitable<void>;
-}): void {
+  run: (isStopped: () => boolean, signal: AbortSignal) => Awaitable<void>;
+  stop?: () => Awaitable<void>;
+}): { stop: () => Awaitable<void> } {
+  let stopped = false;
+  const abortController = new AbortController();
+  const isStopped = () => stopped;
   const handle = setImmediate(() => {
-    void measureStartup(params.startupTrace, params.name, params.run).catch((err) => {
-      params.log.warn(`${params.name} failed after control plane came online: ${String(err)}`);
+    if (isStopped()) {
+      return;
+    }
+    void measureStartup(params.startupTrace, params.name, () =>
+      params.run(isStopped, abortController.signal),
+    ).catch((err) => {
+      params.log.warn(`${params.name} failed after gateway ready: ${String(err)}`);
     });
   });
   handle.unref?.();
+  return {
+    stop: async () => {
+      stopped = true;
+      abortController.abort();
+      clearImmediate(handle);
+      await params.stop?.();
+    },
+  };
 }
 
 function scheduleModelCatalogPrewarm(params: {
@@ -184,6 +251,58 @@ async function waitForAcpRuntimeBackendReady(params: {
   } while (Date.now() < deadline);
 
   return false;
+}
+
+type CleanStaleLockFiles = typeof import("../agents/session-write-lock.js").cleanStaleLockFiles;
+type MarkRestartAbortedMainSessionsFromLocks =
+  typeof import("../agents/main-session-restart-recovery.js").markRestartAbortedMainSessionsFromLocks;
+
+async function cleanupStaleSessionLocks(params: {
+  sessionDirs: readonly string[];
+  log: { warn: (msg: string) => void };
+  isStopped: () => boolean;
+  cleanStaleLockFiles: CleanStaleLockFiles;
+  markRestartAbortedMainSessionsFromLocks?: MarkRestartAbortedMainSessionsFromLocks;
+  concurrency?: number;
+}): Promise<void> {
+  const concurrency = Math.max(
+    1,
+    Math.min(
+      params.sessionDirs.length,
+      Math.floor(params.concurrency ?? SESSION_LOCK_CLEANUP_CONCURRENCY),
+    ),
+  );
+  let nextIndex = 0;
+  let marker = params.markRestartAbortedMainSessionsFromLocks ?? null;
+  const getMarker = async () => {
+    marker ??= (await import("../agents/main-session-restart-recovery.js"))
+      .markRestartAbortedMainSessionsFromLocks;
+    return marker;
+  };
+  const worker = async () => {
+    while (!params.isStopped()) {
+      const sessionsDir = params.sessionDirs[nextIndex];
+      nextIndex += 1;
+      if (!sessionsDir) {
+        return;
+      }
+      const result = await params.cleanStaleLockFiles({
+        sessionsDir,
+        staleMs: SESSION_LOCK_STALE_MS,
+        removeStale: true,
+        log: { warn: (message) => params.log.warn(message) },
+      });
+      if (result.cleaned.length === 0) {
+        continue;
+      }
+      const markRestartAbortedMainSessionsFromLocks = await getMarker();
+      await markRestartAbortedMainSessionsFromLocks({
+        sessionsDir,
+        cleanedLocks: result.cleaned,
+      });
+    }
+  };
+  await Promise.all(Array.from({ length: concurrency }, () => worker()));
 }
 
 async function prewarmConfiguredPrimaryModel(params: {
@@ -324,60 +443,6 @@ export async function startGatewaySidecars(params: {
   logChannels: { info: (msg: string) => void; error: (msg: string) => void };
   startupTrace?: GatewayStartupTrace;
 }) {
-  await measureStartup(params.startupTrace, "sidecars.gmail-watch", async () => {
-    if (params.cfg.hooks?.enabled && params.cfg.hooks.gmail?.account) {
-      const { startGmailWatcherWithLogs } = await import("../hooks/gmail-watcher-lifecycle.js");
-      await startGmailWatcherWithLogs({
-        cfg: params.cfg,
-        log: params.logHooks,
-      });
-    }
-  });
-
-  await measureStartup(params.startupTrace, "sidecars.gmail-model", async () => {
-    if (params.cfg.hooks?.gmail?.model) {
-      const [
-        { DEFAULT_MODEL, DEFAULT_PROVIDER },
-        { loadModelCatalog },
-        { getModelRefStatus, resolveConfiguredModelRef, resolveHooksGmailModel },
-      ] = await Promise.all([
-        import("../agents/defaults.js"),
-        import("../agents/model-catalog.js"),
-        import("../agents/model-selection.js"),
-      ]);
-      const hooksModelRef = resolveHooksGmailModel({
-        cfg: params.cfg,
-        defaultProvider: DEFAULT_PROVIDER,
-      });
-      if (hooksModelRef) {
-        const { provider: resolvedDefaultProvider, model: defaultModel } =
-          resolveConfiguredModelRef({
-            cfg: params.cfg,
-            defaultProvider: DEFAULT_PROVIDER,
-            defaultModel: DEFAULT_MODEL,
-          });
-        const catalog = await loadModelCatalog({ config: params.cfg });
-        const status = getModelRefStatus({
-          cfg: params.cfg,
-          catalog,
-          ref: hooksModelRef,
-          defaultProvider: resolvedDefaultProvider,
-          defaultModel,
-        });
-        if (!status.allowed) {
-          params.logHooks.warn(
-            `hooks.gmail.model "${status.key}" not in agents.defaults.models allowlist (will use primary instead)`,
-          );
-        }
-        if (!status.inCatalog) {
-          params.logHooks.warn(
-            `hooks.gmail.model "${status.key}" not in the model catalog (may fail at runtime)`,
-          );
-        }
-      }
-    }
-  });
-
   const internalHooksConfigured = hasConfiguredInternalHooks(params.cfg);
   await measureStartup(params.startupTrace, "sidecars.internal-hooks", async () => {
     try {
@@ -492,26 +557,87 @@ export async function startGatewaySidecars(params: {
     });
   }
 
-  await measureStartup(params.startupTrace, "sidecars.memory", async () => {
-    if (!shouldStartGatewayMemoryBackend(params.cfg)) {
-      return;
-    }
-    setImmediate(() => {
-      void import("./server-startup-memory.js")
-        .then(({ startGatewayMemoryBackend }) =>
-          startGatewayMemoryBackend({ cfg: params.cfg, log: params.log }),
-        )
-        .catch((err) => {
-          params.log.warn(`qmd memory startup initialization failed: ${String(err)}`);
+  if (params.cfg.hooks?.enabled && params.cfg.hooks.gmail?.account) {
+    schedulePostReadySidecarTask({
+      startupTrace: params.startupTrace,
+      name: "sidecars.gmail-watch",
+      log: params.log,
+      run: async (isStopped, signal) => {
+        const { startGmailWatcherWithLogs } = await import("../hooks/gmail-watcher-lifecycle.js");
+        if (isStopped()) {
+          return;
+        }
+        await startGmailWatcherWithLogs({
+          cfg: params.cfg,
+          log: params.logHooks,
         });
+      },
     });
+  }
+
+  if (params.cfg.hooks?.gmail?.model) {
+    schedulePostReadySidecarTask({
+      startupTrace: params.startupTrace,
+      name: "sidecars.gmail-model",
+      log: params.log,
+      run: async (isStopped) => {
+        const [
+          { DEFAULT_MODEL, DEFAULT_PROVIDER },
+          { loadModelCatalog },
+          { getModelRefStatus, resolveConfiguredModelRef, resolveHooksGmailModel },
+        ] = await Promise.all([
+          import("../agents/defaults.js"),
+          import("../agents/model-catalog.js"),
+          import("../agents/model-selection.js"),
+        ]);
+        if (isStopped()) {
+          return;
+        }
+        const hooksModelRef = resolveHooksGmailModel({
+          cfg: params.cfg,
+          defaultProvider: DEFAULT_PROVIDER,
+        });
+        if (!hooksModelRef) {
+          return;
+        }
+        const { provider: resolvedDefaultProvider, model: defaultModel } =
+          resolveConfiguredModelRef({
+            cfg: params.cfg,
+            defaultProvider: DEFAULT_PROVIDER,
+            defaultModel: DEFAULT_MODEL,
+          });
+        const catalog = await loadModelCatalog({ config: params.cfg });
+        const status = getModelRefStatus({
+          cfg: params.cfg,
+          catalog,
+          ref: hooksModelRef,
+          defaultProvider: resolvedDefaultProvider,
+          defaultModel,
+        });
+        if (!status.allowed) {
+          params.logHooks.warn(
+            `hooks.gmail.model "${status.key}" not in agents.defaults.models allowlist (will use primary instead)`,
+          );
+        }
+        if (!status.inCatalog) {
+          params.logHooks.warn(
+            `hooks.gmail.model "${status.key}" not in the model catalog (may fail at runtime)`,
+          );
+        }
+      },
+    });
+  }
+
+  await measureStartup(params.startupTrace, "sidecars.memory", async () => {
+    const policy = resolveGatewayMemoryStartupPolicy(params.cfg);
+    scheduleGatewayMemoryBackend({ cfg: params.cfg, log: params.log, policy });
   });
 
   schedulePostReadySidecarTask({
     startupTrace: params.startupTrace,
     name: "sidecars.session-locks",
     log: params.log,
-    run: async () => {
+    run: async (isStopped) => {
       try {
         const [{ resolveStateDir }, { resolveAgentSessionDirs }, { cleanStaleLockFiles }] =
           await Promise.all([
@@ -521,22 +647,12 @@ export async function startGatewaySidecars(params: {
           ]);
         const stateDir = resolveStateDir(process.env);
         const sessionDirs = await resolveAgentSessionDirs(stateDir);
-        for (const sessionsDir of sessionDirs) {
-          const result = await cleanStaleLockFiles({
-            sessionsDir,
-            staleMs: SESSION_LOCK_STALE_MS,
-            removeStale: true,
-            log: { warn: (message) => params.log.warn(message) },
-          });
-          if (result.cleaned.length > 0) {
-            const { markRestartAbortedMainSessionsFromLocks } =
-              await import("../agents/main-session-restart-recovery.js");
-            await markRestartAbortedMainSessionsFromLocks({
-              sessionsDir,
-              cleanedLocks: result.cleaned,
-            });
-          }
-        }
+        await cleanupStaleSessionLocks({
+          sessionDirs,
+          log: params.log,
+          isStopped,
+          cleanStaleLockFiles,
+        });
       } catch (err) {
         params.log.warn(`session lock cleanup failed on startup: ${String(err)}`);
       }
@@ -820,6 +936,8 @@ export async function startGatewayPostAttachRuntime(
 }
 
 export const __testing = {
+  cleanupStaleSessionLocks,
   prewarmConfiguredPrimaryModel,
+  resolveGatewayMemoryStartupPolicy,
   shouldSkipStartupModelPrewarm,
 };

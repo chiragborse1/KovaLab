@@ -517,7 +517,7 @@ describe("sessions_spawn tool", () => {
     expect(hoisted.spawnAcpDirectMock).not.toHaveBeenCalled();
   });
 
-  it("rejects attachments for ACP runtime", async () => {
+  it("rejects non-image attachments for ACP runtime", async () => {
     registerAcpBackendForTest();
     const tool = createSessionsSpawnTool({
       agentSessionKey: "agent:main:main",
@@ -525,20 +525,80 @@ describe("sessions_spawn tool", () => {
       agentAccountId: "default",
       agentTo: "channel:123",
       agentThreadId: "456",
+      config: {
+        tools: {
+          sessions_spawn: {
+            attachments: {
+              enabled: true,
+            },
+          },
+        },
+      } as never,
     });
 
     const result = await tool.execute("call-3", {
       runtime: "acp",
       task: "analyze file",
-      attachments: [{ name: "a.txt", content: "hello", encoding: "utf8" }],
+      attachments: [{ name: "a.txt", content: "hello", encoding: "utf8", mimeType: "text/plain" }],
     });
 
     expect(result.details).toMatchObject({
       status: "error",
     });
     const details = result.details as { error?: string };
-    expect(details.error).toContain("attachments are currently unsupported for runtime=acp");
+    expect(details.error).toContain("attachments_unsupported_for_acp");
     expect(hoisted.spawnAcpDirectMock).not.toHaveBeenCalled();
+    expect(hoisted.spawnSubagentDirectMock).not.toHaveBeenCalled();
+  });
+
+  it("forwards image attachments for ACP runtime", async () => {
+    registerAcpBackendForTest();
+    const tool = createSessionsSpawnTool({
+      agentSessionKey: "agent:main:main",
+      agentChannel: "quietchat",
+      agentAccountId: "default",
+      agentTo: "channel:123",
+      agentThreadId: "456",
+      config: {
+        tools: {
+          sessions_spawn: {
+            attachments: {
+              enabled: true,
+            },
+          },
+        },
+      } as never,
+    });
+
+    const result = await tool.execute("call-3-image", {
+      runtime: "acp",
+      task: "analyze image",
+      attachments: [
+        {
+          name: "a.png",
+          content: Buffer.from("png").toString("base64"),
+          encoding: "base64",
+          mimeType: "image/png",
+        },
+      ],
+    });
+
+    expect(result.details).toMatchObject({
+      status: "accepted",
+      childSessionKey: "agent:codex:acp:1",
+      runId: "run-acp",
+    });
+    expect(hoisted.spawnAcpDirectMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        attachments: [
+          {
+            mediaType: "image/png",
+            data: Buffer.from("png").toString("base64"),
+          },
+        ],
+      }),
+      expect.any(Object),
+    );
     expect(hoisted.spawnSubagentDirectMock).not.toHaveBeenCalled();
   });
 

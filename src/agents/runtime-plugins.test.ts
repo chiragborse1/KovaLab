@@ -1,34 +1,55 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const hoisted = vi.hoisted(() => ({
-  resolveRuntimePluginRegistry: vi.fn(),
+  ensureStandaloneRuntimePluginRegistryLoaded: vi.fn(),
+  getCurrentPluginMetadataSnapshot: vi.fn(),
+  loadPluginLookUpTable: vi.fn(),
   getActivePluginRuntimeSubagentMode: vi.fn<() => "default" | "explicit" | "gateway-bindable">(
     () => "default",
   ),
 }));
 
-vi.mock("../plugins/loader.js", () => ({
-  resolveRuntimePluginRegistry: hoisted.resolveRuntimePluginRegistry,
+vi.mock("../plugins/current-plugin-metadata-snapshot.js", () => ({
+  getCurrentPluginMetadataSnapshot: hoisted.getCurrentPluginMetadataSnapshot,
+}));
+
+vi.mock("../plugins/plugin-lookup-table.js", () => ({
+  loadPluginLookUpTable: hoisted.loadPluginLookUpTable,
 }));
 
 vi.mock("../plugins/runtime.js", () => ({
   getActivePluginRuntimeSubagentMode: hoisted.getActivePluginRuntimeSubagentMode,
 }));
 
+vi.mock("../plugins/runtime/standalone-runtime-registry-loader.js", () => ({
+  ensureStandaloneRuntimePluginRegistryLoaded: hoisted.ensureStandaloneRuntimePluginRegistryLoaded,
+}));
+
 describe("ensureRuntimePluginsLoaded", () => {
   let ensureRuntimePluginsLoaded: typeof import("./runtime-plugins.js").ensureRuntimePluginsLoaded;
 
   beforeEach(async () => {
-    hoisted.resolveRuntimePluginRegistry.mockReset();
-    hoisted.resolveRuntimePluginRegistry.mockReturnValue(undefined);
+    hoisted.ensureStandaloneRuntimePluginRegistryLoaded.mockReset();
+    hoisted.getCurrentPluginMetadataSnapshot.mockReset();
+    hoisted.getCurrentPluginMetadataSnapshot.mockReturnValue(undefined);
+    hoisted.loadPluginLookUpTable.mockReset();
+    hoisted.loadPluginLookUpTable.mockReturnValue({
+      startup: {
+        pluginIds: ["telegram", "memory-core"],
+      },
+    });
     hoisted.getActivePluginRuntimeSubagentMode.mockReset();
     hoisted.getActivePluginRuntimeSubagentMode.mockReturnValue("default");
     vi.resetModules();
     ({ ensureRuntimePluginsLoaded } = await import("./runtime-plugins.js"));
   });
 
-  it("does not reactivate plugins when a process already has an active registry", async () => {
-    hoisted.resolveRuntimePluginRegistry.mockReturnValue({});
+  it("uses startup plugin ids from the current metadata snapshot", async () => {
+    hoisted.getCurrentPluginMetadataSnapshot.mockReturnValue({
+      startup: {
+        pluginIds: ["telegram"],
+      },
+    });
 
     ensureRuntimePluginsLoaded({
       config: {} as never,
@@ -36,21 +57,43 @@ describe("ensureRuntimePluginsLoaded", () => {
       allowGatewaySubagentBinding: true,
     });
 
-    expect(hoisted.resolveRuntimePluginRegistry).toHaveBeenCalledTimes(1);
+    expect(hoisted.loadPluginLookUpTable).not.toHaveBeenCalled();
+    expect(hoisted.ensureStandaloneRuntimePluginRegistryLoaded).toHaveBeenCalledWith({
+      requiredPluginIds: ["telegram"],
+      loadOptions: {
+        config: {} as never,
+        workspaceDir: "/tmp/workspace",
+        onlyPluginIds: ["telegram"],
+        runtimeOptions: {
+          allowGatewaySubagentBinding: true,
+        },
+      },
+    });
   });
 
-  it("resolves runtime plugins through the shared runtime helper", async () => {
+  it("falls back to the metadata lookup table when the current snapshot has no startup plan", async () => {
     ensureRuntimePluginsLoaded({
       config: {} as never,
       workspaceDir: "/tmp/workspace",
       allowGatewaySubagentBinding: true,
     });
 
-    expect(hoisted.resolveRuntimePluginRegistry).toHaveBeenCalledWith({
+    expect(hoisted.loadPluginLookUpTable).toHaveBeenCalledWith({
       config: {} as never,
+      activationSourceConfig: {} as never,
       workspaceDir: "/tmp/workspace",
-      runtimeOptions: {
-        allowGatewaySubagentBinding: true,
+      env: process.env,
+      metadataSnapshot: undefined,
+    });
+    expect(hoisted.ensureStandaloneRuntimePluginRegistryLoaded).toHaveBeenCalledWith({
+      requiredPluginIds: ["telegram", "memory-core"],
+      loadOptions: {
+        config: {} as never,
+        workspaceDir: "/tmp/workspace",
+        onlyPluginIds: ["telegram", "memory-core"],
+        runtimeOptions: {
+          allowGatewaySubagentBinding: true,
+        },
       },
     });
   });
@@ -61,10 +104,14 @@ describe("ensureRuntimePluginsLoaded", () => {
       workspaceDir: "/tmp/workspace",
     });
 
-    expect(hoisted.resolveRuntimePluginRegistry).toHaveBeenCalledWith({
-      config: {} as never,
-      workspaceDir: "/tmp/workspace",
-      runtimeOptions: undefined,
+    expect(hoisted.ensureStandaloneRuntimePluginRegistryLoaded).toHaveBeenCalledWith({
+      requiredPluginIds: ["telegram", "memory-core"],
+      loadOptions: {
+        config: {} as never,
+        workspaceDir: "/tmp/workspace",
+        onlyPluginIds: ["telegram", "memory-core"],
+        runtimeOptions: undefined,
+      },
     });
   });
 
@@ -76,11 +123,15 @@ describe("ensureRuntimePluginsLoaded", () => {
       workspaceDir: "/tmp/workspace",
     });
 
-    expect(hoisted.resolveRuntimePluginRegistry).toHaveBeenCalledWith({
-      config: {} as never,
-      workspaceDir: "/tmp/workspace",
-      runtimeOptions: {
-        allowGatewaySubagentBinding: true,
+    expect(hoisted.ensureStandaloneRuntimePluginRegistryLoaded).toHaveBeenCalledWith({
+      requiredPluginIds: ["telegram", "memory-core"],
+      loadOptions: {
+        config: {} as never,
+        workspaceDir: "/tmp/workspace",
+        onlyPluginIds: ["telegram", "memory-core"],
+        runtimeOptions: {
+          allowGatewaySubagentBinding: true,
+        },
       },
     });
   });

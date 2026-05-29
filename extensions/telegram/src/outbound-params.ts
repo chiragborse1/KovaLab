@@ -1,23 +1,35 @@
-function parseIntegerId(value: string): number | undefined {
-  if (!/^-?\d+$/.test(value)) {
-    return undefined;
-  }
-  const parsed = Number.parseInt(value, 10);
-  return Number.isFinite(parsed) ? parsed : undefined;
-}
-
-export function normalizeTelegramReplyToMessageId(value: unknown): number | undefined {
+function parseIntegerId(value: unknown): number | undefined {
   if (typeof value === "number") {
-    return Number.isFinite(value) ? Math.trunc(value) : undefined;
+    return Number.isSafeInteger(value) ? value : undefined;
   }
   if (typeof value !== "string") {
     return undefined;
+  }
+  if (!/^-?\d+$/.test(value.trim())) {
+    return undefined;
+  }
+  const parsed = Number(value.trim());
+  return Number.isSafeInteger(parsed) ? parsed : undefined;
+}
+
+function parseNonNegativeIntegerId(value: unknown): number | undefined {
+  const parsed = parseIntegerId(value);
+  return parsed !== undefined && parsed >= 0 ? parsed : undefined;
+}
+
+export function parseTelegramMessageThreadId(value: unknown): number | undefined {
+  return parseNonNegativeIntegerId(value);
+}
+
+export function normalizeTelegramReplyToMessageId(value: unknown): number | undefined {
+  if (typeof value !== "string") {
+    return parseIntegerId(value);
   }
   const trimmed = value.trim();
   return trimmed ? parseIntegerId(trimmed) : undefined;
 }
 
-export function parseTelegramReplyToMessageId(replyToId?: string | null): number | undefined {
+export function parseTelegramReplyToMessageId(replyToId?: unknown): number | undefined {
   return normalizeTelegramReplyToMessageId(replyToId);
 }
 
@@ -26,7 +38,7 @@ export function parseTelegramThreadId(threadId?: string | number | null): number
     return undefined;
   }
   if (typeof threadId === "number") {
-    return Number.isFinite(threadId) ? Math.trunc(threadId) : undefined;
+    return parseIntegerId(threadId);
   }
   const trimmed = threadId.trim();
   if (!trimmed) {

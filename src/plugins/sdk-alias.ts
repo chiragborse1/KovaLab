@@ -1,8 +1,10 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveKovaPackageRootSync } from "../infra/kova-root.js";
 import { normalizeLowercaseStringOrEmpty } from "../shared/string-coerce.js";
+import { PluginLruCache } from "./plugin-lru-cache.js";
 
 type PluginSdkAliasCandidateKind = "dist" | "src";
 export type PluginSdkResolutionPreference = "auto" | "dist" | "src";
@@ -15,12 +17,22 @@ export type LoaderModuleResolveParams = {
   pluginSdkResolution?: PluginSdkResolutionPreference;
 };
 
+export type PluginRuntimeModuleResolution = {
+  modulePath?: string;
+  packageRoot: string | null;
+  candidates: string[];
+  resolvedPath: string | null;
+  error?: string;
+};
+
 type PluginSdkPackageJson = {
   exports?: Record<string, unknown>;
   bin?: string | Record<string, unknown>;
+  version?: string;
 };
 
 const STARTUP_ARGV1 = process.argv[1];
+const pluginSdkPackageJsonByRoot = new Map<string, PluginSdkPackageJson | null>();
 
 export function normalizeJitiAliasTargetPath(targetPath: string): string {
   return process.platform === "win32" ? targetPath.replace(/\\/g, "/") : targetPath;
@@ -31,12 +43,94 @@ function resolveLoaderModulePath(params: LoaderModuleResolveParams = {}): string
 }
 
 function readPluginSdkPackageJson(packageRoot: string): PluginSdkPackageJson | null {
+  const cacheKey = path.resolve(packageRoot);
+  if (pluginSdkPackageJsonByRoot.has(cacheKey)) {
+    return pluginSdkPackageJsonByRoot.get(cacheKey) ?? null;
+  }
   try {
     const pkgRaw = fs.readFileSync(path.join(packageRoot, "package.json"), "utf-8");
-    return JSON.parse(pkgRaw) as PluginSdkPackageJson;
+    const parsed = JSON.parse(pkgRaw) as PluginSdkPackageJson;
+    pluginSdkPackageJsonByRoot.set(cacheKey, parsed);
+    return parsed;
   } catch {
+    pluginSdkPackageJsonByRoot.set(cacheKey, null);
     return null;
   }
+}
+
+function sanitizeJitiCachePathSegment(value: string): string {
+  const normalized = value.replace(/[^A-Za-z0-9._-]+/g, "_").replace(/^_+|_+$/g, "");
+  return normalized.length > 0 ? normalized : "unknown";
+}
+
+function resolveJitiFsCacheTmpDir(): string {
+  let tmpDir = os.tmpdir();
+  if (process.env.TMPDIR && tmpDir === process.cwd() && !process.env.JITI_RESPECT_TMPDIR_ENV) {
+    const originalTmpDir = process.env.TMPDIR;
+    delete process.env.TMPDIR;
+    try {
+      tmpDir = os.tmpdir();
+    } finally {
+      process.env.TMPDIR = originalTmpDir;
+    }
+  }
+  return tmpDir;
+}
+
+function readJitiBooleanEnv(name: string, defaultValue: boolean): boolean {
+  if (!(name in process.env)) {
+    return defaultValue;
+  }
+  try {
+    return Boolean(JSON.parse(process.env[name] ?? ""));
+  } catch {
+    return defaultValue;
+  }
+}
+
+function shouldUseJitiFsCache(): boolean {
+  return readJitiBooleanEnv("JITI_FS_CACHE", readJitiBooleanEnv("JITI_CACHE", true));
+}
+
+function resolveJitiCacheModulePath(params: LoaderModuleResolveParams = {}): string {
+  if (params.modulePath?.startsWith("file://")) {
+    try {
+      return fileURLToPath(params.modulePath);
+    } catch {
+      // Fall through to the shared module resolver for malformed test inputs.
+    }
+  }
+  return resolveLoaderModulePath(params);
+}
+
+export function resolvePluginLoaderJitiFsCacheDir(params: LoaderModuleResolveParams = {}): string {
+  const modulePath = resolveJitiCacheModulePath(params);
+  const packageRoot =
+    resolveLoaderPackageRoot({ ...params, modulePath }) ?? path.dirname(modulePath);
+  const packageJsonPath = path.join(packageRoot, "package.json");
+  const version = sanitizeJitiCachePathSegment(
+    readPluginSdkPackageJson(packageRoot)?.version ?? "unknown",
+  );
+  let installMarker = "no-package-json";
+  try {
+    const stat = fs.statSync(packageJsonPath);
+    installMarker = `${Math.trunc(stat.mtimeMs)}-${stat.size}`;
+  } catch {
+    // Package installs should have package.json; keep cache setup best-effort.
+  }
+  return path.join(
+    resolveJitiFsCacheTmpDir(),
+    "jiti",
+    "kova",
+    version,
+    sanitizeJitiCachePathSegment(installMarker),
+  );
+}
+
+export function resolvePluginLoaderJitiFsCacheOption(
+  params: LoaderModuleResolveParams = {},
+): false | string {
+  return shouldUseJitiFsCache() ? resolvePluginLoaderJitiFsCacheDir(params) : false;
 }
 
 function isSafePluginSdkSubpathSegment(subpath: string): boolean {
@@ -138,6 +232,108 @@ export function resolveLoaderPackageRoot(
     ...(argv1 ? { argv1 } : {}),
     ...(moduleUrl ? { moduleUrl } : {}),
   });
+}
+
+function createPluginRuntimeModuleCandidateMap(packageRoot: string) {
+  return {
+    src: path.join(packageRoot, "src", "plugins", "runtime", "index.ts"),
+    dist: path.join(packageRoot, "dist", "plugins", "runtime", "index.js"),
+  } as const;
+}
+
+function appendPluginRuntimeModuleCandidates(
+  candidates: string[],
+  packageRoot: string,
+  orderedKinds: readonly PluginSdkAliasCandidateKind[],
+): void {
+  const candidateMap = createPluginRuntimeModuleCandidateMap(packageRoot);
+  for (const kind of orderedKinds) {
+    candidates.push(candidateMap[kind]);
+  }
+}
+
+function appendSiblingPluginRuntimeModuleCandidates(
+  candidates: string[],
+  runtimeDir: string,
+  orderedKinds: readonly PluginSdkAliasCandidateKind[],
+): void {
+  const candidateMap = {
+    src: path.join(runtimeDir, "index.ts"),
+    dist: path.join(runtimeDir, "index.js"),
+  } as const;
+  for (const kind of orderedKinds) {
+    candidates.push(candidateMap[kind]);
+  }
+}
+
+function dedupeResolvedPaths(paths: readonly string[]): string[] {
+  const seen = new Set<string>();
+  const deduped: string[] = [];
+  for (const candidate of paths) {
+    const resolved = path.resolve(candidate);
+    if (seen.has(resolved)) {
+      continue;
+    }
+    seen.add(resolved);
+    deduped.push(resolved);
+  }
+  return deduped;
+}
+
+function listAncestorPluginRuntimeModuleCandidates(params: {
+  starts: readonly (string | undefined)[];
+  orderedKinds: readonly PluginSdkAliasCandidateKind[];
+  maxDepth?: number;
+}): string[] {
+  const candidates: string[] = [];
+  for (const start of params.starts) {
+    if (!start) {
+      continue;
+    }
+    let cursor = path.resolve(start);
+    const maxDepth = params.maxDepth ?? 12;
+    for (let i = 0; i < maxDepth; i += 1) {
+      appendPluginRuntimeModuleCandidates(candidates, cursor, params.orderedKinds);
+      const parent = path.dirname(cursor);
+      if (parent === cursor) {
+        break;
+      }
+      cursor = parent;
+    }
+  }
+  return dedupeResolvedPaths(candidates);
+}
+
+function listArgvRuntimeFallbackStartDirs(argv1: string | undefined): string[] {
+  if (!argv1) {
+    return [];
+  }
+  const normalized = path.resolve(argv1);
+  const starts: string[] = [];
+  const parts = normalized.split(path.sep);
+  const binIndex = parts.lastIndexOf(".bin");
+  if (binIndex > 0 && parts[binIndex - 1] === "node_modules") {
+    const binName = path.basename(normalized);
+    const nodeModulesDir = parts.slice(0, binIndex).join(path.sep);
+    if (binName === "kova") {
+      starts.push(path.join(nodeModulesDir, "getkova"));
+    }
+    starts.push(path.join(nodeModulesDir, binName));
+  }
+  try {
+    const resolved = fs.realpathSync(normalized);
+    if (resolved !== normalized) {
+      starts.push(path.dirname(resolved));
+    }
+  } catch {
+    // Startup shims may not exist in tests; keep the unresolved argv path.
+  }
+  starts.push(path.dirname(normalized));
+  return dedupeResolvedPaths(starts);
+}
+
+function formatResolutionError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 function resolveLoaderPluginSdkPackageRoot(
@@ -249,8 +445,16 @@ export function resolvePluginSdkAliasFile(params: {
   return null;
 }
 
-const cachedPluginSdkExportedSubpaths = new Map<string, string[]>();
-const cachedPluginSdkScopedAliasMaps = new Map<string, Record<string, string>>();
+const MAX_PLUGIN_LOADER_ALIAS_CACHE_ENTRIES = 512;
+const cachedPluginSdkExportedSubpaths = new PluginLruCache<string[]>(
+  MAX_PLUGIN_LOADER_ALIAS_CACHE_ENTRIES,
+);
+const cachedPluginSdkScopedAliasMaps = new PluginLruCache<Record<string, string>>(
+  MAX_PLUGIN_LOADER_ALIAS_CACHE_ENTRIES,
+);
+const cachedBundledPluginPublicSurfaceAliasMaps = new PluginLruCache<Record<string, string>>(
+  MAX_PLUGIN_LOADER_ALIAS_CACHE_ENTRIES,
+);
 const PLUGIN_SDK_PACKAGE_NAMES = ["getkova/plugin-sdk", "@getkova/plugin-sdk"] as const;
 const PLUGIN_SDK_SOURCE_CANDIDATE_EXTENSIONS = [
   ".ts",
@@ -260,6 +464,7 @@ const PLUGIN_SDK_SOURCE_CANDIDATE_EXTENSIONS = [
   ".cts",
   ".cjs",
 ] as const;
+const BUNDLED_PLUGIN_PUBLIC_SURFACE_SOURCE_PATTERN = /^(?:api|runtime-api|test-api|.+-api)$/u;
 const JS_STATIC_RELATIVE_DEPENDENCY_PATTERN =
   /(?:\bfrom\s*["']|\bimport\s*\(\s*["']|\brequire\s*\(\s*["'])(\.{1,2}\/[^"']+)["']/g;
 
@@ -304,6 +509,152 @@ function readPrivateLocalOnlyPluginSdkSubpaths(packageRoot: string): string[] {
   } catch {
     return [];
   }
+}
+
+function readBundledPluginPackageName(packageJsonPath: string): string | null {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(packageJsonPath, "utf-8")) as { name?: unknown };
+    const name = typeof parsed.name === "string" ? parsed.name.trim() : "";
+    return name.startsWith("@kovaai/") ? name : null;
+  } catch {
+    return null;
+  }
+}
+
+function isBundledPluginPublicSurfaceSourceBasename(params: {
+  basename: string;
+  includePrivateQa: boolean;
+}): boolean {
+  if (params.basename === "test-api") {
+    return params.includePrivateQa;
+  }
+  return BUNDLED_PLUGIN_PUBLIC_SURFACE_SOURCE_PATTERN.test(params.basename);
+}
+
+function listBundledPluginPublicSurfaceSourceBasenames(params: {
+  extensionSourceRoot: string;
+  includePrivateQa: boolean;
+}): string[] {
+  try {
+    return fs
+      .readdirSync(params.extensionSourceRoot, { withFileTypes: true })
+      .filter((entry) => entry.isFile())
+      .map((entry) => entry.name)
+      .flatMap((fileName) => {
+        const ext = PLUGIN_SDK_SOURCE_CANDIDATE_EXTENSIONS.find((candidateExt) =>
+          fileName.endsWith(candidateExt),
+        );
+        if (!ext) {
+          return [];
+        }
+        const basename = fileName.slice(0, -ext.length);
+        return isBundledPluginPublicSurfaceSourceBasename({
+          basename,
+          includePrivateQa: params.includePrivateQa,
+        })
+          ? [basename]
+          : [];
+      })
+      .toSorted();
+  } catch {
+    return [];
+  }
+}
+
+function resolveBundledPluginPublicSurfaceAliasTarget(params: {
+  packageRoot: string;
+  dirName: string;
+  basename: string;
+  orderedKinds: PluginSdkAliasCandidateKind[];
+}): string | null {
+  for (const kind of params.orderedKinds) {
+    if (kind === "dist") {
+      const candidate = path.join(
+        params.packageRoot,
+        "dist",
+        "extensions",
+        params.dirName,
+        `${params.basename}.js`,
+      );
+      if (fs.existsSync(candidate)) {
+        return candidate;
+      }
+      continue;
+    }
+    for (const ext of PLUGIN_SDK_SOURCE_CANDIDATE_EXTENSIONS) {
+      const candidate = path.join(
+        params.packageRoot,
+        "extensions",
+        params.dirName,
+        `${params.basename}${ext}`,
+      );
+      if (fs.existsSync(candidate)) {
+        return candidate;
+      }
+    }
+  }
+  return null;
+}
+
+function resolveBundledPluginPackagePublicSurfaceAliasMap(params: {
+  modulePath: string;
+  argv1?: string;
+  moduleUrl?: string;
+  pluginSdkResolution: PluginSdkResolutionPreference;
+}): Record<string, string> {
+  const packageRoot = resolveLoaderPluginSdkPackageRoot(params);
+  if (!packageRoot) {
+    return {};
+  }
+  const orderedKinds = resolvePluginSdkAliasCandidateOrder({
+    modulePath: params.modulePath,
+    isProduction: process.env.NODE_ENV === "production",
+    pluginSdkResolution: params.pluginSdkResolution,
+  });
+  const includePrivateQa = shouldIncludePrivateLocalOnlyPluginSdkSubpaths();
+  const cacheKey = `${packageRoot}::${orderedKinds.join(",")}::privateQa=${includePrivateQa ? "1" : "0"}`;
+  const cached = cachedBundledPluginPublicSurfaceAliasMaps.get(cacheKey);
+  if (cached) {
+    return cached;
+  }
+  const extensionsRoot = path.join(packageRoot, "extensions");
+  let extensionDirs: fs.Dirent[];
+  try {
+    extensionDirs = fs.readdirSync(extensionsRoot, { withFileTypes: true });
+  } catch {
+    cachedBundledPluginPublicSurfaceAliasMaps.set(cacheKey, {});
+    return {};
+  }
+  const aliasMap: Record<string, string> = {};
+  for (const entry of extensionDirs) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+    const dirName = entry.name;
+    const packageName = readBundledPluginPackageName(
+      path.join(extensionsRoot, dirName, "package.json"),
+    );
+    if (!packageName) {
+      continue;
+    }
+    for (const basename of listBundledPluginPublicSurfaceSourceBasenames({
+      extensionSourceRoot: path.join(extensionsRoot, dirName),
+      includePrivateQa,
+    })) {
+      const target = resolveBundledPluginPublicSurfaceAliasTarget({
+        packageRoot,
+        dirName,
+        basename,
+        orderedKinds,
+      });
+      if (!target) {
+        continue;
+      }
+      aliasMap[`${packageName}/${basename}.js`] = normalizeJitiAliasTargetPath(target);
+    }
+  }
+  cachedBundledPluginPublicSurfaceAliasMaps.set(cacheKey, aliasMap);
+  return aliasMap;
 }
 
 function shouldIncludePrivateLocalOnlyPluginSdkSubpaths() {
@@ -480,47 +831,76 @@ export function resolveExtensionApiAlias(params: LoaderModuleResolveParams = {})
   return null;
 }
 
-const MAX_PLUGIN_LOADER_ALIAS_CACHE_ENTRIES = 512;
 const JITI_NORMALIZED_ALIAS_SYMBOL = Symbol.for("pathe:normalizedAlias");
 const JITI_ALIAS_ROOT_SENTINELS = new Set<string | undefined>(["/", "\\", undefined]);
+const JITI_CONCRETE_ALIAS_TARGET_PATTERN = /^(?:[A-Za-z]:[/\\]|[/\\])/;
 
 // Memoize loader alias/config by effective resolution context so repeated
 // loader setup avoids rebuilding the same filesystem-derived map and cache key.
 // Include cwd/env inputs because the fallback root and private QA alias
 // surfaces depend on them.
-const aliasMapCache = new Map<string, Record<string, string>>();
-const normalizedJitiAliasMapCache = new Map<string, Record<string, string>>();
-const pluginLoaderJitiConfigCache = new Map<
-  string,
-  {
-    tryNative: boolean;
-    aliasMap: Record<string, string>;
-    cacheKey: string;
-  }
->();
-
-function setBoundedCacheValue<T>(cache: Map<string, T>, key: string, value: T) {
-  if (cache.has(key)) {
-    cache.delete(key);
-  }
-  cache.set(key, value);
-  while (cache.size > MAX_PLUGIN_LOADER_ALIAS_CACHE_ENTRIES) {
-    const oldestKey = cache.keys().next().value;
-    if (typeof oldestKey !== "string") {
-      break;
-    }
-    cache.delete(oldestKey);
-  }
-}
+const aliasMapCache = new PluginLruCache<Record<string, string>>(
+  MAX_PLUGIN_LOADER_ALIAS_CACHE_ENTRIES,
+);
+const normalizedJitiAliasMapCache = new PluginLruCache<Record<string, string>>(
+  MAX_PLUGIN_LOADER_ALIAS_CACHE_ENTRIES,
+);
+const normalizedJitiAliasMapByInput = new WeakMap<Record<string, string>, Record<string, string>>();
+const pluginLoaderJitiCacheKeyByAliasMap = new WeakMap<Record<string, string>, string>();
+const pluginLoaderJitiConfigCache = new PluginLruCache<{
+  tryNative: boolean;
+  aliasMap: Record<string, string>;
+  cacheKey: string;
+}>(MAX_PLUGIN_LOADER_ALIAS_CACHE_ENTRIES);
 
 function hasJitiNormalizedAliasMarker(aliasMap: Record<string, string>) {
   return Boolean((aliasMap as Record<symbol, unknown>)[JITI_NORMALIZED_ALIAS_SYMBOL]);
 }
 
 function createJitiAliasContentCacheKey(aliasMap: Record<string, string>) {
-  return JSON.stringify(
-    Object.entries(aliasMap).toSorted(([left], [right]) => left.localeCompare(right)),
-  );
+  return Object.entries(aliasMap)
+    .toSorted(([left], [right]) => left.localeCompare(right))
+    .map(([key, value]) => `${key}\0${value}`)
+    .join("\0");
+}
+
+function isConcreteJitiAliasTarget(target: string | undefined): boolean {
+  return typeof target === "string" && JITI_CONCRETE_ALIAS_TARGET_PATTERN.test(target);
+}
+
+function resolveJitiAliasTarget(
+  aliasKey: string,
+  aliasKeys: string[],
+  aliasMap: Record<string, string>,
+) {
+  let target = aliasMap[aliasKey];
+  const seenTargets = new Set<string>();
+  const seenAliasKeys = new Set<string>();
+  while (target && !isConcreteJitiAliasTarget(target) && !seenTargets.has(target)) {
+    seenTargets.add(target);
+    let nextTarget: string | undefined;
+    for (const candidateKey of aliasKeys) {
+      if (
+        candidateKey === aliasKey ||
+        aliasKey.startsWith(candidateKey) ||
+        !target.startsWith(candidateKey) ||
+        !JITI_ALIAS_ROOT_SENTINELS.has(target[candidateKey.length])
+      ) {
+        continue;
+      }
+      if (seenAliasKeys.has(candidateKey)) {
+        return target;
+      }
+      seenAliasKeys.add(candidateKey);
+      nextTarget = aliasMap[candidateKey] + target.slice(candidateKey.length);
+      break;
+    }
+    if (!nextTarget || nextTarget === target) {
+      break;
+    }
+    target = nextTarget;
+  }
+  return target;
 }
 
 function normalizePluginLoaderAliasMapForJiti(
@@ -529,35 +909,48 @@ function normalizePluginLoaderAliasMapForJiti(
   if (hasJitiNormalizedAliasMarker(aliasMap)) {
     return aliasMap;
   }
+  const cachedByInput = normalizedJitiAliasMapByInput.get(aliasMap);
+  if (cachedByInput) {
+    return cachedByInput;
+  }
   const cacheKey = createJitiAliasContentCacheKey(aliasMap);
   const cached = normalizedJitiAliasMapCache.get(cacheKey);
   if (cached) {
+    normalizedJitiAliasMapByInput.set(aliasMap, cached);
     return cached;
   }
+  const aliasDepth = new Map<string, number>();
+  const getAliasDepth = (key: string) => {
+    const cachedDepth = aliasDepth.get(key);
+    if (cachedDepth !== undefined) {
+      return cachedDepth;
+    }
+    const depth = key.split("/").length;
+    aliasDepth.set(key, depth);
+    return depth;
+  };
   const normalizedAliasMap = Object.fromEntries(
     Object.entries(aliasMap).toSorted(
-      ([left], [right]) => right.split("/").length - left.split("/").length,
+      ([left], [right]) => getAliasDepth(right) - getAliasDepth(left),
     ),
   );
-  for (const aliasKey in normalizedAliasMap) {
-    for (const candidateKey in normalizedAliasMap) {
-      if (
-        candidateKey === aliasKey ||
-        aliasKey.startsWith(candidateKey) ||
-        !normalizedAliasMap[aliasKey]?.startsWith(candidateKey) ||
-        !JITI_ALIAS_ROOT_SENTINELS.has(normalizedAliasMap[aliasKey]?.[candidateKey.length])
-      ) {
-        continue;
-      }
-      normalizedAliasMap[aliasKey] =
-        normalizedAliasMap[candidateKey] + normalizedAliasMap[aliasKey].slice(candidateKey.length);
+  const aliasKeys = Object.keys(normalizedAliasMap);
+  for (const aliasKey of aliasKeys) {
+    const target = normalizedAliasMap[aliasKey];
+    if (!target || isConcreteJitiAliasTarget(target)) {
+      continue;
+    }
+    const resolvedTarget = resolveJitiAliasTarget(aliasKey, aliasKeys, normalizedAliasMap);
+    if (resolvedTarget) {
+      normalizedAliasMap[aliasKey] = resolvedTarget;
     }
   }
   Object.defineProperty(normalizedAliasMap, JITI_NORMALIZED_ALIAS_SYMBOL, {
     value: true,
     enumerable: false,
   });
-  setBoundedCacheValue(normalizedJitiAliasMapCache, cacheKey, normalizedAliasMap);
+  normalizedJitiAliasMapCache.set(cacheKey, normalizedAliasMap);
+  normalizedJitiAliasMapByInput.set(aliasMap, normalizedAliasMap);
   return normalizedAliasMap;
 }
 
@@ -626,6 +1019,12 @@ export function buildPluginLoaderAliasMap(
     ...(extensionApiAlias
       ? { "getkova/extension-api": normalizeJitiAliasTargetPath(extensionApiAlias) }
       : {}),
+    ...resolveBundledPluginPackagePublicSurfaceAliasMap({
+      modulePath,
+      argv1,
+      moduleUrl,
+      pluginSdkResolution,
+    }),
     ...(pluginSdkAlias
       ? Object.fromEntries(
           PLUGIN_SDK_PACKAGE_NAMES.map((packageName) => [
@@ -640,47 +1039,83 @@ export function buildPluginLoaderAliasMap(
       ).map(([key, value]) => [key, normalizeJitiAliasTargetPath(value)]),
     ),
   };
-  setBoundedCacheValue(aliasMapCache, cacheKey, result);
+  aliasMapCache.set(cacheKey, result);
   return result;
 }
 
 export function resolvePluginRuntimeModulePath(
   params: LoaderModuleResolveParams = {},
 ): string | null {
+  return resolvePluginRuntimeModulePathWithDiagnostics(params).resolvedPath;
+}
+
+export function resolvePluginRuntimeModulePathWithDiagnostics(
+  params: LoaderModuleResolveParams = {},
+): PluginRuntimeModuleResolution {
+  let modulePath: string | undefined;
+  let packageRoot: string | null = null;
+  const candidates: string[] = [];
   try {
-    const modulePath = resolveLoaderModulePath(params);
+    modulePath = resolveLoaderModulePath(params);
     const orderedKinds = resolvePluginSdkAliasCandidateOrder({
       modulePath,
       isProduction: process.env.NODE_ENV === "production",
       pluginSdkResolution: params.pluginSdkResolution,
     });
-    const packageRoot = resolveLoaderPackageRoot({ ...params, modulePath });
-    const candidates = packageRoot
-      ? orderedKinds.map((kind) =>
-          kind === "src"
-            ? path.join(packageRoot, "src", "plugins", "runtime", "index.ts")
-            : path.join(packageRoot, "dist", "plugins", "runtime", "index.js"),
-        )
-      : [
-          path.join(path.dirname(modulePath), "runtime", "index.ts"),
-          path.join(path.dirname(modulePath), "runtime", "index.js"),
-        ];
-    for (const candidate of candidates) {
+    packageRoot = resolveLoaderPackageRoot({ ...params, modulePath });
+    if (packageRoot) {
+      appendPluginRuntimeModuleCandidates(candidates, packageRoot, orderedKinds);
+    } else {
+      const argv1 = params.argv1 ?? process.argv[1];
+      candidates.push(
+        ...listAncestorPluginRuntimeModuleCandidates({
+          starts: listArgvRuntimeFallbackStartDirs(argv1),
+          orderedKinds,
+        }),
+      );
+      appendSiblingPluginRuntimeModuleCandidates(
+        candidates,
+        path.join(path.dirname(modulePath), "runtime"),
+        orderedKinds,
+      );
+    }
+    const dedupedCandidates = dedupeResolvedPaths(candidates);
+    for (const candidate of dedupedCandidates) {
       if (fs.existsSync(candidate)) {
-        return candidate;
+        return {
+          modulePath,
+          packageRoot,
+          candidates: dedupedCandidates,
+          resolvedPath: candidate,
+        };
       }
     }
-  } catch {
-    // ignore
+  } catch (error) {
+    return {
+      modulePath,
+      packageRoot,
+      candidates: dedupeResolvedPaths(candidates),
+      resolvedPath: null,
+      error: formatResolutionError(error),
+    };
   }
-  return null;
+  return {
+    modulePath,
+    packageRoot,
+    candidates: dedupeResolvedPaths(candidates),
+    resolvedPath: null,
+  };
 }
 
-export function buildPluginLoaderJitiOptions(aliasMap: Record<string, string>) {
+export function buildPluginLoaderJitiOptions(
+  aliasMap: Record<string, string>,
+  params: LoaderModuleResolveParams = {},
+) {
   const hasAliases = Object.keys(aliasMap).length > 0;
   const jitiAliasMap = hasAliases ? normalizePluginLoaderAliasMapForJiti(aliasMap) : aliasMap;
   return {
     interopDefault: true,
+    fsCache: resolvePluginLoaderJitiFsCacheOption(params),
     // Prefer Node's native sync ESM loader for built dist/*.js modules so
     // bundled plugins and plugin-sdk subpaths stay on the canonical module graph.
     tryNative: true,
@@ -695,7 +1130,7 @@ export function buildPluginLoaderJitiOptions(aliasMap: Record<string, string>) {
 
 function supportsNativeJitiRuntime(): boolean {
   const versions = process.versions as { bun?: string };
-  return typeof versions.bun !== "string" && process.platform !== "win32";
+  return typeof versions.bun !== "string";
 }
 
 function isBundledPluginDistModulePath(modulePath: string): boolean {
@@ -738,12 +1173,11 @@ export function createPluginLoaderJitiCacheKey(params: {
   tryNative: boolean;
   aliasMap: Record<string, string>;
 }): string {
-  return JSON.stringify({
-    tryNative: params.tryNative,
-    aliasMap: Object.entries(params.aliasMap).toSorted(([left], [right]) =>
-      left.localeCompare(right),
-    ),
-  });
+  const aliasMapKey =
+    pluginLoaderJitiCacheKeyByAliasMap.get(params.aliasMap) ??
+    createJitiAliasContentCacheKey(params.aliasMap);
+  pluginLoaderJitiCacheKeyByAliasMap.set(params.aliasMap, aliasMapKey);
+  return `${params.tryNative ? "native" : "transform"}\0${aliasMapKey}`;
 }
 
 export function resolvePluginLoaderJitiConfig(params: {
@@ -781,7 +1215,7 @@ export function resolvePluginLoaderJitiConfig(params: {
       aliasMap,
     }),
   };
-  setBoundedCacheValue(pluginLoaderJitiConfigCache, configCacheKey, result);
+  pluginLoaderJitiConfigCache.set(configCacheKey, result);
   return result;
 }
 

@@ -989,6 +989,8 @@ export async function runReplyAgent(params: {
       await updateSessionStoreEntry({
         storePath,
         sessionKey,
+        skipMaintenance: true,
+        takeCacheOwnership: true,
         update: async () => ({ updatedAt }),
       });
     }
@@ -1284,6 +1286,8 @@ export async function runReplyAgent(params: {
         await updateSessionStoreEntry({
           storePath,
           sessionKey,
+          skipMaintenance: true,
+          takeCacheOwnership: true,
           update: async () => ({
             groupActivationNeedsSystemIntro: false,
             updatedAt,
@@ -1335,6 +1339,8 @@ export async function runReplyAgent(params: {
         await updateSessionStoreEntry({
           storePath,
           sessionKey,
+          skipMaintenance: true,
+          takeCacheOwnership: true,
           update: async () => ({
             fallbackNoticeSelectedModel: fallbackTransition.nextState.selectedModel,
             fallbackNoticeActiveModel: fallbackTransition.nextState.activeModel,

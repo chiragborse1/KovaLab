@@ -57,6 +57,8 @@ export type CodexAppServerStartOptions = {
 export type CodexAppServerRuntimeOptions = {
   start: CodexAppServerStartOptions;
   requestTimeoutMs: number;
+  turnCompletionIdleTimeoutMs: number;
+  postToolRawAssistantCompletionIdleTimeoutMs?: number;
   approvalPolicy: CodexAppServerApprovalPolicy;
   sandbox: CodexAppServerSandboxMode;
   approvalsReviewer: CodexAppServerApprovalsReviewer;
@@ -79,6 +81,8 @@ export type CodexPluginConfig = {
     authToken?: string;
     headers?: Record<string, string>;
     requestTimeoutMs?: number;
+    turnCompletionIdleTimeoutMs?: number;
+    postToolRawAssistantCompletionIdleTimeoutMs?: number;
     approvalPolicy?: CodexAppServerApprovalPolicy;
     sandbox?: CodexAppServerSandboxMode;
     approvalsReviewer?: CodexAppServerApprovalsReviewer;
@@ -96,6 +100,8 @@ export const CODEX_APP_SERVER_CONFIG_KEYS = [
   "authToken",
   "headers",
   "requestTimeoutMs",
+  "turnCompletionIdleTimeoutMs",
+  "postToolRawAssistantCompletionIdleTimeoutMs",
   "approvalPolicy",
   "sandbox",
   "approvalsReviewer",
@@ -166,6 +172,8 @@ const codexPluginConfigSchema = z
         authToken: z.string().optional(),
         headers: z.record(z.string(), z.string()).optional(),
         requestTimeoutMs: z.number().positive().optional(),
+        turnCompletionIdleTimeoutMs: z.number().positive().optional(),
+        postToolRawAssistantCompletionIdleTimeoutMs: z.number().positive().optional(),
         approvalPolicy: codexAppServerApprovalPolicySchema.optional(),
         sandbox: codexAppServerSandboxSchema.optional(),
         approvalsReviewer: codexAppServerApprovalsReviewerSchema.optional(),
@@ -240,6 +248,18 @@ export function resolveCodexAppServerRuntimeOptions(
       headers,
     },
     requestTimeoutMs: normalizePositiveNumber(config.requestTimeoutMs, 60_000),
+    turnCompletionIdleTimeoutMs: normalizePositiveNumber(
+      config.turnCompletionIdleTimeoutMs,
+      60_000,
+    ),
+    ...(config.postToolRawAssistantCompletionIdleTimeoutMs !== undefined
+      ? {
+          postToolRawAssistantCompletionIdleTimeoutMs: normalizePositiveNumber(
+            config.postToolRawAssistantCompletionIdleTimeoutMs,
+            60_000,
+          ),
+        }
+      : {}),
     approvalPolicy:
       resolveApprovalPolicy(config.approvalPolicy) ??
       resolveApprovalPolicy(env.KOVA_CODEX_APP_SERVER_APPROVAL_POLICY) ??

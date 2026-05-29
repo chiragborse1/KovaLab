@@ -21,6 +21,7 @@ type ColdPluginFixtureOptions = {
   channelId?: string;
   authChoiceId?: string;
   runtimeMessage?: string;
+  packageJson?: Record<string, unknown>;
   manifest?: Record<string, unknown>;
 };
 
@@ -37,6 +38,7 @@ export function createColdPluginFixture(options: ColdPluginFixtureOptions): Cold
       {
         name: options.packageName ?? "@example/kova-cold-control-plane",
         version: options.packageVersion ?? "1.0.0",
+        ...options.packageJson,
         kova: { extensions: ["./index.cjs"] },
       },
       null,

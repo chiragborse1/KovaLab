@@ -282,6 +282,39 @@ describe("selectAgentHarness", () => {
     expect(supports).not.toHaveBeenCalled();
   });
 
+  it("implicitly selects the Codex harness for OpenAI Codex models when available", () => {
+    const supports = vi.fn((ctx: { provider: string }) =>
+      ctx.provider === "openai-codex"
+        ? { supported: true as const, priority: 100 }
+        : { supported: false as const },
+    );
+    registerAgentHarness({
+      id: "codex",
+      label: "Codex",
+      supports,
+      runAttempt: vi.fn(async () => createAttemptResult("codex")),
+    });
+
+    const harness = selectAgentHarness({
+      provider: "openai-codex",
+      modelId: "gpt-5.5",
+    });
+
+    expect(harness.id).toBe("codex");
+    expect(supports).not.toHaveBeenCalled();
+  });
+
+  it("falls back to PI if the implicit Codex harness is not registered", async () => {
+    const result = await runAgentHarnessAttemptWithFallback({
+      ...createAttemptParams(),
+      provider: "openai-codex",
+      modelId: "gpt-5.5",
+    });
+
+    expect(result.sessionIdUsed).toBe("pi");
+    expect(piRunAttempt).toHaveBeenCalledTimes(1);
+  });
+
   it("auto-selects the highest-priority plugin harness without duplicate support probes", () => {
     const lowPrioritySupports = vi.fn(() => ({
       supported: true as const,

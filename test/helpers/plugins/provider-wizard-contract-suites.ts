@@ -8,10 +8,19 @@ import {
 import type { ProviderAuthMethod, ProviderPlugin } from "../../../src/plugins/types.js";
 
 const resolvePluginProvidersMock = vi.fn();
+const resolveManifestProviderAuthChoicesMock = vi.fn();
+const resolvePluginSetupProviderMock = vi.fn();
 
 vi.mock("../../../src/plugins/providers.runtime.js", () => ({
   isPluginProvidersLoadInFlight: () => false,
   resolvePluginProviders: (...args: unknown[]) => resolvePluginProvidersMock(...args),
+}));
+vi.mock("../../../src/plugins/provider-auth-choices.js", () => ({
+  resolveManifestProviderAuthChoices: (...args: unknown[]) =>
+    resolveManifestProviderAuthChoicesMock(...args),
+}));
+vi.mock("../../../src/plugins/setup-registry.js", () => ({
+  resolvePluginSetupProvider: (...args: unknown[]) => resolvePluginSetupProviderMock(...args),
 }));
 
 function createAuthMethod(
@@ -143,6 +152,56 @@ function resolveExpectedWizardChoiceValues(providers: ProviderPlugin[]) {
   );
 }
 
+function buildExpectedWizardChoices(providers: ProviderPlugin[]) {
+  return providers.flatMap((provider) => {
+    const methodSetups = provider.auth.filter((method) => method.wizard);
+    if (methodSetups.length > 0) {
+      return methodSetups.map((method) => {
+        const wizard = method.wizard!;
+        return {
+          pluginId: provider.id,
+          providerId: provider.id,
+          methodId: method.id,
+          choiceId:
+            wizard.choiceId?.trim() || buildProviderPluginMethodChoice(provider.id, method.id),
+          choiceLabel: wizard.choiceLabel?.trim() || provider.label,
+          ...(wizard.choiceHint ? { choiceHint: wizard.choiceHint } : {}),
+          ...(wizard.groupId ? { groupId: wizard.groupId } : {}),
+          ...(wizard.groupLabel ? { groupLabel: wizard.groupLabel } : {}),
+          ...(wizard.groupHint ? { groupHint: wizard.groupHint } : {}),
+          ...(wizard.onboardingScopes ? { onboardingScopes: wizard.onboardingScopes } : {}),
+        };
+      });
+    }
+
+    const setup = provider.wizard?.setup;
+    if (!setup) {
+      return [];
+    }
+    const explicitMethodId = setup.methodId?.trim();
+    const methods =
+      explicitMethodId && provider.auth.some((method) => method.id === explicitMethodId)
+        ? provider.auth.filter((method) => method.id === explicitMethodId)
+        : provider.auth;
+    return methods.map((method) => ({
+      pluginId: provider.id,
+      providerId: provider.id,
+      methodId: method.id,
+      choiceId:
+        setup.choiceId?.trim() ||
+        (provider.auth.length === 1
+          ? provider.id
+          : buildProviderPluginMethodChoice(provider.id, method.id)),
+      choiceLabel: setup.choiceLabel?.trim() || provider.label,
+      ...(setup.choiceHint ? { choiceHint: setup.choiceHint } : {}),
+      ...(setup.groupId ? { groupId: setup.groupId } : {}),
+      ...(setup.groupLabel ? { groupLabel: setup.groupLabel } : {}),
+      ...(setup.groupHint ? { groupHint: setup.groupHint } : {}),
+      ...(setup.onboardingScopes ? { onboardingScopes: setup.onboardingScopes } : {}),
+    }));
+  });
+}
+
 function resolveExpectedModelPickerValues(providers: ProviderPlugin[]) {
   return sortedValues(
     providers.flatMap((provider) => {
@@ -175,6 +234,14 @@ function expectAllChoicesResolve(
 beforeEach(() => {
   resolvePluginProvidersMock.mockReset();
   resolvePluginProvidersMock.mockReturnValue(TEST_PROVIDERS);
+  resolveManifestProviderAuthChoicesMock.mockReset();
+  resolveManifestProviderAuthChoicesMock.mockReturnValue(
+    buildExpectedWizardChoices(TEST_PROVIDERS),
+  );
+  resolvePluginSetupProviderMock.mockReset();
+  resolvePluginSetupProviderMock.mockImplementation((params: { provider?: string }) =>
+    TEST_PROVIDERS.find((provider) => provider.id === params.provider),
+  );
 });
 
 export function describeProviderWizardSetupOptionsContract() {
@@ -221,7 +288,11 @@ export function describeProviderWizardChoiceResolutionContract() {
 export function describeProviderWizardModelPickerContract() {
   describe("provider wizard model picker contract", () => {
     it("exposes every model-picker entry through the shared wizard layer", () => {
-      const entries = resolveProviderModelPickerEntries({ config: {}, env: process.env });
+      const entries = resolveProviderModelPickerEntries({
+        config: {},
+        env: process.env,
+        providerRefs: TEST_PROVIDER_IDS,
+      });
 
       expect(sortedValues(entries.map((entry) => entry.value))).toEqual(
         resolveExpectedModelPickerValues(TEST_PROVIDERS),

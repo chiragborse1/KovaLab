@@ -34,6 +34,14 @@
     }
   },
   "syntheticAuthRefs": ["xai"],
+  "setup": {
+    "providers": [
+      {
+        "id": "xai",
+        "envVars": ["XAI_API_KEY"]
+      }
+    ]
+  },
   "providerAuthEnvVars": {
     "xai": ["XAI_API_KEY"]
   },

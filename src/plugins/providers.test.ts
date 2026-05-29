@@ -2,6 +2,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { KovaConfig } from "../config/config.js";
 import type { PluginAutoEnableResult } from "../config/plugin-auto-enable.js";
 import type { PluginManifestRecord } from "./manifest-registry.js";
+import type { PluginMetadataSnapshot } from "./plugin-metadata-snapshot.types.js";
 import { createEmptyPluginRegistry } from "./registry-empty.js";
 import type { ProviderPlugin } from "./types.js";
 
@@ -17,6 +18,7 @@ const resolveRuntimePluginRegistryMock = vi.fn<ResolveRuntimePluginRegistry>();
 const loadKovaPluginsMock = vi.fn<LoadKovaPlugins>();
 const isPluginRegistryLoadInFlightMock = vi.fn<IsPluginRegistryLoadInFlight>((_) => false);
 const loadPluginManifestRegistryMock = vi.fn<LoadPluginManifestRegistry>();
+const getCurrentPluginMetadataSnapshotMock = vi.fn();
 const applyPluginAutoEnableMock = vi.fn<ApplyPluginAutoEnable>();
 
 let resolveOwningPluginIdsForProvider: typeof import("./providers.js").resolveOwningPluginIdsForProvider;
@@ -38,6 +40,7 @@ function createManifestProviderPlugin(params: {
   origin?: "bundled" | "workspace";
   enabledByDefault?: boolean;
   modelSupport?: { modelPrefixes?: string[]; modelPatterns?: string[] };
+  modelCatalog?: PluginManifestRecord["modelCatalog"];
   activation?: PluginManifestRecord["activation"];
   setup?: PluginManifestRecord["setup"];
   contracts?: PluginManifestRecord["contracts"];
@@ -49,6 +52,7 @@ function createManifestProviderPlugin(params: {
     providers: params.providerIds,
     cliBackends: params.cliBackends ?? [],
     modelSupport: params.modelSupport,
+    modelCatalog: params.modelCatalog,
     activation: params.activation,
     setup: params.setup,
     contracts: params.contracts,
@@ -124,6 +128,45 @@ function setOwningProviderManifestPluginsWithWorkspace() {
       },
     }),
   ]);
+}
+
+function createMetadataSnapshotFixture(
+  plugins: PluginManifestRecord[],
+): Pick<PluginMetadataSnapshot, "owners" | "manifestRegistry" | "byPluginId"> {
+  const ownerMap = (entries: Array<[string, readonly string[]]>) => new Map(entries);
+  return {
+    manifestRegistry: {
+      plugins,
+      diagnostics: [],
+    },
+    byPluginId: new Map(plugins.map((plugin) => [plugin.id, plugin])),
+    owners: {
+      channels: ownerMap([]),
+      channelConfigs: ownerMap([]),
+      providers: ownerMap(
+        plugins.flatMap((plugin) =>
+          plugin.providers.map((providerId) => [providerId, [plugin.id]] as const),
+        ),
+      ),
+      modelCatalogProviders: ownerMap(
+        plugins.flatMap((plugin) =>
+          Object.keys(plugin.modelCatalog?.aliases ?? {}).map(
+            (providerId) => [providerId, [plugin.id]] as const,
+          ),
+        ),
+      ),
+      cliBackends: ownerMap(
+        plugins.flatMap((plugin) =>
+          [...plugin.cliBackends, ...(plugin.setup?.cliBackends ?? [])].map(
+            (backendId) => [backendId, [plugin.id]] as const,
+          ),
+        ),
+      ),
+      setupProviders: ownerMap([]),
+      commandAliases: ownerMap([]),
+      contracts: ownerMap([]),
+    },
+  };
 }
 
 function getLastRuntimeRegistryCall(): Record<string, unknown> {
@@ -290,6 +333,10 @@ describe("resolvePluginProviders", () => {
       loadPluginManifestRegistry: (...args: Parameters<LoadPluginManifestRegistry>) =>
         loadPluginManifestRegistryMock(...args),
     }));
+    vi.doMock("./current-plugin-metadata-snapshot.js", () => ({
+      getCurrentPluginMetadataSnapshot: (...args: unknown[]) =>
+        getCurrentPluginMetadataSnapshotMock(...args),
+    }));
     vi.doMock("./installed-plugin-index-store.js", async (importOriginal) => {
       const actual = await importOriginal<typeof import("./installed-plugin-index-store.js")>();
       return {
@@ -319,6 +366,57 @@ describe("resolvePluginProviders", () => {
     expectOwningPluginIds("codex-cli", ["openai"]);
   });
 
+  it("uses the current metadata owner maps before loading plugin metadata", () => {
+    const plugins = [
+      createManifestProviderPlugin({
+        id: "openai",
+        providerIds: ["openai", "openai-codex"],
+      }),
+    ];
+    getCurrentPluginMetadataSnapshotMock.mockReturnValue(createMetadataSnapshotFixture(plugins));
+
+    expectOwningPluginIds("openai-codex", ["openai"]);
+
+    expect(loadPluginManifestRegistryMock).not.toHaveBeenCalled();
+    expect(getCurrentPluginMetadataSnapshotMock).toHaveBeenCalledWith({
+      config: undefined,
+      env: undefined,
+      allowWorkspaceScopedSnapshot: true,
+    });
+  });
+
+  it("uses current metadata owner maps for cli backend provider refs", () => {
+    const plugins = [
+      createManifestProviderPlugin({
+        id: "anthropic",
+        providerIds: [],
+        cliBackends: ["claude-cli"],
+      }),
+    ];
+    getCurrentPluginMetadataSnapshotMock.mockReturnValue(createMetadataSnapshotFixture(plugins));
+
+    expectOwningPluginIds("claude-cli", ["anthropic"]);
+
+    expect(loadPluginManifestRegistryMock).not.toHaveBeenCalled();
+  });
+
+  it("uses current metadata owner maps for model catalog aliases", () => {
+    const plugins = [
+      createManifestProviderPlugin({
+        id: "openai",
+        providerIds: ["openai"],
+        modelCatalog: {
+          aliases: {
+            "openai-codex": { provider: "openai" },
+          },
+        },
+      }),
+    ];
+    getCurrentPluginMetadataSnapshotMock.mockReturnValue(createMetadataSnapshotFixture(plugins));
+
+    expectOwningPluginIds("openai-codex", ["openai"]);
+  });
+
   beforeEach(() => {
     clearPluginRegistrySnapshotCache();
     setActivePluginRegistry(createEmptyPluginRegistry());
@@ -326,6 +424,8 @@ describe("resolvePluginProviders", () => {
     loadKovaPluginsMock.mockReset();
     isPluginRegistryLoadInFlightMock.mockReset();
     isPluginRegistryLoadInFlightMock.mockReturnValue(false);
+    getCurrentPluginMetadataSnapshotMock.mockReset();
+    getCurrentPluginMetadataSnapshotMock.mockReturnValue(undefined);
     const provider: ProviderPlugin = {
       id: "demo-provider",
       label: "Demo Provider",

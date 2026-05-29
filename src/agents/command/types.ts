@@ -17,6 +17,9 @@ export type { AgentStreamParams } from "./shared-types.js";
 export type AgentCommandResultMetaOverrides = {
   transport?: "embedded";
   fallbackFrom?: "gateway";
+  fallbackReason?: string;
+  fallbackSessionId?: string;
+  fallbackSessionKey?: string;
 };
 
 export type AgentRunContext = {

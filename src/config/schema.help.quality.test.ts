@@ -548,6 +548,7 @@ const FINAL_BACKLOG_TARGET_KEYS = [
   "gateway.remote.password",
   "gateway.remote.token",
   "skills.load.watch",
+  "skills.load.allowSymlinkTargets",
   "skills.load.watchDebounceMs",
   "ui.assistant.avatar",
   "ui.assistant.name",

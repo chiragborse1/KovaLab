@@ -10,6 +10,7 @@ import {
   clearInstalledManifestRegistryCache,
   loadPluginManifestRegistryForInstalledIndex,
 } from "./manifest-registry-installed.js";
+import { clearPluginMetadataLifecycleCaches } from "./plugin-metadata-lifecycle.js";
 import { cleanupTrackedTempDirs, makeTrackedTempDir } from "./test-helpers/fs-fixtures.js";
 
 const tempDirs: string[] = [];
@@ -72,6 +73,48 @@ function createIndex(rootDir: string): InstalledPluginIndex {
       },
     ],
     diagnostics: [],
+  };
+}
+
+function writePackageManifest(rootDir: string, label: string) {
+  fs.writeFileSync(
+    path.join(rootDir, "package.json"),
+    JSON.stringify({
+      dependencies: {
+        "runtime-dep": "1.0.0",
+      },
+      kova: {
+        channel: {
+          id: "installed",
+          label,
+          commands: {
+            nativeCommandsAutoEnabled: true,
+            nativeSkillsAutoEnabled: false,
+          },
+        },
+      },
+    }),
+    "utf8",
+  );
+}
+
+function createIndexWithPackageJson(rootDir: string): InstalledPluginIndex {
+  const index = createIndex(rootDir);
+  return {
+    ...index,
+    plugins: [
+      {
+        ...index.plugins[0],
+        packageChannel: {
+          id: "installed",
+          label: "Installed",
+        },
+        packageJson: {
+          path: "package.json",
+          hash: "stable-package-hash",
+        },
+      },
+    ],
   };
 }
 
@@ -286,6 +329,78 @@ describe("loadPluginManifestRegistryForInstalledIndex", () => {
       nativeCommandsAutoEnabled: true,
       nativeSkillsAutoEnabled: false,
     });
+  });
+
+  it("reuses installed package metadata until plugin metadata caches are cleared", () => {
+    const rootDir = makeTempDir();
+    writePlugin(rootDir, "installed", "installed-");
+    writePackageManifest(rootDir, "Installed");
+    const index = createIndexWithPackageJson(rootDir);
+    const env = {
+      KOVA_VERSION: "2026.4.25",
+      VITEST: "true",
+    };
+
+    const first = loadPluginManifestRegistryForInstalledIndex({
+      index,
+      env,
+      includeDisabled: true,
+    });
+    writePackageManifest(rootDir, "Updated");
+    const nextMtime = new Date(Date.now() + 5000);
+    fs.utimesSync(path.join(rootDir, "package.json"), nextMtime, nextMtime);
+    const second = loadPluginManifestRegistryForInstalledIndex({
+      index,
+      env,
+      includeDisabled: true,
+    });
+    clearPluginMetadataLifecycleCaches();
+    const third = loadPluginManifestRegistryForInstalledIndex({
+      index,
+      env,
+      includeDisabled: true,
+    });
+
+    expect(first.plugins[0]?.packageChannel?.label).toBe("Installed");
+    expect(second.plugins[0]?.packageChannel?.label).toBe("Installed");
+    expect(third.plugins[0]?.packageChannel?.label).toBe("Updated");
+    expect(third.plugins[0]?.packageDependencies).toEqual({
+      "runtime-dep": "1.0.0",
+    });
+  });
+
+  it("reuses installed package json path validation across registry loads", () => {
+    const rootDir = makeTempDir();
+    writePlugin(rootDir, "installed", "installed-");
+    writePackageManifest(rootDir, "Installed");
+    const index = createIndexWithPackageJson(rootDir);
+    const env = {
+      KOVA_VERSION: "2026.4.25",
+      VITEST: "true",
+    };
+
+    loadPluginManifestRegistryForInstalledIndex({
+      index,
+      env,
+      includeDisabled: true,
+    });
+    const realpathSpy = vi.spyOn(fs, "realpathSync");
+    let packagePathCalls: unknown[][] = [];
+    try {
+      loadPluginManifestRegistryForInstalledIndex({
+        index,
+        env,
+        includeDisabled: true,
+      });
+      const packageJsonPath = path.join(rootDir, "package.json");
+      packagePathCalls = realpathSpy.mock.calls.filter(
+        ([filePath]) => filePath === packageJsonPath,
+      );
+    } finally {
+      realpathSpy.mockRestore();
+    }
+
+    expect(packagePathCalls).toStrictEqual([]);
   });
 
   it("round-trips bundle metadata through the persisted index before reconstruction", async () => {

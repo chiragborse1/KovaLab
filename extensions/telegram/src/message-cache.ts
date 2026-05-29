@@ -11,6 +11,7 @@ import {
   getTelegramTextParts,
   normalizeForwardedContext,
 } from "./bot/helpers.js";
+import { parseTelegramMessageThreadId } from "./outbound-params.js";
 
 export type TelegramReplyChainEntry = NonNullable<MsgContext["ReplyChain"]>[number];
 
@@ -120,6 +121,7 @@ function normalizeMessageNode(
   const forwardedFrom = normalizeForwardedContext(msg);
   const replyMessage = resolveReplyMessage(msg);
   const body = resolveMessageBody(msg);
+  const threadId = normalizeTelegramCacheThreadId(params.threadId ?? resolveMessageThreadId(msg));
   return {
     sourceMessage: msg,
     messageId: String(msg.message_id),
@@ -135,8 +137,12 @@ function normalizeMessageNode(
     ...(forwardedFrom?.fromId ? { forwardedFromId: forwardedFrom.fromId } : {}),
     ...(forwardedFrom?.fromUsername ? { forwardedFromUsername: forwardedFrom.fromUsername } : {}),
     ...(forwardedFrom?.date ? { forwardedDate: forwardedFrom.date * 1000 } : {}),
-    ...(params.threadId != null ? { threadId: String(params.threadId) } : {}),
+    ...(threadId !== undefined ? { threadId: String(threadId) } : {}),
   };
+}
+
+function resolveMessageThreadId(msg: Message): number | undefined {
+  return normalizeTelegramCacheThreadId((msg as { message_thread_id?: unknown }).message_thread_id);
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -150,6 +156,18 @@ function isString(value: unknown): value is string {
 function readOptionalString(record: Record<string, unknown>, key: string): string | undefined {
   const value = record[key];
   return isString(value) ? value : undefined;
+}
+
+function normalizeTelegramCacheThreadId(value: unknown): number | undefined {
+  return parseTelegramMessageThreadId(value);
+}
+
+function parseSafeMessageId(value: string | undefined): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const parsed = Number(value);
+  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
 }
 
 function isTelegramSourceMessage(value: unknown): value is Message {
@@ -166,8 +184,8 @@ function parsePersistedNode(value: unknown): TelegramCachedMessageNode | null {
   if (!isRecord(value) || !isTelegramSourceMessage(value.sourceMessage)) {
     return null;
   }
-  const threadId = Number(readOptionalString(value, "threadId"));
-  return normalizeMessageNode(value.sourceMessage, Number.isFinite(threadId) ? { threadId } : {});
+  const threadId = normalizeTelegramCacheThreadId(readOptionalString(value, "threadId"));
+  return normalizeMessageNode(value.sourceMessage, threadId !== undefined ? { threadId } : {});
 }
 
 function parsePersistedEntry(value: unknown): {
@@ -420,7 +438,11 @@ export function createTelegramMessageCache(params?: {
     threadId?: number;
   }) => {
     const prefix = telegramMessageCacheKeyPrefix(params);
-    const threadId = params.threadId != null ? String(params.threadId) : undefined;
+    const normalizedThreadId = normalizeTelegramCacheThreadId(params.threadId);
+    if (params.threadId != null && normalizedThreadId === undefined) {
+      return [];
+    }
+    const threadId = normalizedThreadId !== undefined ? String(normalizedThreadId) : undefined;
     return Array.from(messages, ([key, node]) => ({ key, node }))
       .filter(({ key, node }) => {
         if (!key.startsWith(prefix)) {
@@ -464,14 +486,14 @@ export function createTelegramMessageCache(params?: {
       if (!messageId || limit <= 0) {
         return [];
       }
-      const targetId = Number(messageId);
-      if (!Number.isFinite(targetId)) {
+      const targetId = parseSafeMessageId(messageId);
+      if (targetId === undefined) {
         return [];
       }
       return listChatMessages({ accountId, chatId, threadId })
         .filter((entry) => {
-          const entryId = Number(entry.messageId);
-          return Number.isFinite(entryId) && entryId < targetId;
+          const entryId = parseSafeMessageId(entry.messageId);
+          return entryId !== undefined && entryId < targetId;
         })
         .slice(-limit);
     },
@@ -530,9 +552,9 @@ function compareCachedMessageNodes(
   left: TelegramCachedMessageNode,
   right: TelegramCachedMessageNode,
 ) {
-  const leftId = Number(left.messageId);
-  const rightId = Number(right.messageId);
-  if (Number.isFinite(leftId) && Number.isFinite(rightId)) {
+  const leftId = parseSafeMessageId(left.messageId);
+  const rightId = parseSafeMessageId(right.messageId);
+  if (leftId !== undefined && rightId !== undefined) {
     return leftId - rightId;
   }
   return (left.messageId ?? "").localeCompare(right.messageId ?? "");
@@ -555,9 +577,9 @@ function isAfterSessionBoundary(
   if (!boundary) {
     return true;
   }
-  const nodeId = Number(node.messageId);
-  const boundaryId = Number(boundary.messageId);
-  if (Number.isFinite(nodeId) && Number.isFinite(boundaryId)) {
+  const nodeId = parseSafeMessageId(node.messageId);
+  const boundaryId = parseSafeMessageId(boundary.messageId);
+  if (nodeId !== undefined && boundaryId !== undefined) {
     return nodeId > boundaryId;
   }
   if (

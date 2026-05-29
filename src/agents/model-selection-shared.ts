@@ -272,11 +272,13 @@ export function resolveAllowlistModelKey(params: {
   cfg?: KovaConfig;
   raw: string;
   defaultProvider: string;
+  allowPluginNormalization?: boolean;
 }): string | null {
   const parsed = parseModelRefWithCompatAlias({
     cfg: params.cfg,
     raw: params.raw,
     defaultProvider: params.defaultProvider,
+    allowPluginNormalization: params.allowPluginNormalization,
   });
   if (!parsed) {
     return null;
@@ -287,6 +289,7 @@ export function resolveAllowlistModelKey(params: {
 export function buildConfiguredAllowlistKeys(params: {
   cfg: KovaConfig | undefined;
   defaultProvider: string;
+  allowPluginNormalization?: boolean;
 }): Set<string> | null {
   const rawAllowlist = Object.keys(params.cfg?.agents?.defaults?.models ?? {});
   if (rawAllowlist.length === 0) {
@@ -299,6 +302,7 @@ export function buildConfiguredAllowlistKeys(params: {
       cfg: params.cfg,
       raw,
       defaultProvider: params.defaultProvider,
+      allowPluginNormalization: params.allowPluginNormalization,
     });
     if (key) {
       keys.add(key);
@@ -350,6 +354,7 @@ type ModelCatalogMetadata = {
 function buildModelCatalogMetadata(params: {
   cfg: KovaConfig;
   defaultProvider: string;
+  allowPluginNormalization?: boolean;
 }): ModelCatalogMetadata {
   const configuredByKey = new Map<string, ModelCatalogEntry>();
   for (const entry of buildConfiguredModelCatalog({ cfg: params.cfg })) {
@@ -363,6 +368,7 @@ function buildModelCatalogMetadata(params: {
       cfg: params.cfg,
       raw: rawKey,
       defaultProvider: params.defaultProvider,
+      allowPluginNormalization: params.allowPluginNormalization,
     });
     if (!key) {
       continue;
@@ -534,6 +540,7 @@ export function buildAllowedModelSetWithFallbacks(params: {
   defaultProvider: string;
   defaultModel?: string;
   fallbackModels: readonly string[];
+  allowPluginNormalization?: boolean;
 }): {
   allowAny: boolean;
   allowedCatalog: ModelCatalogEntry[];
@@ -542,6 +549,7 @@ export function buildAllowedModelSetWithFallbacks(params: {
   const metadata = buildModelCatalogMetadata({
     cfg: params.cfg,
     defaultProvider: params.defaultProvider,
+    allowPluginNormalization: params.allowPluginNormalization,
   });
   const catalog = params.catalog.map((entry) => applyModelCatalogMetadata({ entry, metadata }));
   const rawAllowlist = (() => {
@@ -556,6 +564,7 @@ export function buildAllowedModelSetWithFallbacks(params: {
           cfg: params.cfg,
           raw: defaultModel,
           defaultProvider: params.defaultProvider,
+          allowPluginNormalization: params.allowPluginNormalization,
         })
       : null;
   const defaultKey = defaultRef ? modelKey(defaultRef.provider, defaultRef.model) : undefined;
@@ -588,6 +597,7 @@ export function buildAllowedModelSetWithFallbacks(params: {
       cfg: params.cfg,
       raw,
       defaultProvider,
+      allowPluginNormalization: params.allowPluginNormalization,
     });
     if (!parsed) {
       return;

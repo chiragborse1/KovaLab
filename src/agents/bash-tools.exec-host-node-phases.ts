@@ -17,6 +17,7 @@ import { buildNodeShellCommand } from "../infra/node-shell.js";
 import { parsePreparedSystemRunPayload } from "../infra/system-run-approval-context.js";
 import { formatExecCommand, resolveSystemRunCommandRequest } from "../infra/system-run-command.js";
 import { normalizeNullableString } from "../shared/string-coerce.js";
+import { MAX_SAFE_TIMEOUT_DELAY_MS, resolveSafeTimeoutDelayMs } from "../utils/timer-delay.js";
 import type { ExecuteNodeHostCommandParams } from "./bash-tools.exec-host-node.types.js";
 import type { ExecToolDetails } from "./bash-tools.exec-types.js";
 import { callGatewayTool } from "./tools/gateway.js";
@@ -56,6 +57,34 @@ export function shouldSkipNodeApprovalPrepare(params: {
   return (
     params.hostSecurity === "full" && params.hostAsk === "off" && params.strictInlineEval !== true
   );
+}
+
+function resolveNodeRunTimeoutSec(
+  timeoutSec: number | null | undefined,
+  defaultTimeoutSec: number = 0,
+): number {
+  if (typeof timeoutSec !== "number") {
+    return defaultTimeoutSec;
+  }
+  if (!Number.isFinite(timeoutSec) || timeoutSec < 0) {
+    return defaultTimeoutSec;
+  }
+  return timeoutSec;
+}
+
+function resolveNodeRunTimeoutMs(timeoutSec: number): number {
+  if (timeoutSec <= 0) {
+    return 0;
+  }
+  return resolveSafeTimeoutDelayMs(timeoutSec * 1000);
+}
+
+function resolveNodeInvokeTimeoutMs(runTimeoutSec: number, defaultTimeoutSec: number): number {
+  const invokeBaseTimeoutSec = runTimeoutSec > 0 ? runTimeoutSec : defaultTimeoutSec;
+  if (!Number.isFinite(invokeBaseTimeoutSec) || invokeBaseTimeoutSec <= 0) {
+    return 10_000;
+  }
+  return Math.max(10_000, Math.min(MAX_SAFE_TIMEOUT_DELAY_MS, invokeBaseTimeoutSec * 1000 + 5_000));
 }
 
 export function formatNodeRunToolResult(params: {
@@ -117,6 +146,11 @@ export async function resolveNodeExecutionTarget(
     throw err;
   }
   const nodeInfo = nodes.find((entry) => entry.nodeId === nodeId);
+  if (nodeInfo?.connected === false) {
+    throw new Error(
+      `exec host=node requires a connected node (${nodeId} is currently disconnected). Start or reconnect the companion app or node host, or select a connected node.`,
+    );
+  }
   const declaredCommands = Array.isArray(nodeInfo?.commands) ? nodeInfo.commands : [];
   const supportsSystemRun = declaredCommands.includes("system.run");
   if (!supportsSystemRun) {
@@ -125,15 +159,13 @@ export async function resolveNodeExecutionTarget(
     );
   }
 
-  const runTimeoutSec =
-    typeof params.timeoutSec === "number" ? params.timeoutSec : params.defaultTimeoutSec;
-  const invokeBaseTimeoutSec = runTimeoutSec > 0 ? runTimeoutSec : params.defaultTimeoutSec;
+  const runTimeoutSec = resolveNodeRunTimeoutSec(params.timeoutSec, params.defaultTimeoutSec);
   return {
     nodeId,
     platform: nodeInfo?.platform,
     argv: buildNodeShellCommand(params.command, nodeInfo?.platform),
     env: params.requestedEnv ? { ...params.requestedEnv } : undefined,
-    invokeTimeoutMs: Math.max(10_000, invokeBaseTimeoutSec * 1000 + 5_000),
+    invokeTimeoutMs: resolveNodeInvokeTimeoutMs(runTimeoutSec, params.defaultTimeoutSec),
     runTimeoutSec,
     supportsSystemRunPrepare: declaredCommands.includes("system.run.prepare"),
   };
@@ -153,8 +185,7 @@ export function buildNodeSystemRunInvoke(params: {
   notifyOnExit?: boolean;
   systemRunPlan?: SystemRunApprovalPlan;
 }): Record<string, unknown> {
-  const timeoutMs =
-    params.target.runTimeoutSec > 0 ? Math.floor(params.target.runTimeoutSec * 1000) : 0;
+  const timeoutMs = resolveNodeRunTimeoutMs(params.target.runTimeoutSec);
   return {
     nodeId: params.target.nodeId,
     command: "system.run",

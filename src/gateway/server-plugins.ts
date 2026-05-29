@@ -580,6 +580,7 @@ export function loadGatewayPlugins(params: {
       allowGatewaySubagentBinding: true,
     },
     preferSetupRuntimeForChannelPlugins: params.preferSetupRuntimeForChannelPlugins,
+    preferBuiltPluginArtifacts: true,
     bundledRuntimeDepsInstaller: params.bundledRuntimeDepsInstaller,
   });
   const pluginMethods = Object.keys(pluginRegistry.gatewayHandlers);

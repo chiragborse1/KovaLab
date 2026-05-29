@@ -87,6 +87,46 @@ describe("diagnostics-prometheus service", () => {
     expect(rendered).not.toContain("sk-secret");
   });
 
+  it("records blocked tool and skill usage metrics", () => {
+    const store = __test__.createPrometheusMetricStore();
+
+    __test__.recordDiagnosticEvent(
+      store,
+      {
+        ...baseEvent(),
+        type: "tool.execution.blocked",
+        toolName: "exec",
+        deniedReason: "tool-loop",
+        reason: "blocked after repeated calls",
+        paramsSummary: { kind: "object" },
+      },
+      trusted,
+    );
+    __test__.recordDiagnosticEvent(
+      store,
+      {
+        ...baseEvent(),
+        type: "skill.used",
+        agentId: "main",
+        skillName: "release-helper",
+        skillSource: "workspace",
+        activation: "read",
+        toolName: "read",
+      },
+      trusted,
+    );
+
+    const rendered = __test__.renderPrometheusMetrics(store);
+
+    expect(rendered).toContain(
+      'kova_tool_execution_blocked_total{denied_reason="tool-loop",params_kind="object",tool="exec"} 1',
+    );
+    expect(rendered).toContain(
+      'kova_skill_used_total{activation="read",agent="main",skill="release-helper",source="workspace"} 1',
+    );
+    expect(rendered).not.toContain("blocked after repeated calls");
+  });
+
   it("caps metric series growth and reports dropped series", () => {
     const store = __test__.createPrometheusMetricStore();
 

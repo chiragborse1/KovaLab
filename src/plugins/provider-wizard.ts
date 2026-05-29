@@ -6,6 +6,7 @@ import {
   normalizeOptionalString,
 } from "../shared/string-coerce.js";
 import type { WizardPrompter } from "../wizard/prompts.js";
+import { resolveManifestProviderAuthChoices } from "./provider-auth-choices.js";
 import { resolvePluginProviders } from "./providers.runtime.js";
 import { resolvePluginSetupProvider } from "./setup-registry.js";
 import type {
@@ -112,12 +113,14 @@ function resolveProviderWizardProviders(params: {
   config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  providerRefs?: readonly string[];
 }): ProviderPlugin[] {
   return resolvePluginProviders({
     config: params.config,
     workspaceDir: params.workspaceDir,
     env: params.env,
     mode: "setup",
+    ...(params.providerRefs ? { providerRefs: params.providerRefs } : {}),
   });
 }
 
@@ -126,56 +129,24 @@ export function resolveProviderWizardOptions(params: {
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
 }): ProviderWizardOption[] {
-  const providers = resolveProviderWizardProviders(params);
-  const options: ProviderWizardOption[] = [];
-
-  for (const provider of providers) {
-    const methodSetups = listMethodWizardSetups(provider);
-    for (const { method, wizard } of methodSetups) {
-      options.push(
-        buildSetupOptionForMethod({
-          provider,
-          wizard,
-          method,
-          value:
-            normalizeOptionalString(wizard.choiceId) ||
-            buildProviderPluginMethodChoice(provider.id, method.id),
-        }),
-      );
-    }
-    if (methodSetups.length > 0) {
-      continue;
-    }
-    const setup = provider.wizard?.setup;
-    if (!setup) {
-      continue;
-    }
-    const explicitMethod = resolveMethodById(provider, setup.methodId);
-    if (explicitMethod) {
-      options.push(
-        buildSetupOptionForMethod({
-          provider,
-          wizard: setup,
-          method: explicitMethod,
-          value: resolveWizardSetupChoiceId(provider, setup),
-        }),
-      );
-      continue;
-    }
-
-    for (const method of provider.auth) {
-      options.push(
-        buildSetupOptionForMethod({
-          provider,
-          wizard: setup,
-          method,
-          value: buildProviderPluginMethodChoice(provider.id, method.id),
-        }),
-      );
-    }
-  }
-
-  return options;
+  return resolveManifestProviderAuthChoices({
+    config: params.config,
+    workspaceDir: params.workspaceDir,
+    env: params.env,
+    includeUntrustedWorkspacePlugins: false,
+  }).map((choice) => ({
+    value: choice.choiceId,
+    label: choice.choiceLabel,
+    ...(choice.choiceHint ? { hint: choice.choiceHint } : {}),
+    groupId: choice.groupId ?? choice.providerId,
+    groupLabel: choice.groupLabel ?? choice.choiceLabel,
+    ...(choice.groupHint ? { groupHint: choice.groupHint } : {}),
+    ...(choice.onboardingScopes ? { onboardingScopes: choice.onboardingScopes } : {}),
+    ...(typeof choice.assistantPriority === "number"
+      ? { assistantPriority: choice.assistantPriority }
+      : {}),
+    ...(choice.assistantVisibility ? { assistantVisibility: choice.assistantVisibility } : {}),
+  }));
 }
 
 function resolveModelPickerChoiceValue(
@@ -196,8 +167,22 @@ export function resolveProviderModelPickerEntries(params: {
   config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  providerRefs?: readonly string[];
 }): ProviderModelPickerEntry[] {
-  const providers = resolveProviderWizardProviders(params);
+  if (!params.providerRefs?.length) {
+    return [];
+  }
+  const setupProviders = params.providerRefs
+    .map((provider) =>
+      resolvePluginSetupProvider({
+        provider,
+        config: params.config,
+        workspaceDir: params.workspaceDir,
+        env: params.env,
+      }),
+    )
+    .filter((provider): provider is ProviderPlugin => Boolean(provider));
+  const providers = setupProviders;
   const entries: ProviderModelPickerEntry[] = [];
 
   for (const provider of providers) {
@@ -306,6 +291,7 @@ export async function runProviderModelSelectedHook(params: {
       config: params.config,
       workspaceDir: params.workspaceDir,
       env: params.env,
+      providerRefs: [selectedProviderId],
     }).find((entry) => normalizeProviderId(entry.id) === selectedProviderId);
   if (!provider?.onModelSelected) {
     return;

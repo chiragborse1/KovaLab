@@ -112,7 +112,6 @@ export async function runEmbeddedTuiBackendStdio(): Promise<void> {
   const backend = new EmbeddedTuiBackend();
 
   backend.onEvent = (event) => writeProtocol({ type: "event", event });
-  backend.onConnected = () => writeProtocol({ type: "connected" });
   backend.onDisconnected = (reason) => writeProtocol({ type: "disconnected", reason });
   backend.onGap = (info) => writeProtocol({ type: "gap", info });
 
@@ -148,6 +147,12 @@ export async function runEmbeddedTuiBackendStdio(): Promise<void> {
 
   backend.start();
   writeProtocol({ type: "ready" });
+  void backend
+    .whenReadyForFirstTurn()
+    .then(() => writeProtocol({ type: "connected" }))
+    .catch((error: unknown) => {
+      writeProtocol({ type: "fatal", error: errorMessage(error) });
+    });
 
   const lines = createInterface({
     input: process.stdin,

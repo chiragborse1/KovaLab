@@ -148,6 +148,7 @@ export function loadEnabledBundlePiSettingsSnapshot(params: {
   const embeddedPiMcp = loadEmbeddedPiMcpConfig({
     workspaceDir,
     cfg: params.cfg,
+    manifestRegistry: registry,
   });
   for (const diagnostic of embeddedPiMcp.diagnostics) {
     log.warn(`bundle MCP skipped for ${diagnostic.pluginId}: ${diagnostic.message}`);

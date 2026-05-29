@@ -114,6 +114,16 @@
             "minimum": 1,
             "default": 60000
           },
+          "turnCompletionIdleTimeoutMs": {
+            "type": "number",
+            "minimum": 1,
+            "default": 60000
+          },
+          "postToolRawAssistantCompletionIdleTimeoutMs": {
+            "type": "number",
+            "minimum": 1,
+            "default": 60000
+          },
           "approvalPolicy": {
             "type": "string",
             "enum": ["never", "on-request", "on-failure", "untrusted"]
@@ -237,6 +247,16 @@
     "appServer.requestTimeoutMs": {
       "label": "Request Timeout",
       "help": "Maximum time to wait for Codex app-server control-plane requests.",
+      "advanced": true
+    },
+    "appServer.turnCompletionIdleTimeoutMs": {
+      "label": "Turn Completion Idle Timeout",
+      "help": "Maximum quiet period after Codex turn progress before Kova releases a stalled turn.",
+      "advanced": true
+    },
+    "appServer.postToolRawAssistantCompletionIdleTimeoutMs": {
+      "label": "Post-tool Assistant Idle Timeout",
+      "help": "Maximum quiet period after a raw assistant item completes without a terminal turn event.",
       "advanced": true
     },
     "appServer.approvalPolicy": {

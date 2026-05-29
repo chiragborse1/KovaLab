@@ -86,6 +86,12 @@ export type WebSearchProviderPlugin = {
   getCredentialValue: (searchConfig?: Record<string, unknown>) => unknown;
   setCredentialValue: (searchConfigTarget: Record<string, unknown>, value: unknown) => void;
   getConfiguredCredentialValue?: (config?: KovaConfig) => unknown;
+  getConfiguredCredentialFallback?: (config?: KovaConfig) =>
+    | {
+        path: string;
+        value: unknown;
+      }
+    | undefined;
   setConfiguredCredentialValue?: (configTarget: KovaConfig, value: unknown) => void;
   applySelectionConfig?: (config: KovaConfig) => KovaConfig;
   runSetup?: (ctx: WebSearchProviderSetupContext) => KovaConfig | Promise<KovaConfig>;
@@ -115,6 +121,12 @@ export type WebFetchProviderPlugin = {
   getCredentialValue: (fetchConfig?: Record<string, unknown>) => unknown;
   setCredentialValue: (fetchConfigTarget: Record<string, unknown>, value: unknown) => void;
   getConfiguredCredentialValue?: (config?: KovaConfig) => unknown;
+  getConfiguredCredentialFallback?: (config?: KovaConfig) =>
+    | {
+        path: string;
+        value: unknown;
+      }
+    | undefined;
   setConfiguredCredentialValue?: (configTarget: KovaConfig, value: unknown) => void;
   applySelectionConfig?: (config: KovaConfig) => KovaConfig;
   resolveRuntimeMetadata?: (

@@ -179,10 +179,10 @@ and troubleshooting see the main [FAQ](/help/faq).
 
   </Accordion>
 
-  <Accordion title="It is stuck on wake up my friend / onboarding will not hatch. What now?">
-    That screen depends on the Gateway being reachable and authenticated. The TUI also sends
-    "Wake up, my friend!" automatically on first hatch. If you see that line with **no reply**
-    and tokens stay at 0, the agent never ran.
+  <Accordion title="The first terminal chat keeps waiting. What now?">
+    Current Kova terminal chat should open idle and wait for your first message. Older beta builds
+    sent "Wake up, my friend!" automatically on first hatch; if you still see that line with **no
+    reply** and tokens stay at 0, update Kova and check that the agent runtime can start.
 
     1. Restart the Gateway:
 

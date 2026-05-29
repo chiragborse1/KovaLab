@@ -758,4 +758,60 @@ describe("handleInlineActions", () => {
     );
     expect(toolExecute).toHaveBeenCalled();
   });
+
+  it("honors tool deny policy for inline skill tool dispatch", async () => {
+    const typing = createTypingController();
+    const toolExecute = vi.fn(async () => ({ text: "updated" }));
+    createKovaToolsMock.mockReturnValue([
+      {
+        name: "message",
+        execute: toolExecute,
+      },
+    ]);
+
+    const ctx = buildTestCtx({
+      Body: "/set_profile display name",
+      CommandBody: "/set_profile display name",
+    });
+    const skillCommands: SkillCommandSpec[] = [
+      {
+        name: "set_profile",
+        skillName: "matrix-profile",
+        description: "Set Matrix profile",
+        dispatch: {
+          kind: "tool",
+          toolName: "message",
+          argMode: "raw",
+        },
+        sourceFilePath: "/tmp/plugin/commands/set-profile.md",
+      },
+    ];
+
+    const result = await handleInlineActions(
+      createHandleInlineActionsInput({
+        ctx,
+        typing,
+        cleanedBody: "/set_profile display name",
+        command: {
+          isAuthorizedSender: true,
+          senderId: "sender-1",
+          senderIsOwner: true,
+          abortKey: "sender-1",
+          rawBodyNormalized: "/set_profile display name",
+          commandBodyNormalized: "/set_profile display name",
+        },
+        overrides: {
+          cfg: { commands: { text: true }, tools: { deny: ["message"] } },
+          allowTextCommands: true,
+          skillCommands,
+        },
+      }),
+    );
+
+    expect(result).toEqual({
+      kind: "reply",
+      reply: { text: "❌ Tool not available: message" },
+    });
+    expect(toolExecute).not.toHaveBeenCalled();
+  });
 });

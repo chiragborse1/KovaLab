@@ -69,7 +69,11 @@ import {
   type NormalizedPluginsConfig,
   type PluginActivationState,
 } from "./config-state.js";
-import { discoverKovaPlugins } from "./discovery.js";
+import {
+  discoverKovaPlugins,
+  type PluginCandidate,
+  type PluginDiscoveryResult,
+} from "./discovery.js";
 import { shouldRejectHardlinkedPluginFiles } from "./hardlink-policy.js";
 import {
   getGlobalHookRunner,
@@ -83,9 +87,17 @@ import {
   listPluginInteractiveHandlers,
   restorePluginInteractiveHandlers,
 } from "./interactive-registry.js";
-import { getCachedPluginJitiLoader, type PluginJitiLoaderCache } from "./jiti-loader-cache.js";
+import {
+  createPluginJitiLoaderCache,
+  getCachedPluginJitiLoader,
+  type PluginJitiLoaderCache,
+} from "./jiti-loader-cache.js";
 import { PluginLoaderCacheState } from "./loader-cache-state.js";
-import { loadPluginManifestRegistry, type PluginManifestRecord } from "./manifest-registry.js";
+import {
+  loadPluginManifestRegistry,
+  type PluginManifestRecord,
+  type PluginManifestRegistry,
+} from "./manifest-registry.js";
 import type { PluginBundleFormat, PluginDiagnostic, PluginFormat } from "./manifest-types.js";
 import type { PluginManifestContracts } from "./manifest.js";
 import {
@@ -106,12 +118,14 @@ import {
 import { unwrapDefaultModuleExport } from "./module-export.js";
 import { isPathInside, safeStatSync } from "./path-safety.js";
 import { withProfile } from "./plugin-load-profile.js";
+import type { PluginOrigin } from "./plugin-origin.types.js";
 import {
   createPluginIdScopeSet,
   hasExplicitPluginIdScope,
   normalizePluginIdScope,
   serializePluginIdScope,
 } from "./plugin-scope.js";
+import { installKovaPluginSdkNativeResolver } from "./plugin-sdk-native-resolver.js";
 import { createPluginRegistry, type PluginRecord, type PluginRegistry } from "./registry.js";
 import { resolvePluginCacheInputs } from "./roots.js";
 import {
@@ -154,6 +168,7 @@ export type PluginLoadOptions = {
   activationSourceConfig?: KovaConfig;
   autoEnabledReasons?: Readonly<Record<string, string[]>>;
   workspaceDir?: string;
+  installRecords?: Record<string, PluginInstallRecord>;
   // Allows callers to resolve plugin roots and load paths against an explicit env
   // instead of the process-global environment.
   env?: NodeJS.ProcessEnv;
@@ -173,11 +188,18 @@ export type PluginLoadOptions = {
    * via package metadata because their setup entry covers the pre-listen startup surface.
    */
   preferSetupRuntimeForChannelPlugins?: boolean;
+  /**
+   * For hot startup paths, prefer bundled plugin JS artifacts over source TS
+   * entrypoints when both are present in a source checkout.
+   */
+  preferBuiltPluginArtifacts?: boolean;
   activate?: boolean;
   loadModules?: boolean;
   installBundledRuntimeDeps?: boolean;
   throwOnLoadError?: boolean;
   bundledRuntimeDepsInstaller?: (params: BundledRuntimeDepsInstallParams) => void;
+  manifestRegistry?: PluginManifestRegistry;
+  discovery?: PluginDiscoveryResult;
 };
 
 const CLI_METADATA_ENTRY_BASENAMES = [
@@ -257,6 +279,21 @@ const LAZY_RUNTIME_REFLECTION_KEYS = [
   "state",
   "modelAuth",
 ] as const satisfies readonly (keyof PluginRuntime)[];
+
+function createPluginCandidatesFromManifestRegistry(
+  manifestRegistry: PluginManifestRegistry,
+): PluginCandidate[] {
+  return manifestRegistry.plugins.map((record) => ({
+    idHint: record.id,
+    rootDir: record.rootDir,
+    source: record.source,
+    ...(record.setupSource !== undefined ? { setupSource: record.setupSource } : {}),
+    origin: record.origin,
+    ...(record.workspaceDir !== undefined ? { workspaceDir: record.workspaceDir } : {}),
+    ...(record.format !== undefined ? { format: record.format } : {}),
+    ...(record.bundleFormat !== undefined ? { bundleFormat: record.bundleFormat } : {}),
+  }));
+}
 
 export function clearPluginLoaderCache(): void {
   pluginLoaderCacheState.clear();
@@ -440,28 +477,30 @@ function runPluginRegisterSync(
 }
 
 function createPluginJitiLoader(options: Pick<PluginLoadOptions, "pluginSdkResolution">) {
-  const jitiLoaders: PluginJitiLoaderCache = new Map();
+  const jitiLoaders: PluginJitiLoaderCache = createPluginJitiLoaderCache();
   return (modulePath: string) => {
     const tryNative = shouldPreferNativeJiti(modulePath);
     const runtimeAliasMap = resolveBundledRuntimeDependencyJitiAliasMap();
+    installKovaPluginSdkNativeResolver({
+      argv1: process.argv[1],
+      moduleUrl: import.meta.url,
+      pluginModulePath: modulePath,
+      pluginSdkResolution: options.pluginSdkResolution,
+    });
     return getCachedPluginJitiLoader({
       cache: jitiLoaders,
       modulePath,
       importerUrl: import.meta.url,
       jitiFilename: modulePath,
-      ...(runtimeAliasMap
-        ? {
-            aliasMap: {
-              ...buildPluginLoaderAliasMap(
-                modulePath,
-                process.argv[1],
-                import.meta.url,
-                options.pluginSdkResolution,
-              ),
-              ...runtimeAliasMap,
-            },
-          }
-        : {}),
+      aliasMap: {
+        ...buildPluginLoaderAliasMap(
+          modulePath,
+          process.argv[1],
+          import.meta.url,
+          options.pluginSdkResolution,
+        ),
+        ...(runtimeAliasMap ?? {}),
+      },
       pluginSdkResolution: options.pluginSdkResolution,
       // Source .ts runtime shims import sibling ".js" specifiers that only exist
       // after build. Disable native loading for source entries so Jiti rewrites
@@ -480,6 +519,120 @@ function resolveCanonicalDistRuntimeSource(source: string): string {
   }
   const candidate = `${source.slice(0, index)}${path.sep}dist${path.sep}extensions${path.sep}${source.slice(index + marker.length)}`;
   return fs.existsSync(candidate) ? candidate : source;
+}
+
+function rewriteBundledRuntimeArtifactRelativePath(relativePath: string): string {
+  return relativePath.replace(/\.[^.]+$/u, ".js");
+}
+
+function listPackageLocalRuntimeArtifactOutputExtensions(sourceExt: string): string[] {
+  switch (sourceExt) {
+    case ".mts":
+    case ".mjs":
+      return [".mjs", ".js", ".cjs"];
+    case ".cts":
+    case ".cjs":
+      return [".cjs", ".js", ".mjs"];
+    default:
+      return [".js", ".mjs", ".cjs"];
+  }
+}
+
+function listPackageLocalRuntimeArtifactRelativePathBases(relativePath: string): string[] {
+  const ext = path.extname(relativePath).toLowerCase();
+  const withoutExt = ext ? relativePath.slice(0, -ext.length) : relativePath;
+  if (!withoutExt.startsWith(`src${path.sep}`) && !withoutExt.startsWith("src/")) {
+    return [withoutExt];
+  }
+  return [withoutExt.slice(4), withoutExt];
+}
+
+function listPackageLocalDistRuntimeArtifactRelativePaths(relativePath: string): string[] {
+  const ext = path.extname(relativePath).toLowerCase();
+  const candidates = new Set<string>();
+  for (const base of listPackageLocalRuntimeArtifactRelativePathBases(relativePath)) {
+    for (const outputExt of listPackageLocalRuntimeArtifactOutputExtensions(ext)) {
+      candidates.add(`${base}${outputExt}`);
+    }
+  }
+  return [...candidates];
+}
+
+function shouldPreferPackageLocalDistRuntimeArtifact(source: string): boolean {
+  switch (path.extname(source).toLowerCase()) {
+    case ".ts":
+    case ".tsx":
+    case ".mts":
+    case ".cts":
+      return true;
+    default:
+      return false;
+  }
+}
+
+function resolvePreferredBuiltRuntimeArtifact(params: {
+  source: string;
+  rootDir: string;
+  origin: PluginOrigin;
+  preferBuiltPluginArtifacts: boolean;
+}): { source: string; rootDir: string } {
+  const rootDir = safeRealpathOrResolve(params.rootDir);
+  const source = safeRealpathOrResolve(params.source);
+  if (!params.preferBuiltPluginArtifacts) {
+    return { source, rootDir };
+  }
+  if (params.origin !== "bundled") {
+    const relativeSource = path.relative(rootDir, source);
+    if (
+      shouldPreferPackageLocalDistRuntimeArtifact(relativeSource) &&
+      relativeSource !== "" &&
+      !relativeSource.startsWith("..") &&
+      !path.isAbsolute(relativeSource)
+    ) {
+      const artifactRoot = path.join(rootDir, "dist");
+      for (const artifactRelativePath of listPackageLocalDistRuntimeArtifactRelativePaths(
+        relativeSource,
+      )) {
+        const artifactSource = path.join(artifactRoot, artifactRelativePath);
+        if (fs.existsSync(artifactSource)) {
+          return {
+            source: safeRealpathOrResolve(artifactSource),
+            rootDir,
+          };
+        }
+      }
+    }
+    return { source, rootDir };
+  }
+  const extensionsDir = path.dirname(rootDir);
+  if (path.basename(extensionsDir) !== "extensions") {
+    return { source, rootDir };
+  }
+  const packageRoot = path.dirname(extensionsDir);
+  if (path.basename(packageRoot) === "dist" || path.basename(packageRoot) === "dist-runtime") {
+    return { source, rootDir };
+  }
+  const relativeSource = path.relative(rootDir, source);
+  if (relativeSource === "" || relativeSource.startsWith("..") || path.isAbsolute(relativeSource)) {
+    return { source, rootDir };
+  }
+  const artifactRelativePath = rewriteBundledRuntimeArtifactRelativePath(relativeSource);
+  for (const artifactRootName of ["dist-runtime", "dist"] as const) {
+    const artifactRoot = path.join(
+      packageRoot,
+      artifactRootName,
+      "extensions",
+      path.basename(rootDir),
+    );
+    const artifactSource = path.join(artifactRoot, artifactRelativePath);
+    if (fs.existsSync(artifactSource)) {
+      return {
+        source: safeRealpathOrResolve(artifactSource),
+        rootDir: safeRealpathOrResolve(artifactRoot),
+      };
+    }
+  }
+  return { source, rootDir };
 }
 
 function mirrorBundledPluginRuntimeRoot(params: {
@@ -824,6 +977,7 @@ function buildCacheKey(params: {
   forceSetupOnlyChannelPlugins?: boolean;
   requireSetupEntryForSetupOnlyChannelPlugins?: boolean;
   preferSetupRuntimeForChannelPlugins?: boolean;
+  preferBuiltPluginArtifacts?: boolean;
   loadModules?: boolean;
   installBundledRuntimeDeps?: boolean;
   runtimeSubagentMode?: "default" | "explicit" | "gateway-bindable";
@@ -862,6 +1016,8 @@ function buildCacheKey(params: {
       : "allow-full-fallback";
   const startupChannelMode =
     params.preferSetupRuntimeForChannelPlugins === true ? "prefer-setup" : "full";
+  const builtArtifactMode =
+    params.preferBuiltPluginArtifacts === true ? "prefer-built-artifacts" : "source-default";
   const moduleLoadMode = params.loadModules === false ? "manifest-only" : "load-modules";
   const bundledRuntimeDepsMode =
     params.installBundledRuntimeDeps === false ? "skip-runtime-deps" : "install-runtime-deps";
@@ -873,7 +1029,7 @@ function buildCacheKey(params: {
     installs,
     loadPaths,
     activationMetadataKey: params.activationMetadataKey ?? "",
-  })}::${scopeKey}::${setupOnlyKey}::${setupOnlyModeKey}::${setupOnlyRequirementKey}::${startupChannelMode}::${moduleLoadMode}::${bundledRuntimeDepsMode}::${runtimeSubagentMode}::${params.pluginSdkResolution ?? "auto"}::${gatewayMethodsKey}::${activationMode}`;
+  })}::${scopeKey}::${setupOnlyKey}::${setupOnlyModeKey}::${setupOnlyRequirementKey}::${startupChannelMode}::${builtArtifactMode}::${moduleLoadMode}::${bundledRuntimeDepsMode}::${runtimeSubagentMode}::${params.pluginSdkResolution ?? "auto"}::${gatewayMethodsKey}::${activationMode}`;
 }
 
 function matchesScopedPluginRequest(params: {
@@ -951,6 +1107,7 @@ function hasExplicitCompatibilityInputs(options: PluginLoadOptions): boolean {
     options.forceSetupOnlyChannelPlugins === true ||
     options.requireSetupEntryForSetupOnlyChannelPlugins === true ||
     options.preferSetupRuntimeForChannelPlugins === true ||
+    options.preferBuiltPluginArtifacts === true ||
     options.installBundledRuntimeDeps === false ||
     options.loadModules === false
   );
@@ -1058,6 +1215,7 @@ function resolvePluginLoadCacheContext(options: PluginLoadOptions = {}) {
   const requireSetupEntryForSetupOnlyChannelPlugins =
     options.requireSetupEntryForSetupOnlyChannelPlugins === true;
   const preferSetupRuntimeForChannelPlugins = options.preferSetupRuntimeForChannelPlugins === true;
+  const preferBuiltPluginArtifacts = options.preferBuiltPluginArtifacts === true;
   const shouldInstallBundledRuntimeDeps = options.installBundledRuntimeDeps !== false;
   const runtimeSubagentMode = resolveRuntimeSubagentMode(options.runtimeOptions);
   const coreGatewayMethodNames = Array.from(
@@ -1067,7 +1225,7 @@ function resolvePluginLoadCacheContext(options: PluginLoadOptions = {}) {
     ]),
   ).toSorted();
   const installRecords = {
-    ...loadInstalledPluginIndexInstallRecordsSync({ env }),
+    ...(options.installRecords ?? loadInstalledPluginIndexInstallRecordsSync({ env })),
     ...cfg.plugins?.installs,
   };
   const cacheKey = buildCacheKey({
@@ -1084,6 +1242,7 @@ function resolvePluginLoadCacheContext(options: PluginLoadOptions = {}) {
     forceSetupOnlyChannelPlugins,
     requireSetupEntryForSetupOnlyChannelPlugins,
     preferSetupRuntimeForChannelPlugins,
+    preferBuiltPluginArtifacts,
     loadModules: options.loadModules,
     installBundledRuntimeDeps: options.installBundledRuntimeDeps,
     runtimeSubagentMode,
@@ -1103,6 +1262,7 @@ function resolvePluginLoadCacheContext(options: PluginLoadOptions = {}) {
     forceSetupOnlyChannelPlugins,
     requireSetupEntryForSetupOnlyChannelPlugins,
     preferSetupRuntimeForChannelPlugins,
+    preferBuiltPluginArtifacts,
     shouldActivate: options.activate !== false,
     shouldLoadModules: options.loadModules !== false,
     shouldInstallBundledRuntimeDeps,
@@ -2016,6 +2176,7 @@ export function loadKovaPlugins(options: PluginLoadOptions = {}): PluginRegistry
     forceSetupOnlyChannelPlugins,
     requireSetupEntryForSetupOnlyChannelPlugins,
     preferSetupRuntimeForChannelPlugins,
+    preferBuiltPluginArtifacts,
     shouldActivate,
     shouldLoadModules,
     shouldInstallBundledRuntimeDeps,
@@ -2168,21 +2329,30 @@ export function loadKovaPlugins(options: PluginLoadOptions = {}): PluginRegistry
       activateGlobalSideEffects: shouldActivate,
     });
 
-    const discovery = discoverKovaPlugins({
-      workspaceDir: options.workspaceDir,
-      extraPaths: normalized.loadPaths,
-      cache: options.cache,
-      env,
-    });
-    const manifestRegistry = loadPluginManifestRegistry({
-      config: cfg,
-      workspaceDir: options.workspaceDir,
-      cache: options.cache,
-      env,
-      candidates: discovery.candidates,
-      diagnostics: discovery.diagnostics,
-      installRecords: Object.keys(installRecords).length > 0 ? installRecords : undefined,
-    });
+    const suppliedManifestRegistry = options.manifestRegistry;
+    const discovery = suppliedManifestRegistry
+      ? {
+          candidates: createPluginCandidatesFromManifestRegistry(suppliedManifestRegistry),
+          diagnostics: [] as PluginDiagnostic[],
+        }
+      : (options.discovery ??
+        discoverKovaPlugins({
+          workspaceDir: options.workspaceDir,
+          extraPaths: normalized.loadPaths,
+          cache: options.cache,
+          env,
+        }));
+    const manifestRegistry =
+      suppliedManifestRegistry ??
+      loadPluginManifestRegistry({
+        config: cfg,
+        workspaceDir: options.workspaceDir,
+        cache: options.cache,
+        env,
+        candidates: discovery.candidates,
+        diagnostics: discovery.diagnostics,
+        installRecords: Object.keys(installRecords).length > 0 ? installRecords : undefined,
+      });
     pushDiagnostics(registry.diagnostics, manifestRegistry.diagnostics);
     const provenance = buildProvenanceIndex({
       config: cfg,
@@ -2322,13 +2492,23 @@ export function loadKovaPlugins(options: PluginLoadOptions = {}): PluginRegistry
         });
       };
       const pluginRoot = safeRealpathOrResolve(candidate.rootDir);
-      let runtimePluginRoot = pluginRoot;
-      let runtimeCandidateSource =
-        candidate.origin === "bundled" ? safeRealpathOrResolve(candidate.source) : candidate.source;
-      let runtimeSetupSource =
-        candidate.origin === "bundled" && manifestRecord.setupSource
-          ? safeRealpathOrResolve(manifestRecord.setupSource)
-          : manifestRecord.setupSource;
+      const runtimeCandidateEntry = resolvePreferredBuiltRuntimeArtifact({
+        source: candidate.source,
+        rootDir: pluginRoot,
+        origin: candidate.origin,
+        preferBuiltPluginArtifacts,
+      });
+      const runtimeSetupEntry = manifestRecord.setupSource
+        ? resolvePreferredBuiltRuntimeArtifact({
+            source: manifestRecord.setupSource,
+            rootDir: pluginRoot,
+            origin: candidate.origin,
+            preferBuiltPluginArtifacts,
+          })
+        : undefined;
+      let runtimePluginRoot = runtimeCandidateEntry.rootDir;
+      let runtimeCandidateSource = runtimeCandidateEntry.source;
+      let runtimeSetupSource = runtimeSetupEntry?.source;
 
       const scopedSetupOnlyChannelPluginRequested =
         includeSetupOnlyChannelPlugins &&
@@ -2437,22 +2617,28 @@ export function loadKovaPlugins(options: PluginLoadOptions = {}): PluginRegistry
               registerBundledRuntimeDependencyNodePath(searchRoot);
               registerBundledRuntimeDependencyJitiAliases(searchRoot);
             }
-            runtimePluginRoot = mirrorBundledPluginRuntimeRoot({
+            const mirroredRuntimeRoot = mirrorBundledPluginRuntimeRoot({
               pluginId: record.id,
               pluginRoot,
               installRoot,
             });
-            runtimeCandidateSource =
-              remapBundledPluginRuntimePath({
-                source: runtimeCandidateSource,
-                pluginRoot,
-                mirroredRoot: runtimePluginRoot,
-              }) ?? runtimeCandidateSource;
-            runtimeSetupSource = remapBundledPluginRuntimePath({
+            const remappedCandidateSource = remapBundledPluginRuntimePath({
+              source: runtimeCandidateSource,
+              pluginRoot,
+              mirroredRoot: mirroredRuntimeRoot,
+            });
+            if (remappedCandidateSource) {
+              runtimePluginRoot = mirroredRuntimeRoot;
+              runtimeCandidateSource = remappedCandidateSource;
+            }
+            const remappedSetupSource = remapBundledPluginRuntimePath({
               source: runtimeSetupSource,
               pluginRoot,
-              mirroredRoot: runtimePluginRoot,
+              mirroredRoot: mirroredRuntimeRoot,
             });
+            if (remappedSetupSource) {
+              runtimeSetupSource = remappedSetupSource;
+            }
           } else {
             ensureKovaPluginSdkAlias(path.dirname(path.dirname(pluginRoot)));
           }
@@ -3086,21 +3272,30 @@ export async function loadKovaPluginCliRegistry(
     activateGlobalSideEffects: false,
   });
 
-  const discovery = discoverKovaPlugins({
-    workspaceDir: options.workspaceDir,
-    extraPaths: normalized.loadPaths,
-    cache: false,
-    env,
-  });
-  const manifestRegistry = loadPluginManifestRegistry({
-    config: cfg,
-    workspaceDir: options.workspaceDir,
-    cache: false,
-    env,
-    candidates: discovery.candidates,
-    diagnostics: discovery.diagnostics,
-    installRecords: Object.keys(installRecords).length > 0 ? installRecords : undefined,
-  });
+  const suppliedManifestRegistry = options.manifestRegistry;
+  const discovery = suppliedManifestRegistry
+    ? {
+        candidates: createPluginCandidatesFromManifestRegistry(suppliedManifestRegistry),
+        diagnostics: [] as PluginDiagnostic[],
+      }
+    : (options.discovery ??
+      discoverKovaPlugins({
+        workspaceDir: options.workspaceDir,
+        extraPaths: normalized.loadPaths,
+        cache: false,
+        env,
+      }));
+  const manifestRegistry =
+    suppliedManifestRegistry ??
+    loadPluginManifestRegistry({
+      config: cfg,
+      workspaceDir: options.workspaceDir,
+      cache: false,
+      env,
+      candidates: discovery.candidates,
+      diagnostics: discovery.diagnostics,
+      installRecords: Object.keys(installRecords).length > 0 ? installRecords : undefined,
+    });
   pushDiagnostics(registry.diagnostics, manifestRegistry.diagnostics);
   const provenance = buildProvenanceIndex({
     config: cfg,

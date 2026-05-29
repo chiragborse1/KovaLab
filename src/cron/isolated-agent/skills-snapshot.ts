@@ -1,5 +1,4 @@
 import type { SkillSnapshot } from "../../agents/skills.js";
-import { matchesSkillFilter } from "../../agents/skills/filter.js";
 import type { KovaConfig } from "../../config/types.kova.js";
 
 let skillsSnapshotRuntimePromise:
@@ -24,20 +23,12 @@ export async function resolveCronSkillsSnapshot(params: {
   }
 
   const runtime = await loadSkillsSnapshotRuntime();
-  const snapshotVersion = runtime.getSkillsSnapshotVersion(params.workspaceDir);
   const skillFilter = runtime.resolveAgentSkillsFilter(params.config, params.agentId);
-  const existingSnapshot = params.existingSnapshot;
-  const shouldRefresh =
-    !existingSnapshot ||
-    existingSnapshot.version !== snapshotVersion ||
-    !matchesSkillFilter(existingSnapshot.skillFilter, skillFilter);
-  if (!shouldRefresh) {
-    return existingSnapshot;
-  }
-
-  return runtime.buildWorkspaceSkillSnapshot(params.workspaceDir, {
+  return runtime.resolveReusableWorkspaceSkillSnapshot({
+    workspaceDir: params.workspaceDir,
     config: params.config,
     agentId: params.agentId,
+    existingSnapshot: params.existingSnapshot,
     skillFilter,
     eligibility: {
       remote: runtime.getRemoteSkillEligibility({
@@ -47,6 +38,7 @@ export async function resolveCronSkillsSnapshot(params: {
         }),
       }),
     },
-    snapshotVersion,
-  });
+    watch: false,
+    hydrateExisting: false,
+  }).snapshot;
 }

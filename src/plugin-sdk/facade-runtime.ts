@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveBundledPluginsDir } from "../plugins/bundled-dir.js";
 import {
+  createPluginJitiLoaderCache,
   getCachedPluginJitiLoader,
   type PluginJitiLoaderCache,
 } from "../plugins/jiti-loader-cache.js";
@@ -118,7 +119,8 @@ const FACADE_ACTIVATION_CHECK_RUNTIME_CANDIDATES = [
 ] as const;
 
 let facadeActivationCheckRuntimeModule: FacadeActivationCheckRuntimeModule | undefined;
-const facadeActivationCheckRuntimeJitiLoaders: PluginJitiLoaderCache = new Map();
+const facadeActivationCheckRuntimeJitiLoaders: PluginJitiLoaderCache =
+  createPluginJitiLoaderCache();
 
 function getFacadeActivationCheckRuntimeJiti(modulePath: string) {
   return getCachedPluginJitiLoader({

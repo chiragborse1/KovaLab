@@ -289,7 +289,7 @@ export function createSessionActions(context: SessionActionContext) {
       if (requestId !== historyLoadRequestId || state.currentSessionKey !== requestSessionKey) {
         return;
       }
-      if (state.activeChatRunId || state.pendingOptimisticUserMessage) {
+      if (state.activeChatRunId || state.pendingChatRunId || state.pendingOptimisticUserMessage) {
         state.historyLoaded = false;
         await refreshSessionInfo();
         tui.requestRender();
@@ -391,7 +391,8 @@ export function createSessionActions(context: SessionActionContext) {
   };
 
   const abortActive = async () => {
-    if (!state.activeChatRunId) {
+    const runId = state.activeChatRunId ?? state.pendingChatRunId;
+    if (!runId) {
       chatLog.addSystem("no active run");
       tui.requestRender();
       return;
@@ -399,7 +400,7 @@ export function createSessionActions(context: SessionActionContext) {
     try {
       await client.abortChat({
         sessionKey: state.currentSessionKey,
-        runId: state.activeChatRunId,
+        runId,
       });
       setActivityStatus("aborted");
     } catch (err) {

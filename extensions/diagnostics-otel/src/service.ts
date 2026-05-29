@@ -814,6 +814,10 @@ export function createDiagnosticsOtelService(): KovaPluginService {
         unit: "1",
         description: "Detected repetitive tool-call loop events",
       });
+      const skillUsedCounter = meter.createCounter("kova.skill.used", {
+        unit: "1",
+        description: "Skills activated by agent runs",
+      });
       const modelCallDurationHistogram = meter.createHistogram("kova.model_call.duration_ms", {
         unit: "ms",
         description: "Model call duration",
@@ -1883,6 +1887,38 @@ export function createDiagnosticsOtelService(): KovaPluginService {
         ...paramsSummaryAttrs(evt.paramsSummary),
       });
 
+      const skillUsedAttrs = (
+        evt: Extract<DiagnosticEventPayload, { type: "skill.used" }>,
+      ): Record<string, string | number | boolean> => ({
+        "kova.skill.name": lowCardinalityAttr(evt.skillName, "skill"),
+        "kova.skill.source": lowCardinalityAttr(evt.skillSource),
+        "kova.skill.activation": lowCardinalityAttr(evt.activation),
+        ...(evt.agentId ? { "kova.agent": lowCardinalityAttr(evt.agentId) } : {}),
+        ...(evt.toolName ? { "kova.toolName": lowCardinalityAttr(evt.toolName, "tool") } : {}),
+      });
+
+      const recordSkillUsed = (
+        evt: Extract<DiagnosticEventPayload, { type: "skill.used" }>,
+        metadata: DiagnosticEventMetadata,
+      ) => {
+        if (!metadata.trusted) {
+          return;
+        }
+        const attrs = skillUsedAttrs(evt);
+        skillUsedCounter.add(1, attrs);
+        if (!tracesEnabled) {
+          return;
+        }
+        const spanAttrs: Record<string, string | number | boolean> = { ...attrs };
+        addRunAttrs(spanAttrs, evt);
+        const span = spanWithDuration("kova.skill.used", spanAttrs, 0, {
+          parentContext: activeTrustedParentContext(evt, metadata),
+          endTimeMs: evt.ts,
+        });
+        setSpanAttrs(span, spanAttrs);
+        span.end(evt.ts);
+      };
+
       const recordToolExecutionStarted = (
         evt: Extract<DiagnosticEventPayload, { type: "tool.execution.started" }>,
         metadata: DiagnosticEventMetadata,
@@ -2126,6 +2162,9 @@ export function createDiagnosticsOtelService(): KovaPluginService {
               return;
             case "tool.execution.error":
               recordToolExecutionError(evt, metadata);
+              return;
+            case "skill.used":
+              recordSkillUsed(evt, metadata);
               return;
             case "exec.process.completed":
               recordExecProcessCompleted(evt);

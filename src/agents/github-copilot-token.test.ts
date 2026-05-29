@@ -47,6 +47,46 @@ describe("resolveCopilotApiToken", () => {
     expect(result.expiresAt).toBe(12_345_678_901_000);
   });
 
+  it("rejects unsafe Copilot token expiry values", async () => {
+    const fetchImpl = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        token: "copilot-token",
+        expires_at: "123abc",
+      }),
+    }));
+
+    await expect(
+      resolveCopilotApiToken({
+        githubToken: "github-token",
+        cachePath: "/tmp/github-copilot-token-test.json",
+        loadJsonFileImpl: () => undefined,
+        saveJsonFileImpl: () => undefined,
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+      }),
+    ).rejects.toThrow("Copilot token response has invalid expires_at");
+  });
+
+  it("rejects non-positive Copilot token expiry values", async () => {
+    const fetchImpl = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        token: "copilot-token",
+        expires_at: 0,
+      }),
+    }));
+
+    await expect(
+      resolveCopilotApiToken({
+        githubToken: "github-token",
+        cachePath: "/tmp/github-copilot-token-test.json",
+        loadJsonFileImpl: () => undefined,
+        saveJsonFileImpl: () => undefined,
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+      }),
+    ).rejects.toThrow("Copilot token response has invalid expires_at");
+  });
+
   it("sends IDE headers when exchanging the GitHub token", async () => {
     const fetchImpl = vi.fn(async () => ({
       ok: true,

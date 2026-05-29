@@ -6,6 +6,7 @@ import { withEnv } from "../test-utils/env.js";
 import { clearPluginDiscoveryCache } from "./discovery.js";
 import { clearPluginLoaderCache, loadKovaPlugins } from "./loader.js";
 import { clearPluginManifestRegistryCache } from "./manifest-registry.js";
+import { resetKovaPluginSdkNativeResolverForTest } from "./plugin-sdk-native-resolver.js";
 import { resetPluginRuntimeStateForTest } from "./runtime.js";
 
 export type TempPlugin = { dir: string; file: string; id: string };
@@ -141,6 +142,7 @@ export function resetPluginLoaderTestStateForTest() {
   clearPluginLoaderCache();
   clearPluginDiscoveryCache();
   clearPluginManifestRegistryCache();
+  resetKovaPluginSdkNativeResolverForTest();
   resetPluginRuntimeStateForTest();
   resetDiagnosticEventsForTest();
   if (prevBundledDir === undefined) {

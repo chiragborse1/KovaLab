@@ -202,6 +202,7 @@ export function resolveAllowlistModelKey(
 export function resolveDefaultModelForAgent(params: {
   cfg: KovaConfig;
   agentId?: string;
+  allowPluginNormalization?: boolean;
 }): ModelRef {
   const agentModelOverride = params.agentId
     ? resolveAgentEffectiveModelPrimary(params.cfg, params.agentId)
@@ -226,6 +227,7 @@ export function resolveDefaultModelForAgent(params: {
     cfg,
     defaultProvider: DEFAULT_PROVIDER,
     defaultModel: DEFAULT_MODEL,
+    allowPluginNormalization: params.allowPluginNormalization,
   });
 }
 
@@ -329,6 +331,7 @@ export function buildAllowedModelSet(params: {
   defaultProvider: string;
   defaultModel?: string;
   agentId?: string;
+  allowPluginNormalization?: boolean;
 }): {
   allowAny: boolean;
   allowedCatalog: ModelCatalogEntry[];
@@ -343,6 +346,7 @@ export function buildAllowedModelSet(params: {
       cfg: params.cfg,
       agentId: params.agentId,
     }),
+    allowPluginNormalization: params.allowPluginNormalization,
   });
 }
 

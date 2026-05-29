@@ -583,6 +583,7 @@ export async function compactEmbeddedPiSessionDirect(
       allowGatewaySubagentBinding: params.allowGatewaySubagentBinding,
       agentDir,
       workspaceDir: effectiveWorkspace,
+      skillsSnapshot: params.skillsSnapshot,
       config: params.config,
       abortSignal: runAbortController.signal,
       modelProvider: model.provider,

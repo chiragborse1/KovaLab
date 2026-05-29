@@ -2,7 +2,6 @@ import fs from "node:fs";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { shouldExpectNativeJitiForJavaScriptTestRuntime } from "../test-utils/jiti-runtime.js";
 import { cleanupTrackedTempDirs, makeTrackedTempDir } from "./test-helpers/fs-fixtures.js";
 import {
   getRegistryJitiMocks,
@@ -27,6 +26,9 @@ let resolvePluginSetupRegistry: typeof import("./setup-registry.js").resolvePlug
 let resolvePluginSetupProvider: typeof import("./setup-registry.js").resolvePluginSetupProvider;
 let resolvePluginSetupCliBackend: typeof import("./setup-registry.js").resolvePluginSetupCliBackend;
 let runPluginSetupConfigMigrations: typeof import("./setup-registry.js").runPluginSetupConfigMigrations;
+let setPluginSetupRegistryJitiFactoryForTest:
+  | typeof import("./setup-registry.js").setPluginSetupRegistryJitiFactoryForTest
+  | undefined;
 
 function forceNodeRuntimeVersionsForTest(): () => void {
   const originalVersions = process.versions;
@@ -169,6 +171,7 @@ async function expectNoUnhandledRejection(run: () => void | Promise<void>): Prom
 }
 
 afterEach(() => {
+  setPluginSetupRegistryJitiFactoryForTest?.(undefined);
   cleanupTrackedTempDirs(tempDirs);
 });
 
@@ -183,7 +186,9 @@ describe("setup-registry getJiti", () => {
       resolvePluginSetupProvider,
       resolvePluginSetupCliBackend,
       runPluginSetupConfigMigrations,
+      setPluginSetupRegistryJitiFactoryForTest,
     } = await import("./setup-registry.js"));
+    setPluginSetupRegistryJitiFactoryForTest(mocks.createJiti);
     clearPluginSetupRegistryCache();
   });
 
@@ -196,7 +201,6 @@ describe("setup-registry getJiti", () => {
     });
     const platformSpy = vi.spyOn(process, "platform", "get").mockReturnValue("win32");
     const restoreVersions = forceNodeRuntimeVersionsForTest();
-    const expectedTryNative = shouldExpectNativeJitiForJavaScriptTestRuntime();
 
     try {
       resolvePluginSetupRegistry({
@@ -214,7 +218,7 @@ describe("setup-registry getJiti", () => {
     );
     expect(mocks.createJiti.mock.calls[0]?.[1]).toEqual(
       expect.objectContaining({
-        tryNative: expectedTryNative,
+        tryNative: false,
       }),
     );
   });
@@ -790,17 +794,20 @@ describe("setup-registry getJiti", () => {
       ],
       diagnostics: [],
     });
+    const registerSetup = vi.fn(
+      (api: {
+        registerProvider: (provider: { id: string; label: string; auth: [] }) => void;
+        registerCliBackend: (backend: { id: string; config: { command: string } }) => void;
+      }) => {
+        api.registerProvider({ id: "openai", label: "OpenAI", auth: [] });
+        api.registerProvider({ id: "anthropic", label: "Anthropic", auth: [] });
+        api.registerCliBackend({ id: "codex-cli", config: { command: "codex" } });
+        api.registerCliBackend({ id: "claude-cli", config: { command: "claude" } });
+      },
+    );
     const loadSetupModule = vi.fn(() => ({
       default: {
-        register(api: {
-          registerProvider: (provider: { id: string; label: string; auth: [] }) => void;
-          registerCliBackend: (backend: { id: string; config: { command: string } }) => void;
-        }) {
-          api.registerProvider({ id: "openai", label: "OpenAI", auth: [] });
-          api.registerProvider({ id: "anthropic", label: "Anthropic", auth: [] });
-          api.registerCliBackend({ id: "codex-cli", config: { command: "codex" } });
-          api.registerCliBackend({ id: "claude-cli", config: { command: "claude" } });
-        },
+        register: registerSetup,
       },
     }));
     mocks.createJiti.mockImplementation(() => loadSetupModule);
@@ -830,6 +837,7 @@ describe("setup-registry getJiti", () => {
       pluginIds: ["anthropic"],
     });
     expect(setupRegistryTesting.getCacheSizes().setupRegistry).toBe(1);
-    expect(loadSetupModule).toHaveBeenCalledTimes(7);
+    expect(loadSetupModule).toHaveBeenCalledTimes(1);
+    expect(registerSetup).toHaveBeenCalledTimes(7);
   });
 });

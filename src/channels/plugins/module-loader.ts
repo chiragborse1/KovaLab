@@ -2,14 +2,18 @@ import fs from "node:fs";
 import path from "node:path";
 import { openBoundaryFileSync } from "../../infra/boundary-file-read.js";
 import {
+  createPluginJitiLoaderCache,
   getCachedPluginJitiLoader,
   type PluginJitiLoaderCache,
+  type PluginJitiLoaderFactory,
 } from "../../plugins/jiti-loader-cache.js";
 import { tryNativeRequireJavaScriptModule } from "../../plugins/native-module-require.js";
 export { isJavaScriptModulePath } from "../../plugins/native-module-require.js";
 
+let moduleLoaderFactoryForTest: PluginJitiLoaderFactory | undefined;
+
 function createModuleLoader() {
-  const jitiLoaders: PluginJitiLoaderCache = new Map();
+  const jitiLoaders: PluginJitiLoaderCache = createPluginJitiLoaderCache();
 
   return (modulePath: string) => {
     return getCachedPluginJitiLoader({
@@ -19,11 +23,24 @@ function createModuleLoader() {
       argvEntry: process.argv[1],
       preferBuiltDist: true,
       jitiFilename: import.meta.url,
+      ...(moduleLoaderFactoryForTest
+        ? {
+            createLoader: moduleLoaderFactoryForTest,
+            tryNative: false,
+          }
+        : {}),
     });
   };
 }
 
 let loadModule = createModuleLoader();
+
+export function setChannelPluginModuleLoaderFactoryForTest(
+  factory: PluginJitiLoaderFactory | undefined,
+): void {
+  moduleLoaderFactoryForTest = factory;
+  loadModule = createModuleLoader();
+}
 
 export function resolveCompiledBundledModulePath(modulePath: string): string {
   const compiledDistModulePath = modulePath.replace(

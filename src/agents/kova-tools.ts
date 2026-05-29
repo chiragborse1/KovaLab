@@ -71,6 +71,7 @@ export function createKovaTools(
     sandboxed?: boolean;
     config?: KovaConfig;
     pluginToolAllowlist?: string[];
+    pluginToolDenylist?: string[];
     /** Current channel ID for auto-threading. */
     currentChannelId?: string;
     /** Current thread timestamp for auto-threading. */

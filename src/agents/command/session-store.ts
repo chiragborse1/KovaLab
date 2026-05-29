@@ -1,10 +1,16 @@
+import path from "node:path";
 import {
+  canonicalizeAbsoluteSessionFilePath,
   mergeSessionEntry,
+  resolveSessionFilePath,
+  resolveSessionFilePathOptions,
   setSessionRuntimeModel,
   type SessionEntry,
   updateSessionStore,
+  rewriteSessionFileForNewSessionId,
 } from "../../config/sessions.js";
 import type { KovaConfig } from "../../config/types.kova.js";
+import { resolveAgentIdFromSessionKey } from "../../routing/session-key.js";
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
 import { clearCliSession, setCliSessionBinding, setCliSessionId } from "../cli-session.js";
 import { DEFAULT_CONTEXT_TOKENS } from "../defaults.js";
@@ -73,6 +79,7 @@ export async function updateSessionStoreAfterAgentRun(params: {
   const modelUsed = result.meta.agentMeta?.model ?? fallbackModel ?? defaultModel;
   const providerUsed = result.meta.agentMeta?.provider ?? fallbackProvider ?? defaultProvider;
   const agentHarnessId = normalizeOptionalString(result.meta.agentMeta?.agentHarnessId);
+  const activeSessionFile = normalizeOptionalString(result.meta.agentMeta?.sessionFile);
   const runtimeContextTokens = resolvePositiveInteger(result.meta.agentMeta?.contextTokens);
   const contextTokens =
     runtimeContextTokens !== undefined
@@ -104,9 +111,25 @@ export async function updateSessionStoreAfterAgentRun(params: {
     provider: providerUsed,
     model: modelUsed,
   });
-  if (agentHarnessId) {
+  if (entry.sessionId !== sessionId) {
+    next.sessionFile =
+      activeSessionFile ??
+      resolveCompactionSessionFile({
+        entry,
+        sessionKey,
+        storePath,
+        newSessionId: sessionId,
+      });
+    next.usageFamilyKey = entry.usageFamilyKey ?? sessionKey;
+    next.usageFamilySessionIds = Array.from(
+      new Set([...(entry.usageFamilySessionIds ?? []), entry.sessionId, sessionId]),
+    );
+  } else if (activeSessionFile) {
+    next.sessionFile = activeSessionFile;
+  }
+  if (agentHarnessId && agentHarnessId !== "pi") {
     next.agentHarnessId = agentHarnessId;
-  } else if (result.meta.executionTrace?.runner === "cli") {
+  } else if (agentHarnessId === "pi" || result.meta.executionTrace?.runner === "cli") {
     next.agentHarnessId = undefined;
   }
   if (isCliProvider(providerUsed, cfg)) {
@@ -176,12 +199,46 @@ export async function updateSessionStoreAfterAgentRun(params: {
   if (compactionsThisRun > 0) {
     next.compactionCount = (entry.compactionCount ?? 0) + compactionsThisRun;
   }
-  const persisted = await updateSessionStore(storePath, (store) => {
-    const merged = mergeSessionEntry(store[sessionKey], next);
-    store[sessionKey] = merged;
-    return merged;
-  });
+  const persisted = await updateSessionStore(
+    storePath,
+    (store) => {
+      const merged = mergeSessionEntry(store[sessionKey], next);
+      store[sessionKey] = merged;
+      return merged;
+    },
+    {
+      takeCacheOwnership: true,
+      resolveSingleEntryPersistence: (entry) => (entry ? { sessionKey, entry } : undefined),
+    },
+  );
   sessionStore[sessionKey] = persisted;
+}
+
+function resolveCompactionSessionFile(params: {
+  entry: SessionEntry;
+  sessionKey: string;
+  storePath?: string;
+  newSessionId: string;
+}): string {
+  const agentId = resolveAgentIdFromSessionKey(params.sessionKey);
+  const pathOpts = resolveSessionFilePathOptions({
+    agentId,
+    storePath: params.storePath,
+  });
+  const rewrittenSessionFile = rewriteSessionFileForNewSessionId({
+    sessionFile: params.entry.sessionFile,
+    previousSessionId: params.entry.sessionId,
+    nextSessionId: params.newSessionId,
+  });
+  const normalizedRewrittenSessionFile =
+    rewrittenSessionFile && path.isAbsolute(rewrittenSessionFile)
+      ? canonicalizeAbsoluteSessionFilePath(rewrittenSessionFile)
+      : rewrittenSessionFile;
+  return resolveSessionFilePath(
+    params.newSessionId,
+    normalizedRewrittenSessionFile ? { sessionFile: normalizedRewrittenSessionFile } : undefined,
+    pathOpts,
+  );
 }
 
 export async function clearCliSessionInStore(params: {

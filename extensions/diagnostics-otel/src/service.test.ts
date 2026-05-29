@@ -1691,6 +1691,46 @@ describe("diagnostics-otel service", () => {
     await service.stop?.(ctx);
   });
 
+  test("exports skill usage diagnostics without raw tool params", async () => {
+    const service = createDiagnosticsOtelService();
+    const ctx = createOtelContext(OTEL_TEST_ENDPOINT, { traces: true, metrics: true });
+    await service.start(ctx);
+
+    emitTrustedDiagnosticEvent({
+      type: "skill.used",
+      runId: "run-1",
+      sessionKey: "session-secret",
+      agentId: "main",
+      skillName: "release-helper",
+      skillSource: "workspace",
+      activation: "read",
+      toolName: "read",
+    });
+    await flushDiagnosticEvents();
+
+    expect(telemetryState.counters.get("kova.skill.used")?.add).toHaveBeenCalledWith(1, {
+      "kova.skill.name": "release-helper",
+      "kova.skill.source": "workspace",
+      "kova.skill.activation": "read",
+      "kova.agent": "main",
+      "kova.toolName": "read",
+    });
+    const skillSpanCall = telemetryState.tracer.startSpan.mock.calls.find(
+      (call) => call[0] === "kova.skill.used",
+    );
+    expect(skillSpanCall?.[1]).toMatchObject({
+      attributes: {
+        "kova.skill.name": "release-helper",
+        "kova.skill.source": "workspace",
+        "kova.skill.activation": "read",
+        "kova.agent": "main",
+        "kova.toolName": "read",
+      },
+    });
+    expect(JSON.stringify(skillSpanCall)).not.toContain("session-secret");
+    await service.stop?.(ctx);
+  });
+
   test("exports diagnostic memory samples and pressure without session identifiers", async () => {
     const service = createDiagnosticsOtelService();
     const ctx = createOtelContext(OTEL_TEST_ENDPOINT, { traces: true, metrics: true });

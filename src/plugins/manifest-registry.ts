@@ -46,12 +46,14 @@ import {
   type PluginManifestProviderRequest,
   type PluginManifestQaRunner,
   type PluginManifestSetup,
+  type PluginManifestToolMetadata,
 } from "./manifest.js";
 import { checkMinHostVersion } from "./min-host-version.js";
 import { isPathInside, safeRealpathSync } from "./path-safety.js";
 import type { PluginKind } from "./plugin-kind.types.js";
 import type { PluginOrigin } from "./plugin-origin.types.js";
 import { resolvePluginCacheInputs } from "./roots.js";
+import type { PluginDependencySpecMap } from "./status-dependencies.js";
 
 /**
  * Resolve a plugin source path, falling back from .ts to .js when the
@@ -132,6 +134,11 @@ export type PluginManifestRecord = {
   providerAuthChoices?: PluginManifest["providerAuthChoices"];
   activation?: PluginManifestActivation;
   setup?: PluginManifestSetup;
+  packageManifest?: KovaPackageManifest;
+  packageDependencies?: PluginDependencySpecMap;
+  packageOptionalDependencies?: PluginDependencySpecMap;
+  packageChannel?: KovaPackageManifest["channel"];
+  packageInstall?: KovaPackageManifest["install"];
   qaRunners?: PluginManifestQaRunner[];
   skills: string[];
   settingsFiles?: string[];
@@ -151,6 +158,7 @@ export type PluginManifestRecord = {
     string,
     PluginManifestMediaUnderstandingProviderMetadata
   >;
+  toolMetadata?: Record<string, PluginManifestToolMetadata>;
   configContracts?: PluginManifestConfigContracts;
   channelConfigs?: Record<string, PluginManifestChannelConfig>;
   channelCatalogMeta?: {
@@ -360,6 +368,11 @@ function buildRecord(params: {
     providerAuthChoices: params.manifest.providerAuthChoices,
     activation: params.manifest.activation,
     setup: params.manifest.setup,
+    packageManifest: params.candidate.packageManifest,
+    packageDependencies: params.candidate.packageDependencies,
+    packageOptionalDependencies: params.candidate.packageOptionalDependencies,
+    packageChannel: params.candidate.packageManifest?.channel,
+    packageInstall: params.candidate.packageManifest?.install,
     qaRunners: params.manifest.qaRunners,
     skills: params.manifest.skills ?? [],
     settingsFiles: [],
@@ -378,6 +391,7 @@ function buildRecord(params: {
     configUiHints: params.manifest.uiHints,
     contracts: params.manifest.contracts,
     mediaUnderstandingProviderMetadata: params.manifest.mediaUnderstandingProviderMetadata,
+    toolMetadata: params.manifest.toolMetadata,
     configContracts: params.manifest.configContracts,
     channelConfigs,
     ...(params.candidate.packageManifest?.channel?.id
@@ -419,6 +433,11 @@ function buildBundleRecord(params: {
     name: normalizeOptionalString(params.manifest.name) ?? params.candidate.idHint,
     description: normalizeOptionalString(params.manifest.description),
     version: normalizeOptionalString(params.manifest.version),
+    packageManifest: params.candidate.packageManifest,
+    packageDependencies: params.candidate.packageDependencies,
+    packageOptionalDependencies: params.candidate.packageOptionalDependencies,
+    packageChannel: params.candidate.packageManifest?.channel,
+    packageInstall: params.candidate.packageManifest?.install,
     format: "bundle",
     bundleFormat: params.candidate.bundleFormat,
     bundleCapabilities: params.manifest.capabilities,

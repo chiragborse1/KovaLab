@@ -491,17 +491,14 @@ function resolveSessionPinnedAgentHarnessId(params: {
   if (params.sessionEntry?.sessionId !== params.sessionId) {
     return resolveConfiguredAgentHarnessId(params);
   }
-  if (params.sessionEntry.agentHarnessId) {
+  if (params.sessionEntry.agentHarnessId && params.sessionEntry.agentHarnessId !== "pi") {
     return params.sessionEntry.agentHarnessId;
   }
   const configuredAgentHarnessId = resolveConfiguredAgentHarnessId(params);
   if (configuredAgentHarnessId) {
     return configuredAgentHarnessId;
   }
-  if (!params.sessionHasHistory) {
-    return undefined;
-  }
-  return "pi";
+  return undefined;
 }
 
 function resolveConfiguredAgentHarnessId(params: {
@@ -509,6 +506,13 @@ function resolveConfiguredAgentHarnessId(params: {
   sessionAgentId: string;
   sessionKey: string;
 }): string | undefined {
+  const agentPolicy = params.cfg.agents?.list?.find(
+    (entry) => entry.id === params.sessionAgentId,
+  )?.agentRuntime;
+  const defaultsPolicy = params.cfg.agents?.defaults?.agentRuntime;
+  if (!agentPolicy?.id && !defaultsPolicy?.id) {
+    return undefined;
+  }
   const policy = resolveAgentHarnessPolicy({
     config: params.cfg,
     agentId: params.sessionAgentId,

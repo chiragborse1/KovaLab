@@ -144,6 +144,7 @@ function createOpenAiCatalogProviderPlugin(
     id: "openai",
     label: "OpenAI",
     auth: [],
+    hookAliases: ["azure-openai", "azure-openai-responses"],
     suppressBuiltInModel: ({ provider, modelId }) =>
       (provider === "openai" || provider === "azure-openai-responses") &&
       modelId === "gpt-5.3-codex-spark"

@@ -16,9 +16,9 @@ Run the terminal product without a Gateway:
 kova
 ```
 
-This is the default interactive path. It uses an isolated local backend worker
-for the embedded agent runtime, so first chat does not depend on the Gateway, a
-browser, or any chat channel.
+This is the default interactive path. It runs the embedded agent runtime
+directly for the fastest first chat, so first chat does not depend on the
+Gateway, a browser, or any chat channel.
 
 Notes:
 
@@ -28,7 +28,7 @@ Notes:
 - Most local tools work in embedded mode, but Gateway-only remote delivery features are unavailable.
 - Bare `kova` opens the local terminal chat path.
 - Plugin approval gates still apply in local mode. Tools that require approval prompt for a decision in the terminal; nothing is silently auto-approved because the Gateway is not involved.
-- Set `KOVA_TUI_IN_PROCESS_BACKEND=1` only when debugging the legacy in-process local backend.
+- Set `KOVA_TUI_PROCESS_BACKEND=1` only when debugging the experimental isolated worker backend.
 - Set `KOVA_TUI_TRACE=1` to print per-turn local timing diagnostics and a slowest-segment summary while investigating slow replies.
 
 ### Gateway mode

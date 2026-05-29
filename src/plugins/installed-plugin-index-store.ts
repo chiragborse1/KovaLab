@@ -21,6 +21,7 @@ import {
   type LoadInstalledPluginIndexParams,
   type RefreshInstalledPluginIndexParams,
 } from "./installed-plugin-index.js";
+import { clearPluginMetadataLifecycleCaches } from "./plugin-metadata-lifecycle.js";
 export {
   INSTALLED_PLUGIN_INDEX_STORE_PATH,
   resolveInstalledPluginIndexStorePath,
@@ -45,6 +46,12 @@ const InstalledPluginIndexStartupSchema = z.object({
   agentHarnesses: StringArraySchema,
 });
 
+const InstalledPluginFileSignatureSchema = z.object({
+  size: z.number(),
+  mtimeMs: z.number(),
+  ctimeMs: z.number().optional(),
+});
+
 const InstalledPluginIndexRecordSchema = z.object({
   pluginId: z.string(),
   packageName: z.string().optional(),
@@ -55,6 +62,7 @@ const InstalledPluginIndexRecordSchema = z.object({
   packageChannel: z.unknown().optional(),
   manifestPath: z.string(),
   manifestHash: z.string(),
+  manifestFile: InstalledPluginFileSignatureSchema.optional(),
   format: z.string().optional(),
   bundleFormat: z.string().optional(),
   source: z.string().optional(),
@@ -63,12 +71,14 @@ const InstalledPluginIndexRecordSchema = z.object({
     .object({
       path: z.string(),
       hash: z.string(),
+      fileSignature: InstalledPluginFileSignatureSchema.optional(),
     })
     .optional(),
   rootDir: z.string(),
   origin: z.string(),
   enabled: z.boolean(),
   enabledByDefault: z.boolean().optional(),
+  enabledByDefaultOnPlatforms: StringArraySchema.optional(),
   syntheticAuthRefs: StringArraySchema.optional(),
   startup: InstalledPluginIndexStartupSchema,
   compat: z.array(z.string()),
@@ -171,6 +181,7 @@ export async function writePersistedInstalledPluginIndex(
       mode: 0o600,
     },
   );
+  clearPluginMetadataLifecycleCaches();
   return filePath;
 }
 
@@ -180,6 +191,7 @@ export function writePersistedInstalledPluginIndexSync(
 ): string {
   const filePath = resolveInstalledPluginIndexStorePath(options);
   saveJsonFile(filePath, { ...index, warning: INSTALLED_PLUGIN_INDEX_WARNING });
+  clearPluginMetadataLifecycleCaches();
   return filePath;
 }
 

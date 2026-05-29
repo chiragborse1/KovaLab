@@ -1,11 +1,14 @@
-import type { PluginJitiLoaderCache } from "./jiti-loader-cache.js";
-import { getCachedPluginJitiLoader } from "./jiti-loader-cache.js";
+import {
+  createPluginJitiLoaderCache,
+  getCachedPluginJitiLoader,
+  type PluginJitiLoaderCache,
+} from "./jiti-loader-cache.js";
 import { withProfile } from "./plugin-load-profile.js";
 
 export type PluginSourceLoader = (modulePath: string) => unknown;
 
 export function createPluginSourceLoader(): PluginSourceLoader {
-  const loaders: PluginJitiLoaderCache = new Map();
+  const loaders: PluginJitiLoaderCache = createPluginJitiLoaderCache();
   return (modulePath) => {
     const jiti = getCachedPluginJitiLoader({
       cache: loaders,

@@ -3,20 +3,19 @@ import type { PluginManifestRecord } from "./manifest-registry.js";
 import type { ProviderPlugin } from "./types.js";
 
 const mocks = vi.hoisted(() => ({
-  loadPluginRegistrySnapshot: vi.fn(),
-  loadPluginManifestRegistryForInstalledIndex: vi.fn(),
+  loadManifestMetadataSnapshot: vi.fn(),
   resolveDiscoveredProviderPluginIds: vi.fn(),
   resolvePluginProviders: vi.fn(),
   loadSource: vi.fn(),
 }));
 
-vi.mock("./plugin-registry.js", () => ({
-  loadPluginRegistrySnapshot: mocks.loadPluginRegistrySnapshot,
-}));
-
-vi.mock("./manifest-registry-installed.js", () => ({
-  loadPluginManifestRegistryForInstalledIndex: mocks.loadPluginManifestRegistryForInstalledIndex,
-}));
+vi.mock("./manifest-contract-eligibility.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./manifest-contract-eligibility.js")>();
+  return {
+    ...actual,
+    loadManifestMetadataSnapshot: mocks.loadManifestMetadataSnapshot,
+  };
+});
 
 vi.mock("./providers.js", () => ({
   resolveDiscoveredProviderPluginIds: mocks.resolveDiscoveredProviderPluginIds,
@@ -26,9 +25,14 @@ vi.mock("./providers.runtime.js", () => ({
   resolvePluginProviders: mocks.resolvePluginProviders,
 }));
 
-vi.mock("./source-loader.js", () => ({
-  createPluginSourceLoader: () => mocks.loadSource,
-}));
+vi.mock("./jiti-loader-cache.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./jiti-loader-cache.js")>();
+  return {
+    ...actual,
+    createPluginJitiLoaderCache: () => new Map(),
+    getCachedPluginJitiLoader: () => mocks.loadSource,
+  };
+});
 
 import { resolvePluginDiscoveryProvidersRuntime } from "./provider-discovery.runtime.js";
 
@@ -45,7 +49,18 @@ function createManifestPlugin(id: string): PluginManifestRecord {
     rootDir: `/tmp/${id}`,
     source: "bundled",
     manifestPath: `/tmp/${id}/kova.plugin.json`,
+    modelCatalog: {},
     providerDiscoverySource: `/tmp/${id}/provider-discovery.ts`,
+  };
+}
+
+function createMetadataSnapshot(plugins: PluginManifestRecord[]) {
+  return {
+    index: { plugins: [] },
+    manifestRegistry: {
+      plugins,
+      diagnostics: [],
+    },
   };
 }
 
@@ -82,42 +97,38 @@ function createProvider(params: { id: string; mode: "static" | "catalog" }): Pro
 describe("resolvePluginDiscoveryProvidersRuntime", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mocks.loadPluginRegistrySnapshot.mockReturnValue({ plugins: [] });
     mocks.resolveDiscoveredProviderPluginIds.mockReturnValue(["deepseek"]);
-    mocks.loadPluginManifestRegistryForInstalledIndex.mockReturnValue({
-      plugins: [createManifestPlugin("deepseek")],
-      diagnostics: [],
-    });
+    mocks.loadManifestMetadataSnapshot.mockReturnValue(
+      createMetadataSnapshot([createManifestPlugin("deepseek")]),
+    );
   });
 
-  it("falls back to full provider plugins when discovery entries only expose static catalogs", () => {
-    const fullProvider = createProvider({ id: "deepseek", mode: "catalog" });
-    mocks.loadSource.mockReturnValue(createProvider({ id: "deepseek", mode: "static" }));
-    mocks.resolvePluginProviders.mockReturnValue([fullProvider]);
+  it("uses static discovery entry catalogs without loading the full provider plugin", () => {
+    const staticProvider = createProvider({ id: "deepseek", mode: "static" });
+    mocks.loadSource.mockReturnValue(staticProvider);
 
-    expect(resolvePluginDiscoveryProvidersRuntime({})).toEqual([fullProvider]);
-    expect(mocks.resolvePluginProviders).toHaveBeenCalledWith(
+    expect(resolvePluginDiscoveryProvidersRuntime({})).toEqual([
       expect.objectContaining({
-        bundledProviderAllowlistCompat: true,
-        onlyPluginIds: ["deepseek"],
+        id: "deepseek",
+        pluginId: "deepseek",
+        staticCatalog: staticProvider.staticCatalog,
       }),
-    );
+    ]);
+    expect(mocks.resolvePluginProviders).not.toHaveBeenCalled();
   });
 
   it("keeps unscoped discovery bounded for mixed live and static-only entries", () => {
     const codexEntryProvider = createProvider({ id: "codex", mode: "catalog" });
-    const fullProviders = [
-      createProvider({ id: "deepseek", mode: "catalog" }),
-      createProvider({ id: "kilocode", mode: "catalog" }),
-    ];
+    const fullProviders = [createProvider({ id: "kilocode", mode: "catalog" })];
+    const deepseekStaticProvider = createProvider({ id: "deepseek", mode: "static" });
     mocks.resolveDiscoveredProviderPluginIds.mockReturnValue([
       "codex",
       "deepseek",
       "kilocode",
       "unused",
     ]);
-    mocks.loadPluginManifestRegistryForInstalledIndex.mockReturnValue({
-      plugins: [
+    mocks.loadManifestMetadataSnapshot.mockReturnValue(
+      createMetadataSnapshot([
         createManifestPlugin("codex"),
         createManifestPlugin("deepseek"),
         createManifestPluginWithoutDiscovery({
@@ -128,13 +139,10 @@ describe("resolvePluginDiscoveryProvidersRuntime", () => {
           id: "unused",
           providerAuthEnvVars: { unused: ["UNUSED_API_KEY"] },
         }),
-      ],
-      diagnostics: [],
-    });
+      ]),
+    );
     mocks.loadSource.mockImplementation((modulePath: string) =>
-      modulePath.includes("/codex/")
-        ? codexEntryProvider
-        : createProvider({ id: "deepseek", mode: "static" }),
+      modulePath.includes("/codex/") ? codexEntryProvider : deepseekStaticProvider,
     );
     mocks.resolvePluginProviders.mockReturnValue(fullProviders);
 
@@ -142,39 +150,34 @@ describe("resolvePluginDiscoveryProvidersRuntime", () => {
       resolvePluginDiscoveryProvidersRuntime({
         env: { KILOCODE_API_KEY: "sk-test" } as NodeJS.ProcessEnv,
       }),
-    ).toEqual([{ ...codexEntryProvider, pluginId: "codex" }, ...fullProviders]);
+    ).toEqual([
+      { ...codexEntryProvider, pluginId: "codex" },
+      { ...deepseekStaticProvider, pluginId: "deepseek" },
+      ...fullProviders,
+    ]);
     expect(mocks.resolvePluginProviders).toHaveBeenCalledWith(
       expect.objectContaining({
-        onlyPluginIds: ["deepseek", "kilocode"],
+        onlyPluginIds: ["kilocode"],
       }),
     );
   });
 
-  it("shares one registry snapshot and manifest registry between provider id discovery and entry loading", () => {
-    const registry = { plugins: [] };
-    const manifestRegistry = {
-      plugins: [createManifestPlugin("deepseek")],
-      diagnostics: [],
-    };
-    mocks.loadPluginRegistrySnapshot.mockReturnValue(registry);
-    mocks.loadPluginManifestRegistryForInstalledIndex.mockReturnValue(manifestRegistry);
+  it("shares one metadata snapshot between provider id discovery and entry loading", () => {
+    const metadataSnapshot = createMetadataSnapshot([createManifestPlugin("deepseek")]);
+    mocks.loadManifestMetadataSnapshot.mockReturnValue(metadataSnapshot);
     mocks.loadSource.mockReturnValue(createProvider({ id: "deepseek", mode: "catalog" }));
 
     resolvePluginDiscoveryProvidersRuntime({ config: {}, env: {} as NodeJS.ProcessEnv });
 
-    expect(mocks.loadPluginRegistrySnapshot).toHaveBeenCalledOnce();
-    expect(mocks.loadPluginManifestRegistryForInstalledIndex).toHaveBeenCalledWith({
-      index: registry,
+    expect(mocks.loadManifestMetadataSnapshot).toHaveBeenCalledWith({
       config: {},
-      workspaceDir: undefined,
       env: {},
-      includeDisabled: true,
     });
-    expect(mocks.loadPluginManifestRegistryForInstalledIndex).toHaveBeenCalledOnce();
+    expect(mocks.loadManifestMetadataSnapshot).toHaveBeenCalledOnce();
     expect(mocks.resolveDiscoveredProviderPluginIds).toHaveBeenCalledWith(
       expect.objectContaining({
-        registry,
-        manifestRegistry,
+        registry: metadataSnapshot.index,
+        manifestRegistry: metadataSnapshot.manifestRegistry,
       }),
     );
   });
@@ -190,6 +193,56 @@ describe("resolvePluginDiscoveryProvidersRuntime", () => {
         staticCatalog: staticProvider.staticCatalog,
       }),
     ]);
+    expect(mocks.resolvePluginProviders).not.toHaveBeenCalled();
+  });
+
+  it("uses manifest model catalog rows as static discovery entries without loading plugin runtime", async () => {
+    const plugin = {
+      ...createManifestPluginWithoutDiscovery({ id: "manifest-models" }),
+      providers: ["manifest-models"],
+      modelCatalog: {
+        providers: {
+          "manifest-models": {
+            baseUrl: "https://models.example/v1",
+            api: "openai-completions",
+            models: [
+              {
+                id: "fast",
+                name: "Fast",
+                input: ["text"],
+                reasoning: false,
+                contextWindow: 128_000,
+                maxTokens: 4096,
+              },
+            ],
+          },
+        },
+      },
+    } satisfies PluginManifestRecord;
+    mocks.resolveDiscoveredProviderPluginIds.mockReturnValue(["manifest-models"]);
+    mocks.loadManifestMetadataSnapshot.mockReturnValue(createMetadataSnapshot([plugin]));
+
+    const providers = resolvePluginDiscoveryProvidersRuntime({
+      discoveryEntriesOnly: true,
+    });
+
+    expect(providers).toHaveLength(1);
+    expect(providers[0]).toEqual(
+      expect.objectContaining({
+        id: "manifest-models",
+        pluginId: "manifest-models",
+        staticCatalog: expect.any(Object),
+      }),
+    );
+    await expect(providers[0]?.staticCatalog?.run()).resolves.toMatchObject({
+      providers: {
+        "manifest-models": {
+          baseUrl: "https://models.example/v1",
+          models: [expect.objectContaining({ id: "fast" })],
+        },
+      },
+    });
+    expect(mocks.loadSource).not.toHaveBeenCalled();
     expect(mocks.resolvePluginProviders).not.toHaveBeenCalled();
   });
 });

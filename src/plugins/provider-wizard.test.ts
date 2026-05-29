@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { ProviderAuthChoiceMetadata } from "./provider-auth-choices.js";
 import {
   buildProviderPluginMethodChoice,
   resolveProviderModelPickerEntries,
@@ -8,7 +9,19 @@ import {
 } from "./provider-wizard.js";
 import type { ProviderPlugin } from "./types.js";
 
+const resolveManifestProviderAuthChoices = vi.hoisted(() =>
+  vi.fn<() => ProviderAuthChoiceMetadata[]>(() => []),
+);
+const resolvePluginSetupProvider = vi.hoisted(() =>
+  vi.fn(() => undefined as ProviderPlugin | undefined),
+);
 const resolvePluginProviders = vi.hoisted(() => vi.fn<() => ProviderPlugin[]>(() => []));
+vi.mock("./provider-auth-choices.js", () => ({
+  resolveManifestProviderAuthChoices,
+}));
+vi.mock("./setup-registry.js", () => ({
+  resolvePluginSetupProvider,
+}));
 vi.mock("./providers.runtime.js", () => ({
   isPluginProvidersLoadInFlight: () => false,
   resolvePluginProviders,
@@ -84,17 +97,43 @@ function expectProviderResolutionCall(params?: {
   config?: object;
   env?: NodeJS.ProcessEnv;
   workspaceDir?: string;
+  providerRefs?: readonly string[];
   count?: number;
 }) {
   expect(resolvePluginProviders).toHaveBeenCalledTimes(params?.count ?? 1);
   expect(resolvePluginProviders).toHaveBeenCalledWith({
     ...createWizardRuntimeParams(params),
     mode: "setup",
+    ...(params?.providerRefs ? { providerRefs: params.providerRefs } : {}),
   });
 }
 
 function setResolvedProviders(...providers: ProviderPlugin[]) {
   resolvePluginProviders.mockReturnValue(providers);
+}
+
+function setManifestChoices(
+  ...choices: Array<{
+    pluginId?: string;
+    providerId: string;
+    methodId: string;
+    choiceId: string;
+    choiceLabel: string;
+    choiceHint?: string;
+    groupId?: string;
+    groupLabel?: string;
+    groupHint?: string;
+    assistantPriority?: number;
+    assistantVisibility?: "visible" | "manual-only";
+    onboardingScopes?: Array<"text-inference" | "image-generation">;
+  }>
+) {
+  resolveManifestProviderAuthChoices.mockReturnValue(
+    choices.map((choice) => ({
+      pluginId: choice.pluginId ?? choice.providerId,
+      ...choice,
+    })),
+  );
 }
 
 function expectSingleWizardChoice(params: {
@@ -104,6 +143,27 @@ function expectSingleWizardChoice(params: {
   expectedWizard: unknown;
 }) {
   setResolvedProviders(params.provider);
+  const method = params.provider.auth[0]!;
+  const wizard = method.wizard ?? params.provider.wizard?.setup;
+  setManifestChoices({
+    providerId: params.provider.id,
+    methodId: method.id,
+    choiceId:
+      normalizeWizardTestString(wizard?.choiceId) ||
+      buildProviderPluginMethodChoice(params.provider.id, method.id),
+    choiceLabel:
+      normalizeWizardTestString(wizard?.choiceLabel) ||
+      (params.provider.auth.length === 1 ? params.provider.label : method.label),
+    ...(wizard?.choiceHint ? { choiceHint: wizard.choiceHint } : {}),
+    ...(wizard?.groupId ? { groupId: wizard.groupId } : {}),
+    ...(wizard?.groupLabel ? { groupLabel: wizard.groupLabel } : {}),
+    ...(wizard?.groupHint ? { groupHint: wizard.groupHint } : {}),
+    ...(wizard?.assistantPriority !== undefined
+      ? { assistantPriority: wizard.assistantPriority }
+      : {}),
+    ...(wizard?.assistantVisibility ? { assistantVisibility: wizard.assistantVisibility } : {}),
+    ...(wizard?.onboardingScopes ? { onboardingScopes: wizard.onboardingScopes } : {}),
+  });
   expect(resolveProviderWizardOptions({})).toEqual([params.expectedOption]);
   expect(
     resolveProviderPluginChoice({
@@ -117,6 +177,10 @@ function expectSingleWizardChoice(params: {
   });
 }
 
+function normalizeWizardTestString(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
 function expectModelPickerEntries(
   provider: ProviderPlugin,
   expected: Array<{
@@ -126,13 +190,15 @@ function expectModelPickerEntries(
   }>,
 ) {
   setResolvedProviders(provider);
-  expect(resolveProviderModelPickerEntries({})).toEqual(expected);
+  resolvePluginSetupProvider.mockReturnValue(provider);
+  expect(resolveProviderModelPickerEntries({ providerRefs: [provider.id] })).toEqual(expected);
 }
 
 describe("provider wizard boundaries", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useRealTimers();
+    resolvePluginSetupProvider.mockReturnValue(undefined);
   });
 
   it.each([
@@ -254,8 +320,6 @@ describe("provider wizard boundaries", () => {
         label: "Anthropic",
         groupId: "anthropic",
         groupLabel: "Anthropic",
-        groupHint: undefined,
-        hint: undefined,
       },
       resolveWizard: (provider: ProviderPlugin) => provider.auth[0]?.wizard,
     },
@@ -298,12 +362,27 @@ describe("provider wizard boundaries", () => {
     const config = {};
     const env = createHomeEnv();
     setResolvedProviders(provider);
+    resolvePluginSetupProvider.mockReturnValue(provider);
+    setManifestChoices({
+      providerId: provider.id,
+      methodId: provider.auth[0]!.id,
+      choiceId: "sglang-server",
+      choiceLabel: "SGLang setup",
+      groupId: "sglang",
+      groupLabel: "SGLang",
+    });
 
     const runtimeParams = createWizardRuntimeParams({ config, env });
     expect(resolveProviderWizardOptions(runtimeParams)).toHaveLength(1);
-    expect(resolveProviderModelPickerEntries(runtimeParams)).toHaveLength(1);
+    expect(
+      resolveProviderModelPickerEntries({ ...runtimeParams, providerRefs: ["sglang"] }),
+    ).toHaveLength(1);
 
-    expectProviderResolutionCall({ config, env, count: 2 });
+    expect(resolveManifestProviderAuthChoices).toHaveBeenCalledWith({
+      ...runtimeParams,
+      includeUntrustedWorkspacePlugins: false,
+    });
+    expect(resolvePluginProviders).not.toHaveBeenCalled();
   });
 
   it("routes model-selected hooks only to the matching provider", async () => {
@@ -335,6 +414,7 @@ describe("provider wizard boundaries", () => {
     expectProviderResolutionCall({
       config: {},
       env,
+      providerRefs: ["vllm"],
     });
     expect(matchingHook).toHaveBeenCalledWith({
       config: {},

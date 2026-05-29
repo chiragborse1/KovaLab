@@ -26,12 +26,22 @@ async function invokeSecretsResolve(params: {
   respond: ReturnType<typeof vi.fn>;
   commandName: unknown;
   targetIds: unknown;
+  allowedPaths?: unknown;
+  forcedActivePaths?: unknown;
+  optionalActivePaths?: unknown;
 }) {
   await params.handlers["secrets.resolve"]({
     req: { type: "req", id: "1", method: "secrets.resolve" },
     params: {
       commandName: params.commandName,
       targetIds: params.targetIds,
+      ...(params.allowedPaths !== undefined ? { allowedPaths: params.allowedPaths } : {}),
+      ...(params.forcedActivePaths !== undefined
+        ? { forcedActivePaths: params.forcedActivePaths }
+        : {}),
+      ...(params.optionalActivePaths !== undefined
+        ? { optionalActivePaths: params.optionalActivePaths }
+        : {}),
     },
     client: null,
     isWebchatConnect: () => false,
@@ -45,7 +55,13 @@ async function invokeSecretsResolve(params: {
 describe("secrets handlers", () => {
   function createHandlers(overrides?: {
     reloadSecrets?: () => Promise<{ warningCount: number }>;
-    resolveSecrets?: (params: { commandName: string; targetIds: string[] }) => Promise<{
+    resolveSecrets?: (params: {
+      commandName: string;
+      targetIds: string[];
+      allowedPaths?: string[];
+      forcedActivePaths?: string[];
+      optionalActivePaths?: string[];
+    }) => Promise<{
       assignments: Array<{ path: string; pathSegments: string[]; value: unknown }>;
       diagnostics: string[];
       inactiveRefPaths: string[];
@@ -125,6 +141,39 @@ describe("secrets handlers", () => {
       ],
       diagnostics: ["note"],
       inactiveRefPaths: [TALK_TEST_PROVIDER_API_KEY_PATH],
+    });
+  });
+
+  it("passes command-scoped secret path options through to the resolver", async () => {
+    const resolveSecrets = vi.fn().mockResolvedValue({
+      assignments: [],
+      diagnostics: [],
+      inactiveRefPaths: [],
+    });
+    const handlers = createHandlers({ resolveSecrets });
+    const respond = vi.fn();
+    await invokeSecretsResolve({
+      handlers,
+      respond,
+      commandName: "infer web search",
+      targetIds: ["plugins.entries.firecrawl.config.webSearch.apiKey"],
+      allowedPaths: ["plugins.entries.firecrawl.config.webSearch.apiKey"],
+      forcedActivePaths: ["plugins.entries.firecrawl.config.webSearch.apiKey"],
+      optionalActivePaths: ["plugins.entries.firecrawl.config.webFetch.apiKey"],
+    });
+
+    expect(resolveSecrets).toHaveBeenCalledWith({
+      commandName: "infer web search",
+      targetIds: ["plugins.entries.firecrawl.config.webSearch.apiKey"],
+      allowedPaths: ["plugins.entries.firecrawl.config.webSearch.apiKey"],
+      forcedActivePaths: ["plugins.entries.firecrawl.config.webSearch.apiKey"],
+      optionalActivePaths: ["plugins.entries.firecrawl.config.webFetch.apiKey"],
+    });
+    expect(respond).toHaveBeenCalledWith(true, {
+      ok: true,
+      assignments: [],
+      diagnostics: [],
+      inactiveRefPaths: [],
     });
   });
 

@@ -8,7 +8,7 @@ import {
   optimizeImageToJpeg as optimizeImageToJpegImpl,
 } from "../../media/web-media.js";
 import type { PollInput } from "../../polls.js";
-import type { PluginJitiLoaderCache } from "../jiti-loader-cache.js";
+import { createPluginJitiLoaderCache, type PluginJitiLoaderCache } from "../jiti-loader-cache.js";
 import {
   loadPluginBoundaryModuleWithJiti,
   resolvePluginRuntimeRecordByEntryBaseNames,
@@ -108,7 +108,7 @@ let cachedHeavyModule: WebChannelHeavyRuntimeModule | null = null;
 let cachedLightModulePath: string | null = null;
 let cachedLightModule: WebChannelLightRuntimeModule | null = null;
 
-const jitiLoaders: PluginJitiLoaderCache = new Map();
+const jitiLoaders: PluginJitiLoaderCache = createPluginJitiLoaderCache();
 
 function resolveWebChannelPluginRecord(): WebChannelPluginRecord {
   return resolvePluginRuntimeRecordByEntryBaseNames(["light-runtime-api", "runtime-api"], () => {

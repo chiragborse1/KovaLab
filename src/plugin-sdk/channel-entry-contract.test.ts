@@ -4,6 +4,7 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { importFreshModule } from "../../test/helpers/import-fresh.ts";
+import type { PluginJitiLoaderFactory } from "../plugins/jiti-loader-cache.js";
 import type { PluginRuntime } from "../plugins/runtime/types.js";
 import type { KovaPluginApi, PluginRegistrationMode } from "../plugins/types.js";
 import { defineBundledChannelEntry, loadBundledEntryExportSync } from "./channel-entry-contract.js";
@@ -226,7 +227,7 @@ describe("loadBundledEntryExportSync", () => {
     expect(message).toContain("ENOENT");
   });
 
-  it("keeps Windows dist sidecar loads off Jiti native import", async () => {
+  it("keeps Windows dist sidecar loads on the native fast path", async () => {
     const createJiti = vi.fn(() => vi.fn(() => ({ load: 42 })));
     vi.doMock("jiti", () => ({
       createJiti,
@@ -244,22 +245,17 @@ describe("loadBundledEntryExportSync", () => {
       fs.mkdirSync(pluginRoot, { recursive: true });
 
       const importerPath = path.join(pluginRoot, "index.js");
-      const helperPath = path.join(pluginRoot, "helper.ts");
+      const helperPath = path.join(pluginRoot, "helper.cjs");
       fs.writeFileSync(importerPath, "export default {};\n", "utf8");
-      fs.writeFileSync(helperPath, "export const load = 42;\n", "utf8");
+      fs.writeFileSync(helperPath, "module.exports = { load: 42 };\n", "utf8");
 
       expect(
         channelEntryContract.loadBundledEntryExportSync<number>(pathToFileURL(importerPath).href, {
-          specifier: "./helper.ts",
+          specifier: "./helper.cjs",
           exportName: "load",
         }),
       ).toBe(42);
-      expect(createJiti).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          tryNative: false,
-        }),
-      );
+      expect(createJiti).not.toHaveBeenCalled();
     } finally {
       platformSpy.mockRestore();
     }
@@ -296,7 +292,10 @@ describe("loadBundledEntryExportSync", () => {
             specifier: "./helper.ts",
             exportName: "load",
           },
-          { installRuntimeDeps: false },
+          {
+            createLoaderForTest: createJiti as unknown as PluginJitiLoaderFactory,
+            installRuntimeDeps: false,
+          },
         ),
       ).toBe(42);
       expect(jitiLoad).toHaveBeenCalledWith(

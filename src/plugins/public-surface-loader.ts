@@ -5,7 +5,11 @@ import { fileURLToPath } from "node:url";
 import { openBoundaryFileSync } from "../infra/boundary-file-read.js";
 import { sameFileIdentity } from "../infra/file-identity.js";
 import { resolveBundledPluginsDir } from "./bundled-dir.js";
-import { getCachedPluginJitiLoader, type PluginJitiLoaderCache } from "./jiti-loader-cache.js";
+import {
+  createPluginJitiLoaderCache,
+  getCachedPluginJitiLoader,
+  type PluginJitiLoaderCache,
+} from "./jiti-loader-cache.js";
 import { resolveBundledPluginPublicSurfacePath } from "./public-surface-runtime.js";
 import {
   isBundledPluginExtensionPath,
@@ -27,8 +31,8 @@ const publicSurfaceLocations = new Map<
     boundaryRoot: string;
   } | null
 >();
-const jitiLoaders: PluginJitiLoaderCache = new Map();
-const sharedBundledPublicSurfaceJitiLoaders: PluginJitiLoaderCache = new Map();
+const jitiLoaders: PluginJitiLoaderCache = createPluginJitiLoaderCache();
+const sharedBundledPublicSurfaceJitiLoaders: PluginJitiLoaderCache = createPluginJitiLoaderCache();
 
 function isSourceArtifactPath(modulePath: string): boolean {
   switch (path.extname(modulePath).toLowerCase()) {
@@ -134,7 +138,7 @@ function getSharedBundledPublicSurfaceJiti(modulePath: string, tryNative: boolea
     modulePath,
     importerUrl: import.meta.url,
     jitiFilename: import.meta.url,
-    cacheScopeKey: cacheKey,
+    sharedCacheScopeKey: cacheKey,
     tryNative,
   });
 }

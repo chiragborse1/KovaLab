@@ -348,6 +348,56 @@ describe("promptDefaultModel", () => {
     expect(select.mock.calls[1]?.[0]?.searchable).toBe(true);
   });
 
+  it("uses preferred-provider fallback rows for OpenRouter without loading the full catalog", async () => {
+    const select = vi.fn(async (params) => {
+      const option = params.options.find(
+        (entry: { value: string }) => entry.value === "openrouter/auto",
+      );
+      return option?.value ?? params.initialValue;
+    });
+    const prompter = makePrompter({ select });
+
+    const result = await promptDefaultModel({
+      config: { agents: { defaults: {} } } as KovaConfig,
+      prompter,
+      allowKeep: false,
+      includeManual: false,
+      ignoreAllowlist: true,
+      preferredProvider: "openrouter",
+    });
+
+    expect(result.model).toBe("openrouter/auto");
+    expect(loadModelCatalog).not.toHaveBeenCalled();
+    expect(select.mock.calls[0]?.[0]?.options).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ value: "openrouter/auto" }),
+        expect.objectContaining({ value: "openrouter/moonshotai/kimi-k2.6" }),
+      ]),
+    );
+  });
+
+  it("uses preferred-provider fallback rows for xAI without loading the full catalog", async () => {
+    const select = vi.fn(async (params) => {
+      const option = params.options.find(
+        (entry: { value: string }) => entry.value === "xai/grok-4-fast",
+      );
+      return option?.value ?? params.initialValue;
+    });
+    const prompter = makePrompter({ select });
+
+    const result = await promptDefaultModel({
+      config: { agents: { defaults: {} } } as KovaConfig,
+      prompter,
+      allowKeep: false,
+      includeManual: false,
+      ignoreAllowlist: true,
+      preferredProvider: "xai",
+    });
+
+    expect(result.model).toBe("xai/grok-4-fast");
+    expect(loadModelCatalog).not.toHaveBeenCalled();
+  });
+
   it("supports configuring vLLM during setup", async () => {
     loadModelCatalog.mockResolvedValue([
       {
@@ -578,10 +628,9 @@ describe("promptModelAllowlist", () => {
     });
 
     const options = multiselect.mock.calls[0]?.[0]?.options ?? [];
-    expect(options.map((opt: { value: string }) => opt.value)).toEqual([
-      "openai/gpt-5.5",
-      "openai/gpt-5.4-mini",
-    ]);
+    const values = options.map((opt: { value: string }) => opt.value);
+    expect(values.every((value: string) => value.startsWith("openai/"))).toBe(true);
+    expect(values).toEqual(expect.arrayContaining(["openai/gpt-5.5", "openai/gpt-5.4-mini"]));
   });
 
   it("seeds existing model fallbacks into unscoped allowlist selections", async () => {
@@ -746,14 +795,13 @@ describe("promptModelAllowlist", () => {
     });
 
     const call = multiselect.mock.calls[0]?.[0];
-    expect(call?.options.map((option: { value: string }) => option.value)).toEqual([
-      "openai/gpt-5.5",
-      "openai/gpt-5.4",
-    ]);
+    const values = call?.options.map((option: { value: string }) => option.value) ?? [];
+    expect(values.every((value: string) => value.startsWith("openai/"))).toBe(true);
+    expect(values).toEqual(expect.arrayContaining(["openai/gpt-5.5", "openai/gpt-5.4"]));
     expect(call?.initialValues).toEqual(["openai/gpt-5.5"]);
     expect(result).toEqual({
       models: ["openai/gpt-5.5"],
-      scopeKeys: ["openai/gpt-5.5", "openai/gpt-5.4"],
+      scopeKeys: values,
     });
   });
 

@@ -42,6 +42,7 @@ import {
   sanitizeModelHeaders,
 } from "./model.inline-provider.js";
 import { normalizeResolvedProviderModel } from "./model.provider-normalization.js";
+import { resolveBundledStaticCatalogModel } from "./model.static-catalog.js";
 
 type ProviderRuntimeHooks = {
   applyProviderResolvedModelCompatWithPlugins?: (
@@ -81,6 +82,20 @@ const DEFAULT_PROVIDER_RUNTIME_HOOKS: ProviderRuntimeHooks = {
   normalizeProviderTransportWithPlugin,
 };
 
+const TARGET_PROVIDER_RUNTIME_HOOKS: ProviderRuntimeHooks = {
+  // First-turn model resolution should only touch the selected provider owner.
+  // Broad cross-provider compat/transport hooks can cold-load unrelated plugins.
+  applyProviderResolvedModelCompatWithPlugins: () => undefined,
+  applyProviderResolvedTransportWithPlugin: () => undefined,
+  buildProviderUnknownModelHintWithPlugin,
+  clearProviderRuntimeHookCache,
+  prepareProviderDynamicModel,
+  runProviderDynamicModel,
+  shouldPreferProviderRuntimeResolvedModel,
+  normalizeProviderResolvedModelWithPlugin,
+  normalizeProviderTransportWithPlugin: () => undefined,
+};
+
 const STATIC_PROVIDER_RUNTIME_HOOKS: ProviderRuntimeHooks = {
   applyProviderResolvedModelCompatWithPlugins: () => undefined,
   applyProviderResolvedTransportWithPlugin: () => undefined,
@@ -110,11 +125,18 @@ function createEmptyPiDiscoveryStores(): {
 function resolveRuntimeHooks(params?: {
   runtimeHooks?: ProviderRuntimeHooks;
   skipProviderRuntimeHooks?: boolean;
+  skipPiDiscovery?: boolean;
 }): ProviderRuntimeHooks {
   if (params?.skipProviderRuntimeHooks) {
     return STATIC_PROVIDER_RUNTIME_HOOKS;
   }
-  return params?.runtimeHooks ?? DEFAULT_PROVIDER_RUNTIME_HOOKS;
+  if (params?.runtimeHooks) {
+    return params.runtimeHooks;
+  }
+  if (params?.skipPiDiscovery) {
+    return TARGET_PROVIDER_RUNTIME_HOOKS;
+  }
+  return DEFAULT_PROVIDER_RUNTIME_HOOKS;
 }
 
 function canonicalizeLegacyResolvedModel(params: {
@@ -862,6 +884,41 @@ function resolveConfiguredFallbackModel(params: {
   });
 }
 
+function resolveStaticCatalogFallbackModel(params: {
+  provider: string;
+  modelId: string;
+  cfg?: KovaConfig;
+  agentDir?: string;
+  workspaceDir?: string;
+}): Model<Api> | undefined {
+  const staticCatalogModel = resolveBundledStaticCatalogModel({
+    provider: params.provider,
+    modelId: params.modelId,
+    cfg: params.cfg,
+    workspaceDir: params.workspaceDir,
+  });
+  if (!staticCatalogModel) {
+    return undefined;
+  }
+  const providerConfig = resolveConfiguredProviderConfig(params.cfg, params.provider);
+  const overriddenStaticCatalogModel = applyConfiguredProviderOverrides({
+    provider: params.provider,
+    discoveredModel: staticCatalogModel as ProviderRuntimeModel,
+    providerConfig,
+    modelId: params.modelId,
+    cfg: params.cfg,
+    runtimeHooks: STATIC_PROVIDER_RUNTIME_HOOKS,
+    preferDiscoveredModelMetadata: true,
+  });
+  return normalizeResolvedModel({
+    provider: params.provider,
+    cfg: params.cfg,
+    agentDir: params.agentDir,
+    model: overriddenStaticCatalogModel,
+    runtimeHooks: STATIC_PROVIDER_RUNTIME_HOOKS,
+  });
+}
+
 function shouldCompareProviderRuntimeResolvedModel(params: {
   provider: string;
   modelId: string;
@@ -902,6 +959,7 @@ export function resolveModelWithRegistry(params: {
   modelRegistry: ModelRegistry;
   cfg?: KovaConfig;
   agentDir?: string;
+  workspaceDir?: string;
   runtimeHooks?: ProviderRuntimeHooks;
 }): Model<Api> | undefined {
   const normalizedRef = {
@@ -914,7 +972,7 @@ export function resolveModelWithRegistry(params: {
     modelId: normalizedRef.model,
   };
   const runtimeHooks = params.runtimeHooks ?? DEFAULT_PROVIDER_RUNTIME_HOOKS;
-  const workspaceDir = normalizedParams.cfg?.agents?.defaults?.workspace;
+  const workspaceDir = params.workspaceDir ?? normalizedParams.cfg?.agents?.defaults?.workspace;
   const explicitModel = resolveExplicitModelWithRegistry(normalizedParams);
   if (explicitModel?.kind === "suppressed") {
     return undefined;
@@ -1007,10 +1065,12 @@ export async function resolveModelAsync(
   options?: {
     authStorage?: AuthStorage;
     modelRegistry?: ModelRegistry;
+    allowBundledStaticCatalogFallback?: boolean;
     retryTransientProviderRuntimeMiss?: boolean;
     runtimeHooks?: ProviderRuntimeHooks;
     skipProviderRuntimeHooks?: boolean;
     skipPiDiscovery?: boolean;
+    workspaceDir?: string;
   },
 ): Promise<{
   model?: Model<Api>;
@@ -1022,6 +1082,7 @@ export async function resolveModelAsync(
     provider,
     model: normalizeStaticProviderModelId(normalizeProviderId(provider), modelId),
   };
+  const workspaceDir = options?.workspaceDir ?? cfg?.agents?.defaults?.workspace;
   const resolvedAgentDir = agentDir ?? resolveKovaAgentDir();
   const emptyDiscoveryStores =
     options?.skipPiDiscovery && (!options.authStorage || !options.modelRegistry)
@@ -1036,6 +1097,18 @@ export async function resolveModelAsync(
     emptyDiscoveryStores?.modelRegistry ??
     discoverModels(authStorage, resolvedAgentDir);
   const runtimeHooks = resolveRuntimeHooks(options);
+  if (options?.skipPiDiscovery && options.allowBundledStaticCatalogFallback) {
+    const staticCatalogModel = resolveStaticCatalogFallbackModel({
+      provider: normalizedRef.provider,
+      modelId: normalizedRef.model,
+      cfg,
+      agentDir: resolvedAgentDir,
+      workspaceDir,
+    });
+    if (staticCatalogModel) {
+      return { model: staticCatalogModel, authStorage, modelRegistry };
+    }
+  }
   const explicitModel = resolveExplicitModelWithRegistry({
     provider: normalizedRef.provider,
     modelId: normalizedRef.model,
@@ -1067,6 +1140,7 @@ export async function resolveModelAsync(
       config: cfg,
       context: {
         config: cfg,
+        workspaceDir,
         agentDir: resolvedAgentDir,
         provider: normalizedRef.provider,
         modelId: normalizedRef.model,
@@ -1080,6 +1154,7 @@ export async function resolveModelAsync(
       modelRegistry,
       cfg,
       agentDir: resolvedAgentDir,
+      workspaceDir,
       runtimeHooks,
     });
   };
@@ -1099,6 +1174,15 @@ export async function resolveModelAsync(
     // gateway boot. Retry once with a cleared hook cache before surfacing a
     // user-visible "Unknown model" that disappears on the next message.
     model = await resolveDynamicAttempt({ clearHookCache: true });
+  }
+  if (!model && !explicitModel && options?.allowBundledStaticCatalogFallback) {
+    model = resolveStaticCatalogFallbackModel({
+      provider: normalizedRef.provider,
+      modelId: normalizedRef.model,
+      cfg,
+      agentDir: resolvedAgentDir,
+      workspaceDir,
+    });
   }
   if (model) {
     return { model, authStorage, modelRegistry };

@@ -20,6 +20,7 @@ import { normalizeSessionRuntimeModelFields, type SessionEntry } from "./types.j
 export type LoadSessionStoreOptions = {
   skipCache?: boolean;
   maintenanceConfig?: ResolvedSessionMaintenanceConfig;
+  clone?: boolean;
 };
 
 const log = createSubsystemLogger("sessions/store");
@@ -83,6 +84,7 @@ export function loadSessionStore(
       storePath,
       mtimeMs: currentFileStat?.mtimeMs,
       sizeBytes: currentFileStat?.sizeBytes,
+      clone: opts.clone,
     });
     if (cached) {
       return cached;
@@ -158,5 +160,5 @@ export function loadSessionStore(
     });
   }
 
-  return structuredClone(store);
+  return opts.clone === false ? store : structuredClone(store);
 }

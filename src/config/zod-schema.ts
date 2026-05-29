@@ -69,6 +69,8 @@ const MemoryQmdUpdateSchema = z
     interval: z.string().optional(),
     debounceMs: z.number().int().nonnegative().optional(),
     onBoot: z.boolean().optional(),
+    startup: z.enum(["off", "idle", "immediate"]).optional(),
+    startupDelayMs: z.number().int().nonnegative().optional(),
     waitForBootSync: z.boolean().optional(),
     embedInterval: z.string().optional(),
     commandTimeoutMs: z.number().int().nonnegative().optional(),
@@ -930,6 +932,7 @@ export const KovaSchema = z
         load: z
           .object({
             extraDirs: z.array(z.string()).optional(),
+            allowSymlinkTargets: z.array(z.string()).optional(),
             watch: z.boolean().optional(),
             watchDebounceMs: z.number().int().min(0).optional(),
           })

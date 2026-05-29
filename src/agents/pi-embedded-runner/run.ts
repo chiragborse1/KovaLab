@@ -16,7 +16,11 @@ import type { CommandQueueEnqueueOptions } from "../../process/command-queue.typ
 import { normalizeOptionalString } from "../../shared/string-coerce.js";
 import { sanitizeForLog } from "../../terminal/ansi.js";
 import { resolveUserPath } from "../../utils.js";
-import { isMarkdownCapableMessageChannel } from "../../utils/message-channel.js";
+import {
+  isDeliverableMessageChannel,
+  isMarkdownCapableMessageChannel,
+  normalizeMessageChannel,
+} from "../../utils/message-channel.js";
 import { resolveKovaAgentDir } from "../agent-paths.js";
 import {
   hasConfiguredModelFallbacks,
@@ -208,6 +212,11 @@ function normalizeEmbeddedRunAttemptResult(
   };
 }
 
+function shouldPreloadRuntimePluginsForChannel(raw?: string | null): boolean {
+  const channel = normalizeMessageChannel(raw);
+  return Boolean(channel && isDeliverableMessageChannel(channel));
+}
+
 function createEmptyAuthProfileStore(): AuthProfileStore {
   return {
     version: 1,
@@ -344,6 +353,15 @@ export async function runEmbeddedPiAgent(
     abortErr.name = "AbortError";
     throw abortErr;
   };
+  const reportProgress = (phase: string, detail?: string) => {
+    params.onAgentEvent?.({
+      stream: "progress",
+      data: {
+        phase,
+        ...(detail ? { detail } : {}),
+      },
+    });
+  };
 
   throwIfAborted();
 
@@ -353,6 +371,7 @@ export async function runEmbeddedPiAgent(
       throwIfAborted();
       const started = Date.now();
       params.onExecutionStarted?.();
+      reportProgress("preparing run");
       const workspaceResolution = resolveRunWorkspaceDir({
         workspaceDir: params.workspaceDir,
         sessionKey: params.sessionKey,
@@ -372,11 +391,23 @@ export async function runEmbeddedPiAgent(
           `[workspace-fallback] caller=runEmbeddedPiAgent reason=${workspaceResolution.fallbackReason} run=${params.runId} session=${redactedSessionId} sessionKey=${redactedSessionKey} agent=${workspaceResolution.agentId} workspace=${redactedWorkspace}`,
         );
       }
-      ensureRuntimePluginsLoaded({
-        config: params.config,
-        workspaceDir: resolvedWorkspace,
-        allowGatewaySubagentBinding: params.allowGatewaySubagentBinding,
-      });
+      const hasDeliverableChannel =
+        shouldPreloadRuntimePluginsForChannel(params.messageChannel) ||
+        shouldPreloadRuntimePluginsForChannel(params.messageProvider);
+      const shouldPreloadRuntimePlugins =
+        params.allowGatewaySubagentBinding === true ||
+        hasDeliverableChannel ||
+        (params.trigger !== undefined && params.trigger !== "user");
+      if (shouldPreloadRuntimePlugins) {
+        reportProgress("loading runtime plugins");
+        ensureRuntimePluginsLoaded({
+          config: params.config,
+          workspaceDir: resolvedWorkspace,
+          allowGatewaySubagentBinding: params.allowGatewaySubagentBinding,
+        });
+      } else {
+        reportProgress("runtime plugins deferred");
+      }
 
       let provider = (params.provider ?? DEFAULT_PROVIDER).trim() || DEFAULT_PROVIDER;
       let modelId = (params.model ?? DEFAULT_MODEL).trim() || DEFAULT_MODEL;
@@ -424,6 +455,7 @@ export async function runEmbeddedPiAgent(
         }
       }
 
+      reportProgress("checking model rules");
       const hookSelection = await resolveHookModelSelection({
         prompt: params.prompt,
         attachments: buildBeforeModelResolveAttachments(params.images),
@@ -435,6 +467,7 @@ export async function runEmbeddedPiAgent(
       provider = hookSelection.provider;
       modelId = hookSelection.modelId;
       const legacyBeforeAgentStartResult = hookSelection.legacyBeforeAgentStartResult;
+      reportProgress("loading model runtime");
       await ensureSelectedAgentHarnessPlugin({
         provider,
         modelId,
@@ -452,6 +485,7 @@ export async function runEmbeddedPiAgent(
         agentHarnessId: params.agentHarnessId,
       });
       const pluginHarnessOwnsTransport = agentHarness.id !== "pi";
+      reportProgress("resolving model");
       const dynamicModelResolution = await resolveModelAsync(
         provider,
         modelId,
@@ -462,14 +496,21 @@ export async function runEmbeddedPiAgent(
           // first generating PI models.json. This keeps one-shot model runs from
           // blocking on unrelated provider discovery.
           skipPiDiscovery: true,
+          allowBundledStaticCatalogFallback: true,
+          workspaceDir: resolvedWorkspace,
         },
       );
       const modelResolution =
         dynamicModelResolution.model || pluginHarnessOwnsTransport
           ? dynamicModelResolution
           : await (async () => {
-              await ensureKovaModelsJson(params.config, agentDir);
-              return await resolveModelAsync(provider, modelId, agentDir, params.config);
+              await ensureKovaModelsJson(params.config, agentDir, {
+                providerDiscoveryProviderIds: [provider],
+                workspaceDir: resolvedWorkspace,
+              });
+              return await resolveModelAsync(provider, modelId, agentDir, params.config, {
+                workspaceDir: resolvedWorkspace,
+              });
             })();
       const { model, error, authStorage, modelRegistry } = modelResolution;
       if (!model) {
@@ -481,6 +522,7 @@ export async function runEmbeddedPiAgent(
       }
       let runtimeModel = model;
 
+      reportProgress("checking auth");
       const resolvedRuntimeModel = resolveEffectiveRuntimeModel({
         cfg: params.config,
         provider,
@@ -496,20 +538,71 @@ export async function runEmbeddedPiAgent(
       const authStore = pluginHarnessOwnsTransport
         ? createEmptyAuthProfileStore()
         : fullAuthProfileStore;
+      const attemptAuthProfileStore = pluginHarnessOwnsTransport ? fullAuthProfileStore : authStore;
       const toolAuthProfileStore = agentHarness.id === "codex" ? fullAuthProfileStore : undefined;
-      const preferredProfileId = params.authProfileId?.trim();
-      let lockedProfileId = params.authProfileIdSource === "user" ? preferredProfileId : undefined;
+      const requestedProfileId = params.authProfileId?.trim();
+      const requestedProfileIsUserLocked = params.authProfileIdSource === "user";
+      const isForwardablePluginHarnessAuthProfile = (
+        profileId: string | undefined,
+      ): profileId is string => {
+        if (!pluginHarnessOwnsTransport || !profileId) {
+          return false;
+        }
+        const credential = attemptAuthProfileStore.profiles?.[profileId];
+        const runtimeAuthPlan = buildAgentRuntimeAuthPlan({
+          provider,
+          authProfileProvider: credential?.provider ?? profileId.split(":", 1)[0],
+          authProfileMode: credential?.type,
+          sessionAuthProfileId: profileId,
+          config: params.config,
+          workspaceDir: resolvedWorkspace,
+          harnessId: agentHarness.id,
+          harnessRuntime: agentHarness.id,
+          allowHarnessAuthProfileForwarding: true,
+        });
+        return runtimeAuthPlan.forwardedAuthProfileId === profileId;
+      };
+      const resolvePluginHarnessProfileOrder = (): string[] => {
+        if (!pluginHarnessOwnsTransport) {
+          return [];
+        }
+        if (requestedProfileId && requestedProfileIsUserLocked) {
+          return isForwardablePluginHarnessAuthProfile(requestedProfileId)
+            ? [requestedProfileId]
+            : [];
+        }
+        const runtimeAuthPlan = buildAgentRuntimeAuthPlan({
+          provider,
+          config: params.config,
+          workspaceDir: resolvedWorkspace,
+          harnessId: agentHarness.id,
+          harnessRuntime: agentHarness.id,
+          allowHarnessAuthProfileForwarding: true,
+        });
+        const harnessAuthProvider = runtimeAuthPlan.harnessAuthProvider;
+        if (!harnessAuthProvider) {
+          return [];
+        }
+        const resolvedOrder = resolveAuthProfileOrder({
+          cfg: params.config,
+          store: attemptAuthProfileStore,
+          provider: harnessAuthProvider,
+        }).filter(isForwardablePluginHarnessAuthProfile);
+        if (resolvedOrder.length > 0) {
+          return resolvedOrder;
+        }
+        return requestedProfileId && isForwardablePluginHarnessAuthProfile(requestedProfileId)
+          ? [requestedProfileId]
+          : [];
+      };
+      const pluginHarnessProfileOrder = resolvePluginHarnessProfileOrder();
+      const preferredProfileId = pluginHarnessOwnsTransport
+        ? pluginHarnessProfileOrder[0]
+        : requestedProfileId;
+      let lockedProfileId = requestedProfileIsUserLocked ? preferredProfileId : undefined;
       if (lockedProfileId) {
         if (pluginHarnessOwnsTransport) {
-          const runtimeAuthPlan = buildAgentRuntimeAuthPlan({
-            provider,
-            authProfileProvider: lockedProfileId.split(":", 1)[0],
-            sessionAuthProfileId: lockedProfileId,
-            config: params.config,
-            workspaceDir: resolvedWorkspace,
-            harnessId: agentHarness.id,
-          });
-          if (!runtimeAuthPlan.forwardedAuthProfileId) {
+          if (!isForwardablePluginHarnessAuthProfile(lockedProfileId)) {
             lockedProfileId = undefined;
           }
         } else {
@@ -540,6 +633,12 @@ export async function runEmbeddedPiAgent(
           throw new Error(`Auth profile "${lockedProfileId}" is not configured for ${provider}.`);
         }
       }
+      const forwardedPluginHarnessProfileId =
+        pluginHarnessOwnsTransport &&
+        !lockedProfileId &&
+        isForwardablePluginHarnessAuthProfile(preferredProfileId)
+          ? preferredProfileId
+          : undefined;
       const profileOrder = shouldPreferExplicitConfigApiKeyAuth(params.config, provider)
         ? []
         : resolveAuthProfileOrder({
@@ -573,11 +672,17 @@ export async function runEmbeddedPiAgent(
               ...profileOrder.filter((profileId) => profileId !== providerPreferredProfileId),
             ]
           : profileOrder;
-      const profileCandidates = lockedProfileId
-        ? [lockedProfileId]
-        : providerOrderedProfiles.length > 0
-          ? providerOrderedProfiles
-          : [undefined];
+      const profileCandidates = pluginHarnessOwnsTransport
+        ? lockedProfileId
+          ? [lockedProfileId]
+          : pluginHarnessProfileOrder.length > 0
+            ? pluginHarnessProfileOrder
+            : [undefined]
+        : lockedProfileId
+          ? [lockedProfileId]
+          : providerOrderedProfiles.length > 0
+            ? providerOrderedProfiles
+            : [undefined];
       let profileIndex = 0;
       const traceAttempts: TraceAttempt[] = [];
 
@@ -640,6 +745,28 @@ export async function runEmbeddedPiAgent(
         },
         log,
       });
+      const advancePluginHarnessAuthProfile = async (): Promise<boolean> => {
+        if (!pluginHarnessOwnsTransport || lockedProfileId) {
+          return false;
+        }
+        let nextIndex = profileIndex + 1;
+        while (nextIndex < profileCandidates.length) {
+          const candidate = profileCandidates[nextIndex];
+          if (!isForwardablePluginHarnessAuthProfile(candidate)) {
+            nextIndex += 1;
+            continue;
+          }
+          profileIndex = nextIndex;
+          lastProfileId = candidate;
+          thinkLevel = initialThinkLevel;
+          attemptedThinking.clear();
+          return true;
+        }
+        return false;
+      };
+      const advanceAttemptAuthProfile = pluginHarnessOwnsTransport
+        ? advancePluginHarnessAuthProfile
+        : advanceAuthProfile;
 
       // Plugin harnesses own their model transport/auth. Running PI's generic
       // auth bootstrap here can turn synthetic provider markers into real
@@ -648,6 +775,8 @@ export async function runEmbeddedPiAgent(
         await initializeAuthProfile();
       } else if (lockedProfileId) {
         lastProfileId = lockedProfileId;
+      } else if (forwardedPluginHarnessProfileId) {
+        lastProfileId = forwardedPluginHarnessProfileId;
       }
       const { sessionAgentId } = resolveSessionAgentIds({
         sessionKey: params.sessionKey,
@@ -745,7 +874,7 @@ export async function runEmbeddedPiAgent(
           return;
         }
         await markAuthProfileFailure({
-          store: authStore,
+          store: attemptAuthProfileStore,
           profileId,
           reason,
           cfg: params.config,
@@ -929,6 +1058,7 @@ export async function runEmbeddedPiAgent(
             },
           });
 
+          reportProgress("calling model", `${provider}/${modelId}`);
           const rawAttempt = await runEmbeddedAttemptWithBackend({
             sessionId: activeSessionId,
             sessionKey: resolvedSessionKey,
@@ -1654,7 +1784,7 @@ export async function runEmbeddedPiAgent(
             });
             if (
               promptFailoverDecision.action === "rotate_profile" &&
-              (await advanceAuthProfile())
+              (await advanceAttemptAuthProfile())
             ) {
               if (failedPromptProfileId && promptProfileFailureReason) {
                 maybeMarkAuthProfileFailure({
@@ -2382,13 +2512,13 @@ export async function runEmbeddedPiAgent(
           );
           if (lastProfileId) {
             await markAuthProfileGood({
-              store: authStore,
+              store: attemptAuthProfileStore,
               provider,
               profileId: lastProfileId,
               agentDir: params.agentDir,
             });
             await markAuthProfileUsed({
-              store: authStore,
+              store: attemptAuthProfileStore,
               profileId: lastProfileId,
               agentDir: params.agentDir,
             });

@@ -13,6 +13,10 @@ const applyPluginAutoEnableMock = vi.fn();
 
 vi.mock("./loader.js", () => ({
   resolveRuntimePluginRegistry: (params: unknown) => resolveRuntimePluginRegistryMock(params),
+  resolveCompatibleRuntimePluginRegistry: (params: unknown) =>
+    resolveRuntimePluginRegistryMock(params),
+  loadKovaPlugins: (params: unknown) => loadKovaPluginsMock(params),
+  resolvePluginRegistryLoadCacheKey: () => "test-plugin-cache-key",
 }));
 
 vi.mock("../config/plugin-auto-enable.js", () => ({

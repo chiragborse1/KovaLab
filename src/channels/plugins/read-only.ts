@@ -8,6 +8,7 @@ import {
   resolveDiscoverableScopedChannelPluginIds,
 } from "../../plugins/channel-plugin-ids.js";
 import {
+  createPluginJitiLoaderCache,
   getCachedPluginJitiLoader,
   type PluginJitiLoaderCache,
 } from "../../plugins/jiti-loader-cache.js";
@@ -29,7 +30,7 @@ const LOADER_MODULE_CANDIDATES = [
   new URL("../../plugins/loader.js", import.meta.url),
   new URL("../../plugins/loader.ts", import.meta.url),
 ] as const;
-const jitiLoaders: PluginJitiLoaderCache = new Map();
+const jitiLoaders: PluginJitiLoaderCache = createPluginJitiLoaderCache();
 
 type PluginLoaderModule = {
   loadKovaPlugins: (params: {

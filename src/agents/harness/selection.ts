@@ -6,6 +6,10 @@ import { normalizeAgentId } from "../../routing/session-key.js";
 import { resolveAgentRuntimePolicy } from "../agent-runtime-policy.js";
 import { listAgentEntries, resolveSessionAgentIds } from "../agent-scope.js";
 import { isCliRuntimeAlias } from "../model-runtime-aliases.js";
+import {
+  isOpenAICodexProvider,
+  openAIProviderUsesCodexRuntimeByDefault,
+} from "../openai-codex-routing.js";
 import type { CompactEmbeddedPiSessionParams } from "../pi-embedded-runner/compact.types.js";
 import type {
   EmbeddedRunAttemptParams,
@@ -317,9 +321,18 @@ export function resolveAgentHarnessPolicy(params: {
     sessionKey: params.sessionKey,
   });
   const defaultsPolicy = resolveAgentRuntimePolicy(params.config?.agents?.defaults);
+  const configuredRuntime = agentPolicy?.id ?? defaultsPolicy?.id;
   const runtime = env.KOVA_AGENT_RUNTIME?.trim()
     ? resolveEmbeddedAgentRuntime(env)
-    : normalizeEmbeddedAgentRuntime(agentPolicy?.id ?? defaultsPolicy?.id);
+    : normalizeEmbeddedAgentRuntime(
+        configuredRuntime ??
+          (openAIProviderUsesCodexRuntimeByDefault({
+            provider: params.provider,
+            config: params.config,
+          }) || isOpenAICodexProvider(params.provider)
+            ? "codex"
+            : undefined),
+      );
   if (isCliRuntimeAlias(runtime)) {
     return {
       runtime: "pi",
@@ -355,6 +368,10 @@ function resolveAgentHarnessFallbackPolicy(params: {
 
   if (params.agentPolicy?.id) {
     return normalizeAgentHarnessFallback(params.agentPolicy.fallback, params.runtime);
+  }
+
+  if (!params.defaultsPolicy?.id && params.runtime === "codex") {
+    return "pi";
   }
 
   return normalizeAgentHarnessFallback(

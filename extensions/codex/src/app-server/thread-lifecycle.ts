@@ -3,6 +3,7 @@ import {
   resolveWritableSandboxBindHostRoots,
   type EmbeddedRunAttemptParams,
 } from "getkova/plugin-sdk/agent-harness-runtime";
+import { resolveProviderIdForAuth, type AuthProfileStore } from "getkova/plugin-sdk/agent-runtime";
 import { renderCodexPromptOverlay } from "../../prompt-overlay.js";
 import { isModernCodexModel } from "../../provider.js";
 import type { CodexAppServerClient } from "./client.js";
@@ -79,7 +80,11 @@ export async function startOrResumeThread(params: {
           ),
         );
         const boundAuthProfileId = params.params.authProfileId ?? binding.authProfileId;
-        const fallbackModelProvider = resolveCodexAppServerModelProvider(params.params.provider);
+        const fallbackModelProvider = resolveCodexAppServerModelProvider({
+          provider: params.params.provider,
+          authProfileId: boundAuthProfileId,
+          authProfileStore: params.params.toolAuthProfileStore,
+        });
         await writeCodexAppServerBinding(params.params.sessionFile, {
           threadId: response.thread.id,
           cwd: params.cwd,
@@ -107,7 +112,11 @@ export async function startOrResumeThread(params: {
     }
   }
 
-  const modelProvider = resolveCodexAppServerModelProvider(params.params.provider);
+  const modelProvider = resolveCodexAppServerModelProvider({
+    provider: params.params.provider,
+    authProfileId: params.params.authProfileId,
+    authProfileStore: params.params.toolAuthProfileStore,
+  });
   const response = assertCodexThreadStartResponse(
     await params.client.request("thread/start", {
       model: params.params.modelId,
@@ -162,7 +171,11 @@ export function buildThreadResumeParams(
     sandbox?: KovaSandboxContextForCodex | null;
   },
 ): CodexThreadResumeParams {
-  const modelProvider = resolveCodexAppServerModelProvider(params.provider);
+  const modelProvider = resolveCodexAppServerModelProvider({
+    provider: params.provider,
+    authProfileId: params.authProfileId,
+    authProfileStore: params.toolAuthProfileStore,
+  });
   return {
     threadId: options.threadId,
     model: params.modelId,
@@ -337,14 +350,46 @@ function buildUserInput(
   ];
 }
 
-function resolveCodexAppServerModelProvider(provider: string): string | undefined {
-  const normalized = provider.trim();
-  if (!normalized || normalized === "codex") {
+function isCodexAppServerNativeAuthProfile(params: {
+  authProfileId?: string;
+  authProfileStore?: AuthProfileStore;
+}): boolean {
+  const profileId = params.authProfileId?.trim();
+  if (!profileId) {
+    return false;
+  }
+  const credential = params.authProfileStore?.profiles?.[profileId];
+  if (!credential) {
+    return profileId.toLowerCase().startsWith("openai-codex:");
+  }
+  return (
+    resolveProviderIdForAuth(credential.provider) === "openai-codex" &&
+    credential.type !== "api_key"
+  );
+}
+
+function resolveCodexAppServerModelProvider(params: {
+  provider: string;
+  authProfileId?: string;
+  authProfileStore?: AuthProfileStore;
+}): string | undefined {
+  const normalized = params.provider.trim();
+  const normalizedLower = normalized.toLowerCase();
+  if (!normalized || normalizedLower === "codex") {
     // `codex` is Kova's virtual provider; let Codex app-server keep its
     // native provider/auth selection instead of forcing the legacy OpenAI path.
     return undefined;
   }
-  return normalized === "openai-codex" ? "openai" : normalized;
+  if (
+    isCodexAppServerNativeAuthProfile(params) &&
+    (normalizedLower === "openai" || normalizedLower === "openai-codex")
+  ) {
+    // With ChatGPT/Codex OAuth, Codex app-server owns provider selection for
+    // the logged-in account. Forcing `openai` here can route through the wrong
+    // auth path and make the first turn look like a hang.
+    return undefined;
+  }
+  return normalizedLower === "openai-codex" ? "openai" : normalized;
 }
 
 // Modern Codex models (gpt-5.5, gpt-5.4, gpt-5.4-mini, gpt-5.2) use the

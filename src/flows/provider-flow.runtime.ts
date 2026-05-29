@@ -23,13 +23,18 @@ function resolveProviderDocsById(params?: {
   config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  providerRefs?: readonly string[];
 }): Map<string, string> {
+  if (!params?.providerRefs?.length) {
+    return new Map();
+  }
   return new Map(
     resolvePluginProviders({
       config: params?.config,
       workspaceDir: params?.workspaceDir,
       env: params?.env,
       mode: "setup",
+      providerRefs: params.providerRefs,
     })
       .filter((provider): provider is ProviderPlugin & { docsPath: string } =>
         Boolean(normalizeOptionalString(provider.docsPath)),
@@ -42,6 +47,7 @@ export function resolveProviderModelPickerFlowEntries(params?: {
   config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  providerRefs?: readonly string[];
 }): ProviderModelPickerFlowEntry[] {
   return resolveProviderModelPickerFlowContributions(params).map(
     (contribution) => contribution.option,
@@ -52,10 +58,15 @@ export function resolveProviderModelPickerFlowContributions(params?: {
   config?: KovaConfig;
   workspaceDir?: string;
   env?: NodeJS.ProcessEnv;
+  providerRefs?: readonly string[];
 }): ProviderModelPickerFlowContribution[] {
+  const entries = resolveProviderModelPickerEntries(params ?? {});
+  if (entries.length === 0) {
+    return [];
+  }
   const docsByProvider = resolveProviderDocsById(params ?? {});
   return sortFlowContributionsByLabel(
-    resolveProviderModelPickerEntries(params ?? {}).map((entry) => {
+    entries.map((entry) => {
       const providerId = entry.value.startsWith("provider-plugin:")
         ? entry.value.slice("provider-plugin:".length).split(":")[0]
         : entry.value;

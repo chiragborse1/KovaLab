@@ -9,7 +9,11 @@ import {
 import { resolveBundledPluginRepoEntryPath } from "./bundled-plugin-metadata.js";
 import { createCapturedPluginRegistration } from "./captured-registration.js";
 import { discoverKovaPlugins, type PluginDiscoveryResult } from "./discovery.js";
-import { getCachedPluginJitiLoader, type PluginJitiLoaderCache } from "./jiti-loader-cache.js";
+import {
+  createPluginJitiLoaderCache,
+  getCachedPluginJitiLoader,
+  type PluginJitiLoaderCache,
+} from "./jiti-loader-cache.js";
 import type { PluginLoadOptions } from "./loader.js";
 import { loadPluginManifestRegistry } from "./manifest-registry.js";
 import { unwrapDefaultModuleExport } from "./module-export.js";
@@ -198,7 +202,7 @@ export function loadBundledCapabilityRuntimeRegistry(params: {
   const env = params.env ?? process.env;
   const pluginIds = new Set(params.pluginIds);
   const registry = createEmptyPluginRegistry();
-  const jitiLoaders: PluginJitiLoaderCache = new Map();
+  const jitiLoaders: PluginJitiLoaderCache = createPluginJitiLoaderCache();
 
   const getJiti = (modulePath: string) => {
     const tryNative =

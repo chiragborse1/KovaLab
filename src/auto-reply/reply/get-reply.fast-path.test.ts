@@ -79,6 +79,7 @@ describe("getReplyFromConfig fast test bootstrap", () => {
         },
       },
       channels: { telegram: { allowFrom: ["*"] } },
+      skills: { allowBundled: ["__no_bundled_test_skill__"] },
       session: { store: path.join(home, "sessions.json") },
     } as KovaConfig);
 
@@ -208,6 +209,43 @@ describe("getReplyFromConfig fast test bootstrap", () => {
         workspaceDir: expect.any(String),
       }),
     );
+  });
+
+  it("handles native /commands before workspace bootstrap", async () => {
+    const home = await fs.mkdtemp(path.join(os.tmpdir(), "kova-native-commands-fast-"));
+    const workspaceDir = path.join(home, "workspace");
+    const targetSessionKey = "agent:main:telegram:123";
+    const cfg = markCompleteReplyConfig({
+      agents: {
+        defaults: {
+          model: "anthropic/claude-opus-4-6",
+          workspace: workspaceDir,
+        },
+      },
+      channels: { telegram: { allowFrom: ["*"] } },
+      session: { store: path.join(home, "sessions.json") },
+    } as KovaConfig);
+
+    const reply = await getReplyFromConfig(
+      buildGetReplyCtx({
+        Body: "/commands",
+        BodyForAgent: "/commands",
+        RawBody: "/commands",
+        CommandBody: "/commands",
+        CommandSource: "native",
+        CommandAuthorized: true,
+        SessionKey: "telegram:slash:123",
+        CommandTargetSessionKey: targetSessionKey,
+      }),
+      undefined,
+      cfg,
+    );
+
+    expect(reply).toEqual(expect.objectContaining({ text: expect.stringContaining("/commands") }));
+    expect(mocks.ensureAgentWorkspace).not.toHaveBeenCalled();
+    expect(mocks.initSessionState).not.toHaveBeenCalled();
+    expect(mocks.resolveReplyDirectives).not.toHaveBeenCalled();
+    expect(vi.mocked(runPreparedReplyMock)).not.toHaveBeenCalled();
   });
 
   it("uses native command target session keys during fast bootstrap", () => {

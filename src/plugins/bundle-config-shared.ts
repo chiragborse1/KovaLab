@@ -5,6 +5,7 @@ import type { KovaConfig } from "../config/types.kova.js";
 import { matchBoundaryFileOpenFailure, openBoundaryFileSync } from "../infra/boundary-file-read.js";
 import { isRecord } from "../utils.js";
 import { normalizePluginsConfig, resolveEffectivePluginActivationState } from "./config-state.js";
+import type { PluginManifestRegistry } from "./manifest-registry.js";
 import type { PluginBundleFormat } from "./manifest-types.js";
 import { loadPluginManifestRegistryForPluginRegistry } from "./plugin-registry.js";
 
@@ -94,6 +95,7 @@ export function inspectBundleServerRuntimeSupport<TConfig>(params: {
 export function loadEnabledBundleConfig<TConfig, TDiagnostic>(params: {
   workspaceDir: string;
   cfg?: KovaConfig;
+  manifestRegistry?: Pick<PluginManifestRegistry, "plugins">;
   createEmptyConfig: () => TConfig;
   loadBundleConfig: (params: {
     pluginId: string;
@@ -107,11 +109,13 @@ export function loadEnabledBundleConfig<TConfig, TDiagnostic>(params: {
     return { config: params.createEmptyConfig(), diagnostics: [] };
   }
 
-  const registry = loadPluginManifestRegistryForPluginRegistry({
-    workspaceDir: params.workspaceDir,
-    config: params.cfg,
-    includeDisabled: true,
-  });
+  const registry =
+    params.manifestRegistry ??
+    loadPluginManifestRegistryForPluginRegistry({
+      workspaceDir: params.workspaceDir,
+      config: params.cfg,
+      includeDisabled: true,
+    });
   const diagnostics: TDiagnostic[] = [];
   let merged = params.createEmptyConfig();
 

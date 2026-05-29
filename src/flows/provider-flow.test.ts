@@ -356,7 +356,7 @@ describe("provider flow install catalog contributions", () => {
       },
     ]);
 
-    expect(resolveProviderModelPickerFlowContributions()).toEqual([
+    expect(resolveProviderModelPickerFlowContributions({ providerRefs: ["openai"] })).toEqual([
       {
         id: "provider:model-picker:provider-plugin:openai:gpt-5.4",
         kind: "provider",

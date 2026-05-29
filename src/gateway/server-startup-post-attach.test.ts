@@ -56,7 +56,12 @@ vi.mock("../agents/session-dirs.js", () => ({
 }));
 
 vi.mock("../agents/session-write-lock.js", () => ({
-  cleanStaleLockFiles: vi.fn(async () => undefined),
+  cleanStaleLockFiles: vi.fn(async () => ({ locks: [], cleaned: [] })),
+}));
+
+vi.mock("../agents/main-session-restart-recovery.js", () => ({
+  markRestartAbortedMainSessionsFromLocks: vi.fn(async () => ({ marked: 0, skipped: 0 })),
+  scheduleRestartAbortedMainSessionRecovery: vi.fn(),
 }));
 
 vi.mock("../agents/subagent-registry.js", () => ({
@@ -133,8 +138,11 @@ vi.mock("./server-tailscale.js", () => ({
   startGatewayTailscaleExposure: hoisted.startGatewayTailscaleExposure,
 }));
 
-const { startGatewayPostAttachRuntime, startGatewaySidecars } =
-  await import("./server-startup-post-attach.js");
+const {
+  __testing: testing,
+  startGatewayPostAttachRuntime,
+  startGatewaySidecars,
+} = await import("./server-startup-post-attach.js");
 
 type PostAttachParams = Parameters<typeof startGatewayPostAttachRuntime>[0];
 type PostAttachRuntimeDeps = NonNullable<Parameters<typeof startGatewayPostAttachRuntime>[1]>;
@@ -296,7 +304,7 @@ describe("startGatewayPostAttachRuntime", () => {
     );
   });
 
-  it("starts the qmd memory backend only when configured", async () => {
+  it("keeps the qmd memory backend lazy by default", async () => {
     await startGatewayPostAttachRuntime({
       ...createPostAttachParams(),
       gatewayPluginConfigAtStart: {
@@ -305,9 +313,66 @@ describe("startGatewayPostAttachRuntime", () => {
       } as never,
     });
 
+    expect(hoisted.startGatewayMemoryBackend).not.toHaveBeenCalled();
+    expect(
+      testing.resolveGatewayMemoryStartupPolicy({ memory: { backend: "qmd" } } as never),
+    ).toEqual({ mode: "off" });
+    expect(
+      testing.resolveGatewayMemoryStartupPolicy({
+        memory: { backend: "qmd", qmd: { update: { startup: "immediate", onBoot: false } } },
+      } as never),
+    ).toEqual({ mode: "off" });
+  });
+
+  it("starts the qmd memory backend when startup refresh is immediate", async () => {
+    await startGatewayPostAttachRuntime({
+      ...createPostAttachParams(),
+      gatewayPluginConfigAtStart: {
+        hooks: { internal: { enabled: false } },
+        memory: { backend: "qmd", qmd: { update: { startup: "immediate" } } },
+      } as never,
+    });
+
     await vi.waitFor(() => {
       expect(hoisted.startGatewayMemoryBackend).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it("defers qmd memory backend startup refresh until the idle delay elapses", async () => {
+    vi.useFakeTimers();
+    try {
+      await startGatewaySidecars({
+        cfg: {
+          hooks: { internal: { enabled: false } },
+          memory: { backend: "qmd", qmd: { update: { startup: "idle", startupDelayMs: 25 } } },
+        } as never,
+        pluginRegistry: createPostAttachParams().pluginRegistry,
+        defaultWorkspaceDir: "/tmp/kova-workspace",
+        deps: {} as never,
+        startChannels: vi.fn(async () => {}),
+        log: { warn: vi.fn() },
+        logHooks: {
+          info: vi.fn(),
+          warn: vi.fn(),
+          error: vi.fn(),
+        },
+        logChannels: {
+          info: vi.fn(),
+          error: vi.fn(),
+        },
+      });
+
+      expect(hoisted.startGatewayMemoryBackend).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(24);
+      expect(hoisted.startGatewayMemoryBackend).not.toHaveBeenCalled();
+      await vi.advanceTimersByTimeAsync(1);
+
+      await vi.waitFor(() => {
+        expect(hoisted.startGatewayMemoryBackend).toHaveBeenCalledTimes(1);
+      });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("does not block channel startup on primary model prewarm", async () => {
@@ -383,6 +448,101 @@ describe("startGatewayPostAttachRuntime", () => {
       expect(onSidecarsReady).toHaveBeenCalledTimes(1);
     });
     expect(onPluginServices).toHaveBeenCalledTimes(1);
+  });
+
+  it("cleans startup session locks with bounded concurrency", async () => {
+    let active = 0;
+    let maxActive = 0;
+    const cleanedLock = {
+      lockPath: "/tmp/kova-state/agents/main/sessions/a.jsonl.lock",
+      pid: null,
+      pidAlive: false,
+      createdAt: null,
+      ageMs: null,
+      stale: true,
+      staleReasons: ["missing-pid"],
+      removed: true,
+    };
+    const releaseQueue: Array<() => void> = [];
+    const cleanStaleLockFiles = vi.fn(
+      async ({ sessionsDir }: { sessionsDir: string }) =>
+        await new Promise<{ locks: []; cleaned: (typeof cleanedLock)[] }>((resolve) => {
+          active += 1;
+          maxActive = Math.max(maxActive, active);
+          releaseQueue.push(() => {
+            active -= 1;
+            resolve({
+              locks: [],
+              cleaned: sessionsDir.endsWith("/b") ? [cleanedLock] : [],
+            });
+          });
+        }),
+    );
+    const markRestartAbortedMainSessionsFromLocks = vi.fn(async () => ({ marked: 1, skipped: 0 }));
+    const cleanupPromise = testing.cleanupStaleSessionLocks({
+      sessionDirs: ["/sessions/a", "/sessions/b", "/sessions/c", "/sessions/d"],
+      log: { warn: vi.fn() },
+      isStopped: () => false,
+      cleanStaleLockFiles: cleanStaleLockFiles as never,
+      markRestartAbortedMainSessionsFromLocks: markRestartAbortedMainSessionsFromLocks as never,
+      concurrency: 2,
+    });
+
+    await vi.waitFor(() => {
+      expect(cleanStaleLockFiles).toHaveBeenCalledTimes(2);
+    });
+    expect(maxActive).toBe(2);
+
+    releaseQueue.shift()?.();
+    releaseQueue.shift()?.();
+    await vi.waitFor(() => {
+      expect(cleanStaleLockFiles).toHaveBeenCalledTimes(4);
+    });
+    releaseQueue.shift()?.();
+    releaseQueue.shift()?.();
+    await cleanupPromise;
+
+    expect(cleanStaleLockFiles).toHaveBeenCalledTimes(4);
+    expect(maxActive).toBe(2);
+    expect(markRestartAbortedMainSessionsFromLocks).toHaveBeenCalledWith({
+      sessionsDir: "/sessions/b",
+      cleanedLocks: [cleanedLock],
+    });
+  });
+
+  it("marks cleaned startup session locks even when cleanup is stopped after removal", async () => {
+    let stopped = false;
+    const cleanedLock = {
+      lockPath: "/tmp/kova-state/agents/main/sessions/a.jsonl.lock",
+      pid: null,
+      pidAlive: false,
+      createdAt: null,
+      ageMs: null,
+      stale: true,
+      staleReasons: ["missing-pid"],
+      removed: true,
+    };
+    const cleanStaleLockFiles = vi.fn(async () => {
+      stopped = true;
+      return {
+        locks: [],
+        cleaned: [cleanedLock],
+      };
+    });
+    const markRestartAbortedMainSessionsFromLocks = vi.fn(async () => ({ marked: 1, skipped: 0 }));
+
+    await testing.cleanupStaleSessionLocks({
+      sessionDirs: ["/sessions/a"],
+      log: { warn: vi.fn() },
+      isStopped: () => stopped,
+      cleanStaleLockFiles: cleanStaleLockFiles as never,
+      markRestartAbortedMainSessionsFromLocks: markRestartAbortedMainSessionsFromLocks as never,
+    });
+
+    expect(markRestartAbortedMainSessionsFromLocks).toHaveBeenCalledWith({
+      sessionsDir: "/sessions/a",
+      cleanedLocks: [cleanedLock],
+    });
   });
 
   it("waits for sidecars by default before returning", async () => {
