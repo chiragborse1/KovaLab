@@ -212,6 +212,7 @@ function buildCoreDistEntries(): Record<string, string> {
     "agents/auth-profiles.runtime": "src/agents/auth-profiles.runtime.ts",
     "agents/model-catalog.runtime": "src/agents/model-catalog.runtime.ts",
     "agents/models-config.runtime": "src/agents/models-config.runtime.ts",
+    "agents/compaction-planning.worker": "src/agents/compaction-planning.worker.ts",
     "subagent-registry.runtime": "src/agents/subagent-registry.runtime.ts",
     "agents/pi-model-discovery-runtime": "src/agents/pi-model-discovery-runtime.ts",
     "link-understanding/apply.runtime": "src/link-understanding/apply.runtime.ts",

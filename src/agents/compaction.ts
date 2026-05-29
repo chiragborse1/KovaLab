@@ -9,12 +9,19 @@ import { formatErrorMessage } from "../infra/errors.js";
 import { retryAsync } from "../infra/retry.js";
 import { isAbortError } from "../infra/unhandled-rejections.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
+import {
+  buildOversizedFallbackPlanWithWorker,
+  buildStageSplitPlanWithWorker,
+  buildSummaryChunksWithWorker,
+} from "./compaction-planning-worker.js";
 import { DEFAULT_CONTEXT_TOKENS } from "./defaults.js";
 import { isTimeoutError } from "./failover-error.js";
 import { repairToolUseResultPairing, stripToolResultDetails } from "./session-transcript-repair.js";
 import { extractToolCallsFromAssistant, extractToolResultId } from "./tool-call-id.js";
 
 const log = createSubsystemLogger("compaction");
+
+type PartialSummaryError = Error & { partialSummary?: string };
 
 export const BASE_CHUNK_RATIO = 0.4;
 export const MIN_CHUNK_RATIO = 0.15;
@@ -305,36 +312,59 @@ async function summarizeChunks(params: {
     return params.previousSummary ?? DEFAULT_SUMMARY_FALLBACK;
   }
 
-  // SECURITY: never feed toolResult.details into summarization prompts.
-  const safeMessages = stripToolResultDetails(params.messages);
-  const chunks = chunkMessagesByMaxTokens(safeMessages, params.maxChunkTokens);
+  const chunks = await buildSummaryChunksWithWorker({
+    messages: params.messages,
+    maxChunkTokens: params.maxChunkTokens,
+    signal: params.signal,
+  });
   let summary = params.previousSummary;
   const effectiveInstructions = buildCompactionSummarizationInstructions(
     params.customInstructions,
     params.summarizationInstructions,
   );
+  let hasGeneratedChunk = false;
   for (const chunk of chunks) {
-    summary = await retryAsync(
-      () =>
-        generateSummary(
-          chunk,
-          params.model,
-          params.reserveTokens,
-          params.apiKey,
-          params.headers,
-          params.signal,
-          effectiveInstructions,
-          summary,
-        ),
-      {
-        attempts: 3,
-        minDelayMs: 500,
-        maxDelayMs: 5000,
-        jitter: 0.2,
-        label: "compaction/generateSummary",
-        shouldRetry: (err) => !isAbortError(err) && !isTimeoutError(err),
-      },
-    );
+    try {
+      summary = await retryAsync(
+        () =>
+          generateSummary(
+            chunk,
+            params.model,
+            params.reserveTokens,
+            params.apiKey,
+            params.headers,
+            params.signal,
+            effectiveInstructions,
+            summary,
+          ),
+        {
+          attempts: 3,
+          minDelayMs: 500,
+          maxDelayMs: 5000,
+          jitter: 0.2,
+          label: "compaction/generateSummary",
+          shouldRetry: (err) => !isAbortError(err) && !isTimeoutError(err),
+        },
+      );
+      hasGeneratedChunk = true;
+    } catch (err) {
+      if (isAbortError(err) || isTimeoutError(err)) {
+        throw err;
+      }
+      if (!hasGeneratedChunk) {
+        throw err;
+      }
+      const completedChunks = chunks.indexOf(chunk);
+      log.warn("chunk summarization failed after retries; partial summary available", {
+        err,
+        completedChunks,
+        totalChunks: chunks.length,
+      });
+      const partial = new Error("partial summarization failure");
+      (partial as PartialSummaryError).partialSummary =
+        `${summary!}\n\n[Partial summary: chunks 1-${completedChunks} of ${chunks.length} were summarized. Chunks ${completedChunks + 1}-${chunks.length} could not be processed.]`;
+      throw partial;
+    }
   }
 
   return summary ?? DEFAULT_SUMMARY_FALLBACK;
@@ -397,27 +427,20 @@ export async function summarizeWithFallback(params: {
   }
 
   // Try full summarization first
+  let partialSummaryFallback: string | undefined;
   try {
     return await summarizeChunks(params);
   } catch (fullError) {
     log.warn(`Full summarization failed: ${formatErrorMessage(fullError)}`);
+    partialSummaryFallback = (fullError as PartialSummaryError).partialSummary;
   }
 
   // Fallback 1: Summarize only small messages, note oversized ones
-  const smallMessages: AgentMessage[] = [];
-  const oversizedNotes: string[] = [];
-
-  for (const msg of messages) {
-    if (isOversizedForSummary(msg, contextWindow)) {
-      const role = (msg as { role?: string }).role ?? "message";
-      const tokens = estimateCompactionMessageTokens(msg);
-      oversizedNotes.push(
-        `[Large ${role} (~${Math.round(tokens / 1000)}K tokens) omitted from summary]`,
-      );
-    } else {
-      smallMessages.push(msg);
-    }
-  }
+  const { smallMessages, oversizedNotes } = await buildOversizedFallbackPlanWithWorker({
+    messages,
+    contextWindow,
+    signal: params.signal,
+  });
 
   // When nothing was oversized, `smallMessages` is the same transcript as the full attempt.
   // Re-summarizing it would duplicate the same failing API work (and duplicate warn logs).
@@ -431,10 +454,18 @@ export async function summarizeWithFallback(params: {
       return partialSummary + notes;
     } catch (partialError) {
       log.warn(`Partial summarization also failed: ${formatErrorMessage(partialError)}`);
+      const retryPartial = (partialError as PartialSummaryError).partialSummary;
+      if (retryPartial) {
+        const notes = oversizedNotes.length > 0 ? `\n\n${oversizedNotes.join("\n")}` : "";
+        partialSummaryFallback = retryPartial + notes;
+      }
     }
   }
 
-  // Final fallback: Just note what was there
+  // Final fallback: use best available partial summary, otherwise generic note.
+  if (partialSummaryFallback) {
+    return partialSummaryFallback;
+  }
   return (
     `Context contained ${messages.length} messages (${oversizedNotes.length} oversized). ` +
     `Summary unavailable due to size limits.`
@@ -461,21 +492,20 @@ export async function summarizeInStages(params: {
     return params.previousSummary ?? DEFAULT_SUMMARY_FALLBACK;
   }
 
-  const minMessagesForSplit = Math.max(2, params.minMessagesForSplit ?? 4);
-  const parts = normalizeParts(params.parts ?? DEFAULT_PARTS, messages.length);
-  const totalTokens = estimateMessagesTokens(messages);
+  const plan = await buildStageSplitPlanWithWorker({
+    messages,
+    maxChunkTokens: params.maxChunkTokens,
+    parts: params.parts,
+    minMessagesForSplit: params.minMessagesForSplit,
+    signal: params.signal,
+  });
 
-  if (parts <= 1 || messages.length < minMessagesForSplit || totalTokens <= params.maxChunkTokens) {
-    return summarizeWithFallback(params);
-  }
-
-  const splits = splitMessagesByTokenShare(messages, parts).filter((chunk) => chunk.length > 0);
-  if (splits.length <= 1) {
+  if (plan.mode === "single") {
     return summarizeWithFallback(params);
   }
 
   const partialSummaries: string[] = [];
-  for (const chunk of splits) {
+  for (const chunk of plan.chunks) {
     partialSummaries.push(
       await summarizeWithFallback({
         ...params,

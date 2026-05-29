@@ -66,6 +66,7 @@ describe("tsdown config", () => {
         "agents/auth-profiles.runtime",
         "agents/model-catalog.runtime",
         "agents/models-config.runtime",
+        "agents/compaction-planning.worker",
         "subagent-registry.runtime",
         "agents/pi-model-discovery-runtime",
         "link-understanding/apply.runtime",

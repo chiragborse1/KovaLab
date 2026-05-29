@@ -72,6 +72,7 @@ const requiredPathGroups = [
   "scripts/postinstall-bundled-plugins.mjs",
   "dist/plugin-sdk/compat.js",
   "dist/plugin-sdk/root-alias.cjs",
+  "dist/agents/compaction-planning.worker.js",
   "dist/build-info.json",
   "dist/channel-catalog.json",
 ];
