@@ -1928,8 +1928,14 @@ export async function runEmbeddedPiAgent(
 
           const skipAssistantFailoverForCodexAppServerTimeout =
             hasRecoverableCodexAppServerTimeoutOutcome || shouldSurfaceCodexCompletionTimeout;
+          const assistantForFailover = currentAttemptAssistant ?? sessionLastAssistant;
+          const assistantFailoverReason = classifyFailoverReason(
+            assistantForFailover?.errorMessage ?? "",
+            {
+              provider: assistantForFailover?.provider,
+            },
+          );
           if (!skipAssistantFailoverForCodexAppServerTimeout) {
-            const assistantForFailover = currentAttemptAssistant ?? sessionLastAssistant;
             const fallbackThinking = pickFallbackThinkingLevel({
               message: assistantForFailover?.errorMessage,
               attempted: attemptedThinking,
@@ -1946,12 +1952,6 @@ export async function runEmbeddedPiAgent(
             const rateLimitFailure = isRateLimitAssistantError(assistantForFailover);
             const billingFailure = isBillingAssistantError(assistantForFailover);
             const failoverFailure = isFailoverAssistantError(assistantForFailover);
-            const assistantFailoverReason = classifyFailoverReason(
-              assistantForFailover?.errorMessage ?? "",
-              {
-                provider: assistantForFailover?.provider,
-              },
-            );
             const assistantProfileFailureReason =
               resolveRunAuthProfileFailureReason(assistantFailoverReason);
             const cloudCodeAssistFormatError = attempt.cloudCodeAssistFormatError;
