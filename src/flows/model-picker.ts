@@ -37,6 +37,7 @@ export { applyPrimaryModel } from "../plugins/provider-model-primary.js";
 const KEEP_VALUE = "__keep__";
 const MANUAL_VALUE = "__manual__";
 const BROWSE_VALUE = "__browse__";
+const REFRESH_VALUE = "__refresh__";
 const PROVIDER_FILTER_THRESHOLD = 30;
 
 export type PromptDefaultModelParams = {
@@ -704,9 +705,16 @@ export async function promptDefaultModel(
     }
     options.push({
       value: BROWSE_VALUE,
-      label: "Browse all models",
-      hint: "loads provider catalogs",
+      label: preferredProvider ? "Browse provider models" : "Browse all models",
+      hint: preferredProvider ? "fast local catalog" : "loads model catalogs",
     });
+    if (preferredProvider) {
+      options.push({
+        value: REFRESH_VALUE,
+        label: "Refresh all provider catalogs",
+        hint: "slower; loads every provider",
+      });
+    }
 
     const selection = await params.prompter.select({
       message: params.message ?? "Default model",
@@ -724,10 +732,11 @@ export async function promptDefaultModel(
         initialValue: configuredRaw || resolvedKey || undefined,
       });
     }
-    if (selection !== BROWSE_VALUE) {
+    if (selection === REFRESH_VALUE) {
+      forceDynamicCatalog = true;
+    } else if (selection !== BROWSE_VALUE) {
       return { model: selection };
     }
-    forceDynamicCatalog = true;
   }
 
   if (!loadCatalog) {

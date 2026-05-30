@@ -3,13 +3,17 @@ import type {
   ProviderReplaySessionEntry,
   ProviderSanitizeReplayHistoryContext,
 } from "getkova/plugin-sdk/plugin-entry";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   registerProviderPlugin,
   requireRegisteredProvider,
 } from "../../test/helpers/plugins/provider-registration.js";
 import { createCapturedThinkingConfigStream } from "../../test/helpers/plugins/stream-hooks.js";
-import { registerGoogleGeminiCliProvider } from "./gemini-cli-provider.js";
+import {
+  buildGoogleGeminiCliProvider,
+  registerGoogleGeminiCliProvider,
+} from "./gemini-cli-provider.js";
+import { clearCredentialsCache, setOAuthCredentialsFsForTest } from "./oauth.credentials.js";
 import { registerGoogleProvider } from "./provider-registration.js";
 
 const googleProviderPlugin = {
@@ -225,5 +229,78 @@ describe("google provider plugin hooks", () => {
 
     expect(googleProvider.buildReplayPolicy).toBe(cliProvider.buildReplayPolicy);
     expect(googleProvider.wrapStreamFn).toBe(cliProvider.wrapStreamFn);
+  });
+});
+
+describe("Gemini CLI OAuth setup", () => {
+  const ENV_KEYS = [
+    "KOVA_GEMINI_OAUTH_CLIENT_ID",
+    "KOVA_GEMINI_OAUTH_CLIENT_SECRET",
+    "GEMINI_CLI_OAUTH_CLIENT_ID",
+    "GEMINI_CLI_OAUTH_CLIENT_SECRET",
+  ] as const;
+
+  let envSnapshot: Partial<Record<(typeof ENV_KEYS)[number], string>>;
+  let pathSnapshot: string | undefined;
+
+  beforeEach(() => {
+    envSnapshot = Object.fromEntries(ENV_KEYS.map((key) => [key, process.env[key]]));
+    pathSnapshot = process.env.PATH;
+    for (const key of ENV_KEYS) {
+      delete process.env[key];
+    }
+    process.env.PATH = "/missing";
+    clearCredentialsCache();
+    setOAuthCredentialsFsForTest({
+      existsSync: () => false,
+    });
+  });
+
+  afterEach(() => {
+    for (const key of ENV_KEYS) {
+      const value = envSnapshot[key];
+      if (value === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = value;
+      }
+    }
+    process.env.PATH = pathSnapshot;
+    clearCredentialsCache();
+    setOAuthCredentialsFsForTest();
+  });
+
+  it("keeps onboarding alive when Gemini CLI OAuth prerequisites are missing", async () => {
+    const provider = buildGoogleGeminiCliProvider();
+    const method = provider.auth[0]!;
+    const note = vi.fn(async () => undefined);
+    const confirm = vi.fn(async () => true);
+
+    const result = await method.run({
+      config: {},
+      env: {},
+      agentDir: "/tmp/kova-agent",
+      workspaceDir: "/tmp/kova-workspace",
+      prompter: {
+        note,
+        confirm,
+        text: vi.fn(async () => ""),
+        select: vi.fn(),
+        multiselect: vi.fn(),
+        intro: vi.fn(),
+        outro: vi.fn(),
+        progress: () => ({ update: vi.fn(), stop: vi.fn() }),
+      },
+      runtime: { log: vi.fn() },
+      isRemote: false,
+      openUrl: vi.fn(),
+    } as never);
+
+    expect(result).toEqual({ profiles: [] });
+    expect(confirm).not.toHaveBeenCalled();
+    expect(note).toHaveBeenCalledWith(
+      expect.stringContaining("npm install -g @google/gemini-cli"),
+      "Gemini CLI OAuth unavailable",
+    );
   });
 });

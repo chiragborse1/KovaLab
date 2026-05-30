@@ -263,7 +263,8 @@ describe("promptDefaultModel", () => {
     expect(select.mock.calls[0]?.[0]?.options).toEqual([
       expect.objectContaining({ value: "__keep__" }),
       expect.objectContaining({ value: "__manual__" }),
-      expect.objectContaining({ value: "__browse__" }),
+      expect.objectContaining({ value: "__browse__", label: "Browse provider models" }),
+      expect.objectContaining({ value: "__refresh__", label: "Refresh all provider catalogs" }),
     ]);
   });
 
@@ -297,11 +298,47 @@ describe("promptDefaultModel", () => {
     expect(select.mock.calls[0]?.[0]?.options).toEqual([
       expect.objectContaining({ value: "__keep__", hint: "current provider: openai" }),
       expect.objectContaining({ value: "__manual__" }),
-      expect.objectContaining({ value: "__browse__" }),
+      expect.objectContaining({ value: "__browse__", label: "Browse provider models" }),
+      expect.objectContaining({ value: "__refresh__", label: "Refresh all provider catalogs" }),
     ]);
   });
 
-  it("loads the full model catalog when the user chooses to browse", async () => {
+  it("uses the fast provider catalog when the user chooses to browse provider models", async () => {
+    const select = vi
+      .fn()
+      .mockResolvedValueOnce("__browse__")
+      .mockImplementationOnce(async (params) => {
+        const option = params.options.find(
+          (entry: { value: string }) => entry.value === "openai-codex/gpt-5.4",
+        );
+        return option?.value ?? params.initialValue;
+      });
+    const prompter = makePrompter({ select });
+    const config = {
+      agents: {
+        defaults: {
+          model: "openai-codex/gpt-5.5",
+        },
+      },
+    } as KovaConfig;
+
+    const result = await promptDefaultModel({
+      config,
+      prompter,
+      allowKeep: true,
+      includeManual: true,
+      ignoreAllowlist: true,
+      preferredProvider: "openai-codex",
+      browseCatalogOnDemand: true,
+    });
+
+    expect(result.model).toBe("openai-codex/gpt-5.4");
+    expect(loadModelCatalog).not.toHaveBeenCalled();
+    expect(select).toHaveBeenCalledTimes(2);
+    expect(select.mock.calls[1]?.[0]?.searchable).toBe(true);
+  });
+
+  it("loads the full model catalog only when the user chooses to refresh catalogs", async () => {
     loadModelCatalog.mockResolvedValue([
       {
         provider: "openai-codex",
@@ -316,7 +353,7 @@ describe("promptDefaultModel", () => {
     ]);
     const select = vi
       .fn()
-      .mockResolvedValueOnce("__browse__")
+      .mockResolvedValueOnce("__refresh__")
       .mockImplementationOnce(async (params) => {
         const option = params.options.find(
           (entry: { value: string }) => entry.value === "openai-codex/gpt-5.5-pro",

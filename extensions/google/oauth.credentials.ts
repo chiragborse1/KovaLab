@@ -35,6 +35,9 @@ function resolveEnv(keys: string[]): string | undefined {
 
 let cachedGeminiCliCredentials: { clientId: string; clientSecret: string } | null = null;
 
+const GEMINI_CLI_OAUTH_MISSING_MESSAGE =
+  "Gemini CLI not found. Install it first with `npm install -g @google/gemini-cli`, or set GEMINI_CLI_OAUTH_CLIENT_ID. On macOS with Homebrew, `brew install gemini-cli` also works.";
+
 export function clearCredentialsCache(): void {
   cachedGeminiCliCredentials = null;
 }
@@ -267,7 +270,18 @@ export function resolveOAuthClientConfig(): { clientId: string; clientSecret?: s
     return extracted;
   }
 
-  throw new Error(
-    "Gemini CLI not found. Install it first: brew install gemini-cli (or npm install -g @google/gemini-cli), or set GEMINI_CLI_OAUTH_CLIENT_ID.",
-  );
+  throw new Error(GEMINI_CLI_OAUTH_MISSING_MESSAGE);
+}
+
+export function resolveOAuthClientConfigPreflight():
+  | { ok: true; config: { clientId: string; clientSecret?: string } }
+  | { ok: false; message: string } {
+  try {
+    return { ok: true, config: resolveOAuthClientConfig() };
+  } catch (error) {
+    return {
+      ok: false,
+      message: error instanceof Error ? error.message : GEMINI_CLI_OAUTH_MISSING_MESSAGE,
+    };
+  }
 }

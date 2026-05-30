@@ -58,6 +58,9 @@ function isSensitiveTextPrompt(params: {
   placeholder?: string;
   sensitive?: boolean;
 }): boolean {
+  if (params.sensitive === false) {
+    return false;
+  }
   if (params.sensitive === true) {
     return true;
   }

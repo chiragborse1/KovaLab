@@ -44,6 +44,19 @@ export function buildGoogleGeminiCliProvider(): ProviderPlugin {
         hint: "PKCE + localhost callback",
         kind: "oauth",
         run: async (ctx: ProviderAuthContext) => {
+          const { resolveOAuthClientConfigPreflight } = await import("./oauth.credentials.js");
+          const preflight = resolveOAuthClientConfigPreflight();
+          if (!preflight.ok) {
+            await ctx.prompter.note(
+              [
+                preflight.message,
+                "Install the CLI or set the OAuth client env vars, then run onboarding again.",
+              ].join("\n"),
+              "Gemini CLI OAuth unavailable",
+            );
+            return { profiles: [] };
+          }
+
           await ctx.prompter.note(
             [
               "This is an unofficial integration and is not endorsed by Google.",

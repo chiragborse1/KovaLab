@@ -280,7 +280,14 @@ export async function applyAuthChoiceLoadedPluginProvider(
     typeof params.prompter.progress === "function"
       ? params.prompter.progress("Preparing provider setup")
       : { update: () => {}, stop: () => {} };
-  let providerSetupReady = false;
+  let progressActive = true;
+  const stopProgress = (message?: string) => {
+    if (!progressActive) {
+      return;
+    }
+    progressActive = false;
+    progress.stop(message);
+  };
   let runtime: Awaited<ReturnType<typeof loadPluginProviderRuntime>>;
   let manifestAuthChoice: ProviderAuthChoiceMetadata | undefined;
   let installCatalogEntry: ReturnType<typeof resolveProviderInstallCatalogEntry>;
@@ -300,9 +307,9 @@ export async function applyAuthChoiceLoadedPluginProvider(
       env: params.env,
       includeUntrustedWorkspacePlugins: false,
     });
-    providerSetupReady = true;
-  } finally {
-    progress.stop(providerSetupReady ? "Provider setup ready." : undefined);
+  } catch (error) {
+    stopProgress();
+    throw error;
   }
   const {
     resolvePluginProviders,
@@ -313,6 +320,7 @@ export async function applyAuthChoiceLoadedPluginProvider(
   if (installCatalogEntry) {
     const enableResult = enablePluginInConfig(nextConfig, installCatalogEntry.pluginId);
     if (!enableResult.enabled) {
+      stopProgress();
       const safeLabel = sanitizeTerminalText(installCatalogEntry.label);
       await params.prompter.note(
         `${safeLabel} plugin is disabled (${enableResult.reason ?? "blocked"}).`,
@@ -337,6 +345,7 @@ export async function applyAuthChoiceLoadedPluginProvider(
         : {}),
     });
 
+  progress.update("Loading selected provider");
   const setupProvider = manifestAuthChoice
     ? resolvePluginSetupProvider({
         provider: manifestAuthChoice.providerId,
@@ -349,11 +358,13 @@ export async function applyAuthChoiceLoadedPluginProvider(
   let providers = setupProvider
     ? [withProviderPluginId(setupProvider, manifestAuthChoice!.pluginId)]
     : resolveScopedRuntimeProviders(enabledConfig);
+  progress.update("Resolving provider auth method");
   let resolved = resolveProviderPluginChoice({
     providers,
     choice: params.authChoice,
   });
   if (!resolved && setupProvider) {
+    progress.update("Loading provider runtime setup");
     providers = resolveScopedRuntimeProviders(enabledConfig);
     resolved = resolveProviderPluginChoice({
       providers,
@@ -361,6 +372,7 @@ export async function applyAuthChoiceLoadedPluginProvider(
     });
   }
   if (!resolved && installCatalogEntry) {
+    stopProgress();
     const [{ ensureOnboardingPluginInstalled }, { clearPluginDiscoveryCache }] = await Promise.all([
       import("../commands/onboarding-plugin-install.js"),
       import("./discovery.js"),
@@ -388,11 +400,13 @@ export async function applyAuthChoiceLoadedPluginProvider(
     });
   }
   if (!resolved) {
+    stopProgress();
     return nextConfig === params.config ? null : { config: nextConfig, retrySelection: true };
   }
   if (nextConfig === params.config && enabledConfig !== params.config) {
     nextConfig = enabledConfig;
   }
+  stopProgress("Provider setup ready.");
 
   const applied = await runProviderPluginAuthMethod({
     config: nextConfig,
