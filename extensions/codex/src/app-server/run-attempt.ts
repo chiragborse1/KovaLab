@@ -36,6 +36,11 @@ import {
 } from "getkova/plugin-sdk/agent-harness-runtime";
 import { handleCodexAppServerApprovalRequest } from "./approval-bridge.js";
 import {
+  buildCodexAppServerPromptTimeoutOutcome,
+  collectTerminalAssistantText,
+  resolveCodexAppServerReplayBlockedReason,
+} from "./attempt-results.js";
+import {
   CODEX_APP_SERVER_STARTUP_TIMEOUT_FLOOR_MS,
   resolveCodexStartupTimeoutMs,
   resolveCodexTurnAssistantCompletionIdleTimeoutMs,
@@ -43,7 +48,10 @@ import {
   resolveCodexTurnTerminalIdleTimeoutMs,
   withCodexStartupTimeout,
 } from "./attempt-timeouts.js";
-import { createCodexAttemptTurnWatchController } from "./attempt-turn-watches.js";
+import {
+  createCodexAttemptTurnWatchController,
+  type CodexAttemptTurnWatchTimeoutKind,
+} from "./attempt-turn-watches.js";
 import { refreshCodexAppServerAuthTokens } from "./auth-bridge.js";
 import {
   createCodexAppServerClientFactoryTestHooks,
@@ -129,10 +137,6 @@ function emitCodexAppServerEvent(
     // canonical app-server turn lifecycle.
     embeddedAgentLog.debug("codex app-server agent event handler threw", { error });
   }
-}
-
-function collectTerminalAssistantText(result: EmbeddedRunAttemptResult): string {
-  return result.assistantTexts.join("\n\n").trim();
 }
 
 export async function runCodexAppServerAttempt(
@@ -396,6 +400,7 @@ export async function runCodexAppServerAttempt(
   let completed = false;
   let timedOut = false;
   let turnCompletionIdleTimedOut = false;
+  let turnWatchTimeoutKind: CodexAttemptTurnWatchTimeoutKind | undefined;
   let turnCompletionIdleTimeoutMessage: string | undefined;
   let terminalTurnNotificationQueued = false;
   let activeAppServerTurnRequests = 0;
@@ -432,6 +437,7 @@ export async function runCodexAppServerAttempt(
     onTimeout: (timeout) => {
       timedOut = true;
       turnCompletionIdleTimedOut = true;
+      turnWatchTimeoutKind = timeout.kind;
       turnCompletionIdleTimeoutMessage =
         timeout.kind === "progress"
           ? "codex app-server turn idle timed out waiting for progress"
@@ -800,6 +806,18 @@ export async function runCodexAppServerAttempt(
       timedOut || clientClosedPromptError || turnCompletionIdleTimedOut
         ? "prompt"
         : result.promptErrorSource;
+    const codexAppServerFailureKind = clientClosedPromptError
+      ? "client_closed_before_turn_completed"
+      : turnCompletionIdleTimedOut
+        ? "turn_completion_idle_timeout"
+        : undefined;
+    const codexAppServerReplayBlockedReason = codexAppServerFailureKind
+      ? resolveCodexAppServerReplayBlockedReason(result)
+      : undefined;
+    const promptTimeoutOutcome = buildCodexAppServerPromptTimeoutOutcome({
+      result,
+      turnCompletionIdleTimedOut,
+    });
     recordCodexTrajectoryCompletion(trajectoryRecorder, {
       attempt: params,
       result,
@@ -903,6 +921,25 @@ export async function runCodexAppServerAttempt(
       aborted: finalAborted,
       promptError: finalPromptError,
       promptErrorSource: finalPromptErrorSource,
+      ...(codexAppServerFailureKind
+        ? {
+            codexAppServerFailure: {
+              kind: codexAppServerFailureKind,
+              ...(codexAppServerFailureKind === "turn_completion_idle_timeout" &&
+              turnWatchTimeoutKind
+                ? { turnWatchTimeoutKind }
+                : {}),
+              transport: appServer.start.transport,
+              threadId: thread.threadId,
+              turnId: activeTurnId,
+              replaySafe: codexAppServerReplayBlockedReason === undefined,
+              ...(codexAppServerReplayBlockedReason
+                ? { replayBlockedReason: codexAppServerReplayBlockedReason }
+                : {}),
+            },
+          }
+        : {}),
+      ...(promptTimeoutOutcome ? { promptTimeoutOutcome } : {}),
     };
   } finally {
     emitLifecycleTerminal({

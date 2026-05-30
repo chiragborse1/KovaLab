@@ -104,6 +104,7 @@ import { handleAssistantFailover } from "./run/assistant-failover.js";
 import { createEmbeddedRunAuthController } from "./run/auth-controller.js";
 import { resolveAuthProfileFailureReason } from "./run/auth-profile-failure-policy.js";
 import { runEmbeddedAttemptWithBackend } from "./run/backend.js";
+import { resolveCodexAppServerRecoveryRetry } from "./run/codex-app-server-recovery.js";
 import { createFailoverDecisionLogger } from "./run/failover-observation.js";
 import { mergeRetryFailoverReason, resolveRunFailoverDecision } from "./run/failover-policy.js";
 import {
@@ -814,6 +815,7 @@ export async function runEmbeddedPiAgent(
       let reasoningOnlyRetryAttempts = 0;
       let emptyResponseRetryAttempts = 0;
       let sameModelIdleTimeoutRetries = 0;
+      let codexAppServerRecoveryRetries = 0;
       let lastRetryFailoverReason: FailoverReason | null = null;
       let planningOnlyRetryInstruction: string | null = null;
       let reasoningOnlyRetryInstruction: string | null = null;
@@ -1648,7 +1650,45 @@ export async function runEmbeddedPiAgent(
             };
           }
 
-          if (promptError && !aborted && promptErrorSource !== "compaction") {
+          const hasRecoverableCodexAppServerTimeoutOutcome = Boolean(
+            attempt.codexAppServerFailure && attempt.promptTimeoutOutcome,
+          );
+          let shouldSurfaceCodexCompletionTimeout = false;
+          if (promptError && promptErrorSource !== "compaction" && attempt.codexAppServerFailure) {
+            if (attempt.codexAppServerFailure) {
+              const codexAppServerRecoveryRetry = resolveCodexAppServerRecoveryRetry({
+                attempt,
+                alreadyRetried: codexAppServerRecoveryRetries > 0,
+              });
+              if (codexAppServerRecoveryRetry.retry) {
+                codexAppServerRecoveryRetries += 1;
+                params.suppressNextUserMessagePersistence = true;
+                log.warn(
+                  `codex app-server replay-safe failure; retrying once ` +
+                    `failureKind=${attempt.codexAppServerFailure.kind} ` +
+                    `runId=${params.runId} sessionId=${params.sessionId}`,
+                );
+                continue;
+              }
+              shouldSurfaceCodexCompletionTimeout =
+                attempt.codexAppServerFailure.kind === "turn_completion_idle_timeout" &&
+                attempt.timedOut;
+              if (
+                !hasRecoverableCodexAppServerTimeoutOutcome &&
+                !shouldSurfaceCodexCompletionTimeout
+              ) {
+                throw promptError;
+              }
+            }
+          }
+
+          if (
+            promptError &&
+            !aborted &&
+            promptErrorSource !== "compaction" &&
+            !hasRecoverableCodexAppServerTimeoutOutcome &&
+            !shouldSurfaceCodexCompletionTimeout
+          ) {
             // Normalize wrapped errors (e.g. abort-wrapped RESOURCE_EXHAUSTED) into
             // FailoverError so rate-limit classification works even for nested shapes.
             //
@@ -1886,172 +1926,176 @@ export async function runEmbeddedPiAgent(
             throw promptError;
           }
 
-          const assistantForFailover = currentAttemptAssistant ?? sessionLastAssistant;
-          const fallbackThinking = pickFallbackThinkingLevel({
-            message: assistantForFailover?.errorMessage,
-            attempted: attemptedThinking,
-          });
-          if (fallbackThinking && !aborted) {
-            log.warn(
-              `unsupported thinking level for ${provider}/${modelId}; retrying with ${fallbackThinking}`,
-            );
-            thinkLevel = fallbackThinking;
-            continue;
-          }
-
-          const authFailure = isAuthAssistantError(assistantForFailover);
-          const rateLimitFailure = isRateLimitAssistantError(assistantForFailover);
-          const billingFailure = isBillingAssistantError(assistantForFailover);
-          const failoverFailure = isFailoverAssistantError(assistantForFailover);
-          const assistantFailoverReason = classifyFailoverReason(
-            assistantForFailover?.errorMessage ?? "",
-            {
-              provider: assistantForFailover?.provider,
-            },
-          );
-          const assistantProfileFailureReason =
-            resolveRunAuthProfileFailureReason(assistantFailoverReason);
-          const cloudCodeAssistFormatError = attempt.cloudCodeAssistFormatError;
-          const imageDimensionError = parseImageDimensionError(
-            assistantForFailover?.errorMessage ?? "",
-          );
-          // Capture the failing profile before auth-profile rotation mutates `lastProfileId`.
-          const failedAssistantProfileId = lastProfileId;
-          const logAssistantFailoverDecision = createFailoverDecisionLogger({
-            stage: "assistant",
-            runId: params.runId,
-            rawError: assistantForFailover?.errorMessage?.trim(),
-            failoverReason: assistantFailoverReason,
-            profileFailureReason: assistantProfileFailureReason,
-            provider: activeErrorContext.provider,
-            model: activeErrorContext.model,
-            sourceProvider: assistantForFailover?.provider ?? provider,
-            sourceModel: assistantForFailover?.model ?? modelId,
-            profileId: failedAssistantProfileId,
-            fallbackConfigured,
-            timedOut,
-            aborted,
-          });
-
-          if (
-            authFailure &&
-            (await maybeRefreshRuntimeAuthForAuthError(
-              assistantForFailover?.errorMessage ?? "",
-              runtimeAuthRetry,
-            ))
-          ) {
-            authRetryPending = true;
-            continue;
-          }
-          if (imageDimensionError && lastProfileId) {
-            const details = [
-              imageDimensionError.messageIndex !== undefined
-                ? `message=${imageDimensionError.messageIndex}`
-                : null,
-              imageDimensionError.contentIndex !== undefined
-                ? `content=${imageDimensionError.contentIndex}`
-                : null,
-              imageDimensionError.maxDimensionPx !== undefined
-                ? `limit=${imageDimensionError.maxDimensionPx}px`
-                : null,
-            ]
-              .filter(Boolean)
-              .join(" ");
-            log.warn(
-              `Profile ${lastProfileId} rejected image payload${details ? ` (${details})` : ""}.`,
-            );
-          }
-
-          const assistantFailoverDecision = resolveRunFailoverDecision({
-            stage: "assistant",
-            aborted,
-            externalAbort,
-            fallbackConfigured,
-            failoverFailure,
-            failoverReason: assistantFailoverReason,
-            profileRotationAllowed: !(
-              params.interactiveFailover && assistantFailoverReason === "rate_limit"
-            ),
-            timedOut,
-            timedOutDuringCompaction,
-            profileRotated: false,
-          });
-          const assistantFailoverOutcome = await handleAssistantFailover({
-            initialDecision: assistantFailoverDecision,
-            aborted,
-            externalAbort,
-            fallbackConfigured,
-            failoverFailure,
-            failoverReason: assistantFailoverReason,
-            timedOut,
-            idleTimedOut,
-            timedOutDuringCompaction,
-            allowSameModelIdleTimeoutRetry:
-              timedOut &&
-              idleTimedOut &&
-              !timedOutDuringCompaction &&
-              !fallbackConfigured &&
-              canRestartForLiveSwitch &&
-              sameModelIdleTimeoutRetries < MAX_SAME_MODEL_IDLE_TIMEOUT_RETRIES,
-            assistantProfileFailureReason,
-            lastProfileId,
-            modelId,
-            provider,
-            activeErrorContext,
-            lastAssistant: assistantForFailover,
-            config: params.config,
-            sessionKey: params.sessionKey ?? params.sessionId,
-            authFailure,
-            rateLimitFailure,
-            billingFailure,
-            cloudCodeAssistFormatError,
-            isProbeSession,
-            overloadProfileRotations,
-            overloadProfileRotationLimit,
-            previousRetryFailoverReason: lastRetryFailoverReason,
-            logAssistantFailoverDecision,
-            warn: (message) => log.warn(message),
-            maybeMarkAuthProfileFailure,
-            maybeEscalateRateLimitProfileFallback,
-            maybeBackoffBeforeOverloadFailover,
-            advanceAuthProfile,
-          });
-          overloadProfileRotations = assistantFailoverOutcome.overloadProfileRotations;
-          if (assistantFailoverOutcome.action === "retry") {
-            traceAttempts.push({
-              provider: activeErrorContext.provider,
-              model: activeErrorContext.model,
-              result:
-                assistantFailoverOutcome.retryKind === "same_model_idle_timeout" ||
-                assistantFailoverReason === "timeout"
-                  ? "timeout"
-                  : "rotate_profile",
-              ...(assistantFailoverReason ? { reason: assistantFailoverReason } : {}),
-              stage: "assistant",
+          const skipAssistantFailoverForCodexAppServerTimeout =
+            hasRecoverableCodexAppServerTimeoutOutcome || shouldSurfaceCodexCompletionTimeout;
+          if (!skipAssistantFailoverForCodexAppServerTimeout) {
+            const assistantForFailover = currentAttemptAssistant ?? sessionLastAssistant;
+            const fallbackThinking = pickFallbackThinkingLevel({
+              message: assistantForFailover?.errorMessage,
+              attempted: attemptedThinking,
             });
-            if (assistantFailoverOutcome.retryKind === "same_model_idle_timeout") {
-              sameModelIdleTimeoutRetries += 1;
+            if (fallbackThinking && !aborted) {
+              log.warn(
+                `unsupported thinking level for ${provider}/${modelId}; retrying with ${fallbackThinking}`,
+              );
+              thinkLevel = fallbackThinking;
+              continue;
             }
-            lastRetryFailoverReason = assistantFailoverOutcome.lastRetryFailoverReason;
-            continue;
-          }
-          if (assistantFailoverOutcome.action === "throw") {
-            traceAttempts.push({
+
+            const authFailure = isAuthAssistantError(assistantForFailover);
+            const rateLimitFailure = isRateLimitAssistantError(assistantForFailover);
+            const billingFailure = isBillingAssistantError(assistantForFailover);
+            const failoverFailure = isFailoverAssistantError(assistantForFailover);
+            const assistantFailoverReason = classifyFailoverReason(
+              assistantForFailover?.errorMessage ?? "",
+              {
+                provider: assistantForFailover?.provider,
+              },
+            );
+            const assistantProfileFailureReason =
+              resolveRunAuthProfileFailureReason(assistantFailoverReason);
+            const cloudCodeAssistFormatError = attempt.cloudCodeAssistFormatError;
+            const imageDimensionError = parseImageDimensionError(
+              assistantForFailover?.errorMessage ?? "",
+            );
+            // Capture the failing profile before auth-profile rotation mutates `lastProfileId`.
+            const failedAssistantProfileId = lastProfileId;
+            const logAssistantFailoverDecision = createFailoverDecisionLogger({
+              stage: "assistant",
+              runId: params.runId,
+              rawError: assistantForFailover?.errorMessage?.trim(),
+              failoverReason: assistantFailoverReason,
+              profileFailureReason: assistantProfileFailureReason,
               provider: activeErrorContext.provider,
               model: activeErrorContext.model,
-              result:
-                assistantFailoverReason === "timeout"
-                  ? "timeout"
-                  : assistantFailoverDecision.action === "fallback_model"
-                    ? "fallback_model"
-                    : "error",
-              ...(assistantFailoverReason ? { reason: assistantFailoverReason } : {}),
-              stage: "assistant",
-              ...(typeof assistantFailoverOutcome.error.status === "number"
-                ? { status: assistantFailoverOutcome.error.status }
-                : {}),
+              sourceProvider: assistantForFailover?.provider ?? provider,
+              sourceModel: assistantForFailover?.model ?? modelId,
+              profileId: failedAssistantProfileId,
+              fallbackConfigured,
+              timedOut,
+              aborted,
             });
-            throw assistantFailoverOutcome.error;
+
+            if (
+              authFailure &&
+              (await maybeRefreshRuntimeAuthForAuthError(
+                assistantForFailover?.errorMessage ?? "",
+                runtimeAuthRetry,
+              ))
+            ) {
+              authRetryPending = true;
+              continue;
+            }
+            if (imageDimensionError && lastProfileId) {
+              const details = [
+                imageDimensionError.messageIndex !== undefined
+                  ? `message=${imageDimensionError.messageIndex}`
+                  : null,
+                imageDimensionError.contentIndex !== undefined
+                  ? `content=${imageDimensionError.contentIndex}`
+                  : null,
+                imageDimensionError.maxDimensionPx !== undefined
+                  ? `limit=${imageDimensionError.maxDimensionPx}px`
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(" ");
+              log.warn(
+                `Profile ${lastProfileId} rejected image payload${details ? ` (${details})` : ""}.`,
+              );
+            }
+
+            const assistantFailoverDecision = resolveRunFailoverDecision({
+              stage: "assistant",
+              aborted,
+              externalAbort,
+              fallbackConfigured,
+              failoverFailure,
+              failoverReason: assistantFailoverReason,
+              profileRotationAllowed: !(
+                params.interactiveFailover && assistantFailoverReason === "rate_limit"
+              ),
+              timedOut,
+              timedOutDuringCompaction,
+              profileRotated: false,
+            });
+            const assistantFailoverOutcome = await handleAssistantFailover({
+              initialDecision: assistantFailoverDecision,
+              aborted,
+              externalAbort,
+              fallbackConfigured,
+              failoverFailure,
+              failoverReason: assistantFailoverReason,
+              timedOut,
+              idleTimedOut,
+              timedOutDuringCompaction,
+              allowSameModelIdleTimeoutRetry:
+                timedOut &&
+                idleTimedOut &&
+                !timedOutDuringCompaction &&
+                !fallbackConfigured &&
+                canRestartForLiveSwitch &&
+                sameModelIdleTimeoutRetries < MAX_SAME_MODEL_IDLE_TIMEOUT_RETRIES,
+              assistantProfileFailureReason,
+              lastProfileId,
+              modelId,
+              provider,
+              activeErrorContext,
+              lastAssistant: assistantForFailover,
+              config: params.config,
+              sessionKey: params.sessionKey ?? params.sessionId,
+              authFailure,
+              rateLimitFailure,
+              billingFailure,
+              cloudCodeAssistFormatError,
+              isProbeSession,
+              overloadProfileRotations,
+              overloadProfileRotationLimit,
+              previousRetryFailoverReason: lastRetryFailoverReason,
+              logAssistantFailoverDecision,
+              warn: (message) => log.warn(message),
+              maybeMarkAuthProfileFailure,
+              maybeEscalateRateLimitProfileFallback,
+              maybeBackoffBeforeOverloadFailover,
+              advanceAuthProfile,
+            });
+            overloadProfileRotations = assistantFailoverOutcome.overloadProfileRotations;
+            if (assistantFailoverOutcome.action === "retry") {
+              traceAttempts.push({
+                provider: activeErrorContext.provider,
+                model: activeErrorContext.model,
+                result:
+                  assistantFailoverOutcome.retryKind === "same_model_idle_timeout" ||
+                  assistantFailoverReason === "timeout"
+                    ? "timeout"
+                    : "rotate_profile",
+                ...(assistantFailoverReason ? { reason: assistantFailoverReason } : {}),
+                stage: "assistant",
+              });
+              if (assistantFailoverOutcome.retryKind === "same_model_idle_timeout") {
+                sameModelIdleTimeoutRetries += 1;
+              }
+              lastRetryFailoverReason = assistantFailoverOutcome.lastRetryFailoverReason;
+              continue;
+            }
+            if (assistantFailoverOutcome.action === "throw") {
+              traceAttempts.push({
+                provider: activeErrorContext.provider,
+                model: activeErrorContext.model,
+                result:
+                  assistantFailoverReason === "timeout"
+                    ? "timeout"
+                    : assistantFailoverDecision.action === "fallback_model"
+                      ? "fallback_model"
+                      : "error",
+                ...(assistantFailoverReason ? { reason: assistantFailoverReason } : {}),
+                stage: "assistant",
+                ...(typeof assistantFailoverOutcome.error.status === "number"
+                  ? { status: assistantFailoverOutcome.error.status }
+                  : {}),
+              });
+              throw assistantFailoverOutcome.error;
+            }
           }
           const usageMeta = buildUsageAgentMetaFields({
             usageAccumulator,
@@ -2111,22 +2155,31 @@ export async function runEmbeddedPiAgent(
           // Emit an explicit timeout error instead of silently completing, so
           // callers do not lose the turn as an orphaned user message.
           if (timedOut && !timedOutDuringCompaction && !payloadsWithToolMedia?.length) {
-            const timeoutText = idleTimedOut
+            const defaultTimeoutText = idleTimedOut
               ? "The model did not produce a response before the model idle timeout. " +
                 "Please try again, or increase `models.providers.<id>.timeoutSeconds` for slow local or self-hosted providers."
               : "Request timed out before a response was generated. " +
                 "Please try again, or increase `agents.defaults.timeoutSeconds` in your config.";
-            const replayInvalid = resolveReplayInvalidForAttempt(null);
-            const livenessState = resolveRunLivenessState({
-              payloadCount: payloads.length,
-              aborted,
-              timedOut,
-              attempt,
-              incompleteTurnText: null,
-            });
+            const promptTimeoutMessage = attempt.promptTimeoutOutcome?.message?.trim();
+            const timeoutText = promptTimeoutMessage || defaultTimeoutText;
+            const replayInvalid =
+              attempt.promptTimeoutOutcome?.replayInvalid ?? resolveReplayInvalidForAttempt(null);
+            const livenessState =
+              attempt.promptTimeoutOutcome?.livenessState ??
+              resolveRunLivenessState({
+                payloadCount: payloads.length,
+                aborted,
+                timedOut,
+                attempt,
+                incompleteTurnText: null,
+              });
+            const timeoutPhase = attempt.promptTimeoutOutcome?.timeoutPhase ?? "provider";
+            const providerStarted = attempt.promptTimeoutOutcome?.providerStarted ?? true;
             attempt.setTerminalLifecycleMeta?.({
               replayInvalid,
               livenessState,
+              timeoutPhase,
+              providerStarted,
             });
             return {
               payloads: [
@@ -2145,6 +2198,8 @@ export async function runEmbeddedPiAgent(
                 finalAssistantRawText,
                 replayInvalid,
                 livenessState,
+                timeoutPhase,
+                providerStarted,
                 toolSummary: attemptToolSummary,
                 ...(failureSignal ? { failureSignal } : {}),
                 agentHarnessResultClassification: attempt.agentHarnessResultClassification,

@@ -1395,6 +1395,14 @@ describe("runCodexAppServerAttempt", () => {
       timedOut: true,
       promptError: "codex app-server turn idle timed out waiting for turn/completed",
       promptErrorSource: "prompt",
+      codexAppServerFailure: {
+        kind: "turn_completion_idle_timeout",
+        turnWatchTimeoutKind: "completion",
+        transport: "stdio",
+        threadId: "thread-1",
+        turnId: "turn-1",
+        replaySafe: true,
+      },
     });
     expect(harness.requests.map((entry) => entry.method)).toContain("turn/interrupt");
   });
@@ -1412,6 +1420,13 @@ describe("runCodexAppServerAttempt", () => {
       aborted: false,
       promptError: "codex app-server client closed before turn completed",
       promptErrorSource: "prompt",
+      codexAppServerFailure: {
+        kind: "client_closed_before_turn_completed",
+        transport: "stdio",
+        threadId: "thread-1",
+        turnId: "turn-1",
+        replaySafe: true,
+      },
     });
   });
 

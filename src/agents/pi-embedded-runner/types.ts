@@ -1,5 +1,6 @@
 import type { CliSessionBinding, SessionSystemPromptReport } from "../../config/sessions/types.js";
 import type { DiagnosticTraceContext } from "../../infra/diagnostic-trace-context.js";
+import type { AgentRunTimeoutPhase } from "../agent-run-terminal-outcome.js";
 import type { MessagingToolSend } from "../pi-embedded-messaging.types.js";
 
 export type EmbeddedPiAgentMeta = {
@@ -122,6 +123,8 @@ export type EmbeddedPiRunMeta = {
   finalAssistantRawText?: string;
   replayInvalid?: boolean;
   livenessState?: EmbeddedRunLivenessState;
+  timeoutPhase?: AgentRunTimeoutPhase;
+  providerStarted?: boolean;
   agentHarnessResultClassification?: "empty" | "reasoning-only" | "planning-only";
   terminalReplyKind?: "silent-empty";
   error?: {
