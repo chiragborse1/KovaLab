@@ -541,10 +541,10 @@ describe("gateway server chat", () => {
     const historyMessages = await loadChatHistoryWithMessages(buildNoReplyHistoryFixture());
     const textValues = collectHistoryTextValues(historyMessages);
     // The NO_REPLY assistant message (content block) should be dropped.
-    // The assistant with text="real text field reply" + content="NO_REPLY" stays
-    // because entry.text takes precedence over entry.content for the silent check.
+    // Legacy assistant entries whose payload content is only NO_REPLY are also dropped,
+    // even when they carried a stale display text field.
     // The user message with NO_REPLY text is preserved (only assistant filtered).
-    expect(textValues).toEqual(["hello", "real reply", "real text field reply", "NO_REPLY"]);
+    expect(textValues).toEqual(["hello", "real reply", "NO_REPLY"]);
   });
 
   test("chat.history hides commentary-only assistant entries", async () => {
@@ -889,7 +889,7 @@ describe("gateway server chat", () => {
     });
   });
 
-  test("chat.history hides assistant NO_REPLY-only entries and keeps mixed-content assistant entries", async () => {
+  test("chat.history hides assistant NO_REPLY-only entries and keeps mixed-media assistant entries", async () => {
     const historyMessages = await loadChatHistoryWithMessages(buildNoReplyHistoryFixture(true));
     const roleAndText = historyMessages
       .map((message) => {
@@ -912,7 +912,6 @@ describe("gateway server chat", () => {
     expect(roleAndText).toEqual([
       "user:hello",
       "assistant:real reply",
-      "assistant:real text field reply",
       "user:NO_REPLY",
       "assistant:NO_REPLY",
     ]);
