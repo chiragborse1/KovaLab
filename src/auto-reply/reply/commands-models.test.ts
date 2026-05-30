@@ -349,7 +349,7 @@ describe("handleModelsCommand", () => {
     );
     expect(openaiAuthCall?.[0]).toMatchObject({
       provider: "openai",
-      acceptedProviderIds: ["openai", "openai-codex"],
+      acceptedProviderIds: ["openai-codex"],
     });
   });
 

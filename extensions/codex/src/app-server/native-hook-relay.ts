@@ -312,9 +312,13 @@ function sortJsonValue(value: JsonValue): JsonValue {
   if (Array.isArray(value)) {
     return value.map(sortJsonValue);
   }
-  return Object.fromEntries(
-    Object.entries(value)
-      .toSorted(([left], [right]) => left.localeCompare(right))
-      .map(([key, entry]) => [key, sortJsonValue(entry)]),
-  ) as JsonObject;
+  const entries: Array<[string, JsonValue]> = [];
+  for (const [key, entry] of Object.entries(value).toSorted(([left], [right]) =>
+    left.localeCompare(right),
+  )) {
+    if (entry !== undefined) {
+      entries.push([key, sortJsonValue(entry)]);
+    }
+  }
+  return Object.fromEntries(entries) as JsonObject;
 }

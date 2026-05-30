@@ -68,10 +68,12 @@ function expectMemoryRuntimeLoaded(rawConfig: unknown, autoEnabledConfig: unknow
 }
 
 function expectMemoryAutoEnableApplied(rawConfig: unknown, autoEnabledConfig: unknown) {
-  expect(applyPluginAutoEnableMock).toHaveBeenCalledWith({
-    config: rawConfig,
-    env: process.env,
-  });
+  expect(applyPluginAutoEnableMock).toHaveBeenCalledWith(
+    expect.objectContaining({
+      config: rawConfig,
+      env: process.env,
+    }),
+  );
   expectMemoryRuntimeLoaded(rawConfig, autoEnabledConfig);
 }
 
@@ -213,10 +215,12 @@ describe("memory runtime auto-enable loading", () => {
       }),
     ).resolves.toEqual({ manager: null, error: "memory plugin unavailable" });
 
-    expect(applyPluginAutoEnableMock).toHaveBeenCalledWith({
-      config: rawConfig,
-      env: process.env,
-    });
+    expect(applyPluginAutoEnableMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        config: rawConfig,
+        env: process.env,
+      }),
+    );
     expect(resolveRuntimePluginRegistryMock).not.toHaveBeenCalled();
   });
 

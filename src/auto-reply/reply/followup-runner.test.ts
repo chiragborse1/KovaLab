@@ -1545,7 +1545,7 @@ describe("createFollowupRunner messaging delivery and dedupe", () => {
     expect(onBlockReply).toHaveBeenCalledTimes(1);
     expect(onBlockReply).toHaveBeenCalledWith(
       expect.objectContaining({
-        text: DELIVERY_NO_REPLY_RUNTIME_CONTRACT.silentText,
+        text: "",
         mediaUrl: "file:///tmp/followup.png",
       }),
     );

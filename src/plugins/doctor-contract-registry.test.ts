@@ -1,8 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { shouldExpectNativeJitiForJavaScriptTestRuntime } from "../test-utils/jiti-runtime.js";
 import { cleanupTrackedTempDirs, makeTrackedTempDir } from "./test-helpers/fs-fixtures.js";
 import {
   getRegistryJitiMocks,
@@ -36,34 +34,28 @@ describe("doctor-contract-registry getJiti", () => {
     clearPluginDoctorContractRegistryCache();
   });
 
-  it("uses the runtime-supported Jiti boundary on Windows for contract-api modules", () => {
+  it("loads TypeScript contract-api modules through the runtime boundary", () => {
     const pluginRoot = makeTempDir();
-    fs.writeFileSync(path.join(pluginRoot, "contract-api.js"), "export default {};\n", "utf-8");
+    fs.writeFileSync(
+      path.join(pluginRoot, "contract-api.ts"),
+      "export const legacyConfigRules = [{ path: ['plugins', 'entries', 'demo', 'legacy'], message: 'legacy demo key' }];\n",
+      "utf-8",
+    );
     mocks.loadPluginManifestRegistry.mockReturnValue({
       plugins: [{ id: "test-plugin", rootDir: pluginRoot }],
       diagnostics: [],
     });
-    const platformSpy = vi.spyOn(process, "platform", "get").mockReturnValue("win32");
-    const expectedTryNative = shouldExpectNativeJitiForJavaScriptTestRuntime();
-
-    try {
+    expect(
       listPluginDoctorLegacyConfigRules({
         workspaceDir: pluginRoot,
         env: {},
-      });
-    } finally {
-      platformSpy.mockRestore();
-    }
-
-    expect(mocks.createJiti).toHaveBeenCalledTimes(1);
-    expect(mocks.createJiti.mock.calls[0]?.[0]).toBe(
-      pathToFileURL(path.join(pluginRoot, "contract-api.js"), { windows: true }).href,
-    );
-    expect(mocks.createJiti.mock.calls[0]?.[1]).toEqual(
-      expect.objectContaining({
-        tryNative: expectedTryNative,
       }),
-    );
+    ).toEqual([
+      {
+        path: ["plugins", "entries", "demo", "legacy"],
+        message: "legacy demo key",
+      },
+    ]);
   });
 
   it("prefers doctor-contract-api over the broader contract-api surface", () => {

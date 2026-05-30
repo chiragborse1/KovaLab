@@ -36,6 +36,7 @@ import {
 import { isTrustedSafeBinPath } from "./exec-safe-bin-trust.js";
 import {
   extractBindableShellWrapperInlineCommand,
+  extractShellWrapperInlineCommand,
   isShellWrapperExecutable,
   normalizeExecutableToken,
   POWERSHELL_WRAPPERS,
@@ -539,13 +540,16 @@ function resolveSegmentAllowlistMatch(params: {
       ? { ...executableResolution, resolvedPath: candidatePath }
       : executableResolution;
   const inlineCommand = extractBindableShellWrapperInlineCommand(allowlistSegment.argv);
+  const positionalCarrierInlineCommand =
+    inlineCommand ?? extractShellWrapperInlineCommand(allowlistSegment.argv);
   const powerShellFileScriptArgv = resolvePowerShellFileScriptArgv({
     segment: allowlistSegment,
     cwd: params.context.cwd,
   });
   const isShellWrapperInvocation = isShellWrapperSegment(allowlistSegment);
   const isPositionalCarrierInvocation =
-    inlineCommand !== null && isDirectShellPositionalCarrierInvocation(inlineCommand);
+    positionalCarrierInlineCommand !== null &&
+    isDirectShellPositionalCarrierInvocation(positionalCarrierInlineCommand);
   const executableMatch = matchExecutableAllowlistForSegment({
     allowlist: params.context.allowlist,
     candidateResolution,
@@ -560,7 +564,7 @@ function resolveSegmentAllowlistMatch(params: {
     ),
   });
   const shellPositionalArgvCandidatePath =
-    inlineCommand !== null
+    positionalCarrierInlineCommand !== null
       ? resolveShellWrapperPositionalArgvCandidatePath({
           segment: allowlistSegment,
           cwd: params.context.cwd,
@@ -1034,6 +1038,13 @@ function isDirectShellPositionalCarrierInvocation(command: string): boolean {
   ).test(trimmed);
 }
 
+function isNarrowShellPositionalCarrierInvocation(command: string): boolean {
+  if (!isDirectShellPositionalCarrierInvocation(command)) {
+    return false;
+  }
+  return !/\$\{?[@*]/u.test(command);
+}
+
 export type AllowAlwaysPattern = {
   pattern: string;
   argPattern?: string;
@@ -1124,16 +1135,16 @@ function collectAllowAlwaysPatterns(params: {
         };
 
   const candidatePath = resolveExecutionTargetCandidatePath(segment.resolution, params.cwd);
-  if (!candidatePath) {
-    return;
-  }
-  if (isInterpreterLikeAllowlistPattern(candidatePath)) {
+  if (candidatePath && isInterpreterLikeAllowlistPattern(candidatePath)) {
     const effectiveArgv = segment.resolution?.effectiveArgv ?? segment.argv;
     if (params.strictInlineEval !== true || detectInlineEvalArgv(effectiveArgv) !== null) {
       return;
     }
   }
   if (!trustPlan.shellWrapperExecutable) {
+    if (!candidatePath) {
+      return;
+    }
     const argPattern = buildArgPatternFromArgv(segment.argv, params.platform);
     addAllowAlwaysPattern(params.out, candidatePath, argPattern);
     return;
@@ -1142,9 +1153,11 @@ function collectAllowAlwaysPatterns(params: {
     segment,
     cwd: params.cwd,
   });
-  const inlineCommand = powerShellFileScriptArgv ? null : trustPlan.shellInlineCommand;
+  const inlineCommand = powerShellFileScriptArgv
+    ? null
+    : (trustPlan.shellInlineCommand ?? extractShellWrapperInlineCommand(segment.argv));
   const positionalArgvPath =
-    inlineCommand !== null
+    inlineCommand !== null && isNarrowShellPositionalCarrierInvocation(inlineCommand)
       ? resolveShellWrapperPositionalArgvCandidatePath({
           segment,
           cwd: params.cwd,

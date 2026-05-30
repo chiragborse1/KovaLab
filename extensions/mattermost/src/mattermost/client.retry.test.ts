@@ -350,7 +350,7 @@ describe("createMattermostDirectChannelWithRetry", () => {
   it("caps oversized request timeouts before scheduling aborts", async () => {
     const timeoutSpy = vi
       .spyOn(globalThis, "setTimeout")
-      .mockImplementation((() => 1) as typeof setTimeout);
+      .mockImplementation((() => 1) as unknown as typeof setTimeout);
     vi.spyOn(globalThis, "clearTimeout").mockImplementation(() => undefined);
     mockFetch.mockResolvedValueOnce({
       ok: true,

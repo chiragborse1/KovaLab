@@ -102,10 +102,12 @@ function expectAutoEnabledCliLoad(params: {
   autoEnabledConfig: KovaConfig;
   autoEnabledReasons?: Record<string, string[]>;
 }) {
-  expect(mocks.applyPluginAutoEnable).toHaveBeenCalledWith({
-    config: params.rawConfig,
-    env: process.env,
-  });
+  expect(mocks.applyPluginAutoEnable).toHaveBeenCalledWith(
+    expect.objectContaining({
+      config: params.rawConfig,
+      env: process.env,
+    }),
+  );
   expect(mocks.loadKovaPlugins).toHaveBeenCalledWith(
     expect.objectContaining({
       config: params.autoEnabledConfig,

@@ -1,5 +1,9 @@
 import { definePluginEntry } from "getkova/plugin-sdk/plugin-entry";
-import type { ProviderAuthContext, ProviderAuthMethod } from "getkova/plugin-sdk/plugin-entry";
+import type {
+  ProviderAuthContext,
+  ProviderAuthMethod,
+  ProviderAuthMethodNonInteractiveContext,
+} from "getkova/plugin-sdk/plugin-entry";
 import { isRecord } from "./src/tool-config-shared.js";
 
 const PROVIDER_ID = "xai";
@@ -26,7 +30,7 @@ async function runXaiApiKeyAuthMethod(ctx: ProviderAuthContext) {
   }).run(ctx);
 }
 
-async function runXaiApiKeyAuthMethodNonInteractive(ctx: ProviderAuthContext) {
+async function runXaiApiKeyAuthMethodNonInteractive(ctx: ProviderAuthMethodNonInteractiveContext) {
   const { createProviderApiKeyAuthMethod } =
     await import("getkova/plugin-sdk/provider-auth-api-key");
   const { applyXaiConfig, XAI_DEFAULT_MODEL_REF } = await import("./onboard.js");
