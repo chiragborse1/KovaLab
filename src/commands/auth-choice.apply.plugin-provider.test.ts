@@ -232,7 +232,7 @@ describe("applyAuthChoiceLoadedPluginProvider", () => {
       code: "KOVA_PROVIDER_AUTH_UNAVAILABLE",
     });
     const method: ProviderAuthMethod = {
-      ...provider.auth[0]!,
+      ...provider.auth[0],
       run: async () => {
         throw unavailableError;
       },
