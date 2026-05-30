@@ -92,7 +92,7 @@ ws.send(
       minProtocol: PROTOCOL_VERSION,
       maxProtocol: PROTOCOL_VERSION,
       client: {
-        id: 'config-reload-e2e',
+        id: 'test',
         displayName: 'config reload e2e',
         version: 'dev',
         platform: process.platform,
