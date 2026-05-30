@@ -1,7 +1,10 @@
+import { getLoadedChannelPluginForRead } from "../channels/plugins/registry-loaded-read.js";
+import type { ChannelId } from "../channels/plugins/types.public.js";
 import type { KovaConfig } from "../config/types.kova.js";
 import type { ConversationRef } from "../infra/outbound/session-binding-service.js";
 import { normalizeAccountId } from "../routing/session-key.js";
 import { defaultRuntime } from "../runtime.js";
+import { deriveSessionChatTypeFromKey } from "../sessions/session-chat-type-shared.js";
 import { isCronSessionKey } from "../sessions/session-key-utils.js";
 import { normalizeOptionalLowercaseString } from "../shared/string-coerce.js";
 import {
@@ -626,6 +629,139 @@ function hasGatewayAgentMessagingToolDelivery(response: unknown): boolean {
   return false;
 }
 
+function inferDeliveryTargetChatType(target: { channel?: string; to?: string }) {
+  const normalizedTo = normalizeOptionalLowercaseString(target.to);
+  if (!normalizedTo) {
+    return undefined;
+  }
+  if (
+    normalizedTo.startsWith("dm:") ||
+    normalizedTo.startsWith("direct:") ||
+    normalizedTo.startsWith("user:") ||
+    normalizedTo.includes(":dm:") ||
+    normalizedTo.includes(":direct:")
+  ) {
+    return "direct";
+  }
+  if (normalizedTo.startsWith("channel:") || normalizedTo.startsWith("thread:")) {
+    return "channel";
+  }
+  if (normalizedTo.startsWith("group:")) {
+    return "group";
+  }
+  const channel = normalizeMessageChannel(target.channel);
+  return channel
+    ? getLoadedChannelPluginForRead(channel as ChannelId)?.messaging?.inferTargetChatType?.({
+        to: target.to ?? "",
+      })
+    : undefined;
+}
+
+function isDirectMessageDeliveryTarget(
+  target: { channel?: string; to?: string; threadId?: string },
+  requesterSessionKey: string,
+): boolean {
+  if (target.threadId) {
+    return false;
+  }
+  const targetChatType = inferDeliveryTargetChatType(target);
+  if (targetChatType) {
+    return targetChatType === "direct";
+  }
+  return deriveSessionChatTypeFromKey(requesterSessionKey) === "direct";
+}
+
+function hasSubagentCompletionEvent(events: readonly AgentInternalEvent[] | undefined): boolean {
+  return (
+    events?.some((event) => event.type === "task_completion" && event.source === "subagent") ===
+    true
+  );
+}
+
+function resolveTextCompletionDirectFallback(
+  events: readonly AgentInternalEvent[] | undefined,
+): string | undefined {
+  for (let index = (events?.length ?? 0) - 1; index >= 0; index -= 1) {
+    const event = events?.[index];
+    if (event?.type !== "task_completion" || event.source !== "subagent") {
+      continue;
+    }
+    if (event.status !== "ok") {
+      continue;
+    }
+    const result = event.result.trim();
+    if (result && result !== "(no output)") {
+      return result;
+    }
+  }
+  return undefined;
+}
+
+function hasFailedSubagentNoOutputCompletion(
+  events: readonly AgentInternalEvent[] | undefined,
+): boolean {
+  return (
+    events?.some(
+      (event) =>
+        event.type === "task_completion" &&
+        event.source === "subagent" &&
+        event.status !== "ok" &&
+        event.result.trim() === "(no output)",
+    ) === true
+  );
+}
+
+async function deliverTextCompletionDirect(params: {
+  cfg: KovaConfig;
+  requesterSessionKey: string;
+  directIdempotencyKey: string;
+  deliveryTarget: {
+    deliver: boolean;
+    channel?: string;
+    to?: string;
+    accountId?: string;
+    threadId?: string;
+  };
+  internalEvents?: readonly AgentInternalEvent[];
+  bestEffortDeliver?: boolean;
+  signal?: AbortSignal;
+}): Promise<SubagentAnnounceDeliveryResult | undefined> {
+  const content = resolveTextCompletionDirectFallback(params.internalEvents);
+  if (
+    !content ||
+    !params.deliveryTarget.deliver ||
+    !params.deliveryTarget.channel ||
+    !params.deliveryTarget.to ||
+    !isDirectMessageDeliveryTarget(params.deliveryTarget, params.requesterSessionKey)
+  ) {
+    return undefined;
+  }
+  try {
+    await sendCompletionFallback({
+      cfg: params.cfg,
+      channel: params.deliveryTarget.channel,
+      to: params.deliveryTarget.to,
+      accountId: params.deliveryTarget.accountId,
+      threadId: params.deliveryTarget.threadId,
+      content,
+      requesterSessionKey: params.requesterSessionKey,
+      bestEffortDeliver: params.bestEffortDeliver,
+      idempotencyKey: `${params.directIdempotencyKey}:text-direct`,
+      signal: params.signal,
+    });
+    return {
+      delivered: true,
+      path: "direct",
+    };
+  } catch (err) {
+    return {
+      delivered: false,
+      path: "direct",
+      error: summarizeDeliveryError(err),
+    };
+  }
+}
+
 function isGatewayAgentRunPending(response: unknown): boolean {
   if (!response || typeof response !== "object") {
     return false;
@@ -763,6 +899,23 @@ async function sendSubagentAnnounceDirectly(params: {
       params.expectsCompletionMessage && deliveryTarget.deliver
         ? extractThreadCompletionFallbackText(params.internalEvents)
         : "";
+    const sourceToolId =
+      normalizeOptionalLowercaseString(params.sourceTool) ??
+      (params.expectsCompletionMessage ? "subagent_announce" : "");
+    const isSubagentCompletion =
+      sourceToolId === "subagent_announce" &&
+      ((params.internalEvents?.length ?? 0) === 0 ||
+        hasSubagentCompletionEvent(params.internalEvents));
+    const subagentDirectMessageCompletionRequiresMessageTool =
+      params.expectsCompletionMessage &&
+      isSubagentCompletion &&
+      deliveryTarget.deliver &&
+      isDirectMessageDeliveryTarget(deliveryTarget, canonicalRequesterSessionKey);
+    const shouldDeliverAgentFinal =
+      deliveryTarget.deliver && !subagentDirectMessageCompletionRequiresMessageTool;
+    const completionSourceReplyDeliveryMode = subagentDirectMessageCompletionRequiresMessageTool
+      ? "message_tool_only"
+      : undefined;
     let completionWakeFailureReason: EmbeddedPiQueueFailureReason | undefined;
     let completionWakeRetriedWithoutTranscriptWait = false;
     const requesterActivity = resolveRequesterSessionActivity(canonicalRequesterSessionKey);
@@ -854,21 +1007,21 @@ async function sendSubagentAnnounceDirectly(params: {
     const directAgentParams = {
       sessionKey: canonicalRequesterSessionKey,
       message: params.triggerMessage,
-      deliver: deliveryTarget.deliver,
+      deliver: shouldDeliverAgentFinal,
       bestEffortDeliver: params.bestEffortDeliver,
       internalEvents: params.internalEvents,
-      channel: deliveryTarget.deliver ? deliveryTarget.channel : sessionOnlyOriginChannel,
-      accountId: deliveryTarget.deliver
+      channel: shouldDeliverAgentFinal ? deliveryTarget.channel : sessionOnlyOriginChannel,
+      accountId: shouldDeliverAgentFinal
         ? deliveryTarget.accountId
         : sessionOnlyOriginChannel
           ? sessionOnlyOrigin?.accountId
           : undefined,
-      to: deliveryTarget.deliver
+      to: shouldDeliverAgentFinal
         ? deliveryTarget.to
         : sessionOnlyOriginChannel
           ? sessionOnlyOrigin?.to
           : undefined,
-      threadId: deliveryTarget.deliver
+      threadId: shouldDeliverAgentFinal
         ? deliveryTarget.threadId
         : sessionOnlyOriginChannel
           ? sessionOnlyOrigin?.threadId
@@ -879,6 +1032,9 @@ async function sendSubagentAnnounceDirectly(params: {
         sourceChannel: params.sourceChannel ?? INTERNAL_MESSAGE_CHANNEL,
         sourceTool: params.sourceTool ?? "subagent_announce",
       },
+      ...(completionSourceReplyDeliveryMode
+        ? { sourceReplyDeliveryMode: completionSourceReplyDeliveryMode }
+        : {}),
       idempotencyKey: params.directIdempotencyKey,
     };
     let directAnnounceResponse: unknown;
@@ -929,7 +1085,41 @@ async function sendSubagentAnnounceDirectly(params: {
       throw err;
     }
 
-    if (completionFallbackText && !hasVisibleGatewayAgentPayload(directAnnounceResponse)) {
+    if (
+      subagentDirectMessageCompletionRequiresMessageTool &&
+      !hasGatewayAgentMessagingToolDelivery(directAnnounceResponse)
+    ) {
+      if (hasFailedSubagentNoOutputCompletion(params.internalEvents)) {
+        return {
+          delivered: false,
+          path: "direct",
+          error: "completion agent did not produce a visible reply",
+        };
+      }
+      const textDelivery = await deliverTextCompletionDirect({
+        cfg,
+        requesterSessionKey: canonicalRequesterSessionKey,
+        directIdempotencyKey: params.directIdempotencyKey,
+        deliveryTarget,
+        internalEvents: params.internalEvents,
+        bestEffortDeliver: params.bestEffortDeliver,
+        signal: params.signal,
+      });
+      if (textDelivery) {
+        return textDelivery;
+      }
+      return {
+        delivered: false,
+        path: "direct",
+        error: "completion agent did not use the message tool for message-tool-only delivery",
+      };
+    }
+
+    if (
+      completionFallbackText &&
+      !hasVisibleGatewayAgentPayload(directAnnounceResponse) &&
+      !hasGatewayAgentMessagingToolDelivery(directAnnounceResponse)
+    ) {
       if (
         completionWakeRetriedWithoutTranscriptWait &&
         (completionWakeFailureReason === "no_active_run" ||
