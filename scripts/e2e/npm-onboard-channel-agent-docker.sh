@@ -116,8 +116,7 @@ package_root="$(npm root -g)/getkova"
 if [ ! -d "$package_root" ] && [ -d "$(npm root -g)/kova" ]; then
   package_root="$(npm root -g)/kova"
 fi
-test -d "$package_root/dist/extensions/telegram"
-test -d "$package_root/dist/extensions/discord"
+test -d "$package_root/dist/extensions/$CHANNEL"
 
 assert_dep_absent() {
   local sentinel="$1"

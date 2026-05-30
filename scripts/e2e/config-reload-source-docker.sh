@@ -97,6 +97,18 @@ entry=dist/index.mjs
 node \"\$entry\" gateway status --url ws://127.0.0.1:$PORT --token '$TOKEN' --require-rpc --timeout 30000 >/tmp/config-reload-status-before.log
 "
 
+echo "Waiting for reload watcher readiness..."
+docker exec "$CONTAINER_NAME" bash -lc "
+for _ in \$(seq 1 120); do
+  if grep -q 'control plane online' /tmp/config-reload-e2e.log; then
+    exit 0
+  fi
+  sleep 0.5
+done
+tail -n 160 /tmp/config-reload-e2e.log >&2 || true
+exit 1
+"
+
 echo "Mutating hot-reload gateway metadata..."
 docker exec "$CONTAINER_NAME" bash -lc "node --input-type=module - <<'NODE'
 import fs from 'node:fs';
