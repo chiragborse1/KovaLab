@@ -1,4 +1,4 @@
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -117,5 +117,38 @@ describe("preparePackageChangelog", () => {
     expect(readFileSync(path.join(root, "CHANGELOG.md"), "utf8")).not.toContain("## 1.9.0");
     await expect(restorePackageChangelog(root)).resolves.toBe(true);
     expect(readFileSync(path.join(root, "CHANGELOG.md"), "utf8")).toBe(original);
+  });
+
+  it("refuses to restore stale backups over current changelog edits", async () => {
+    const root = makeRoot();
+    const backupPath = path.join(
+      root,
+      ".artifacts",
+      "package-changelog",
+      "CHANGELOG.md.prepack-backup",
+    );
+    const original = `# Changelog
+
+## 2.0.0-beta.11
+
+- Public package notes for this version.
+- These are long enough to satisfy the safety guard.
+
+## 2.0.0-beta.10
+
+- Old release notes should be restored after packing.
+`;
+    const edited = original.replace("Public package notes", "Edited package notes");
+
+    writePackage(root, "2.0.0-beta.11");
+    writeChangelog(root, edited);
+    mkdirSync(path.dirname(backupPath), { recursive: true });
+    writeFileSync(backupPath, original);
+
+    await expect(restorePackageChangelog(root)).rejects.toThrow(
+      "Refusing to restore packaged changelog backup",
+    );
+    expect(readFileSync(path.join(root, "CHANGELOG.md"), "utf8")).toBe(edited);
+    expect(existsSync(backupPath)).toBe(true);
   });
 });
