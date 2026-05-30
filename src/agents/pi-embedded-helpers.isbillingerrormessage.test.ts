@@ -1075,6 +1075,8 @@ describe("classifyFailoverReason", () => {
     expect(classifyFailoverReason("You have insufficient permissions for this operation.")).toBe(
       "auth",
     );
+    expect(classifyFailoverReason("当前ak因违规请求被禁止访问该模型")).toBe("auth");
+    expect(classifyFailoverReason('{"success":false,"code":"CE-011"}')).toBe("auth");
     expect(classifyFailoverReason("Missing scopes: model.request")).toBe("auth");
     expect(
       classifyFailoverReason("model_cooldown: All credentials for model gpt-5 are cooling down"),

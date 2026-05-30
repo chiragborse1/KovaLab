@@ -1,6 +1,8 @@
 import { isSilentReplyPayloadText } from "../../auto-reply/tokens.js";
 import { isGpt5ModelId } from "../gpt5-prompt-overlay.js";
 import type { ModelFallbackResultClassification } from "../model-fallback.js";
+import { classifyFailoverReason } from "../pi-embedded-helpers/errors.js";
+import type { FailoverReason } from "../pi-embedded-helpers/types.js";
 import type { EmbeddedPiRunResult } from "./types.js";
 
 const EMPTY_TERMINAL_REPLY_RE = /Agent couldn't generate a response/i;
@@ -76,6 +78,24 @@ function classifyHarnessResult(params: {
   }
 }
 
+function classifyBusinessDenialErrorPayloadReason(
+  errorText: string,
+  provider: string,
+): Extract<FailoverReason, "auth" | "auth_permanent" | "billing"> | null {
+  if (!errorText.trim()) {
+    return null;
+  }
+  const failoverReason = classifyFailoverReason(errorText, { provider });
+  switch (failoverReason) {
+    case "auth":
+    case "auth_permanent":
+    case "billing":
+      return failoverReason;
+    default:
+      return null;
+  }
+}
+
 export function classifyEmbeddedPiRunResultForModelFallback(params: {
   provider: string;
   model: string;
@@ -117,6 +137,15 @@ export function classifyEmbeddedPiRunResultForModelFallback(params: {
       message: `${params.provider}/${params.model} ended with an incomplete terminal response`,
       reason: "format",
       code: "incomplete_result",
+    };
+  }
+  const failoverReason = classifyBusinessDenialErrorPayloadReason(errorText, params.provider);
+  if (failoverReason) {
+    return {
+      message: `${params.provider}/${params.model} ended with a provider error: ${errorText}`,
+      reason: failoverReason,
+      code: "embedded_error_payload",
+      rawError: errorText,
     };
   }
 

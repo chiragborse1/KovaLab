@@ -184,4 +184,44 @@ describe("Outcome/fallback runtime contract - Pi fallback classifier", () => {
     expect(result.attempts).toEqual([]);
     expect(run).toHaveBeenCalledTimes(1);
   });
+
+  it("classifies provider business-denial error payloads for fallback", () => {
+    expect(
+      classifyEmbeddedPiRunResultForModelFallback({
+        provider: "zai",
+        model: "glm-5.1",
+        result: createContractRunResult({
+          payloads: [
+            {
+              isError: true,
+              text: '{"success":false,"code":"CE-011","message":"当前ak因违规请求被禁止访问该模型"}',
+            },
+          ],
+        }),
+      }),
+    ).toEqual({
+      message:
+        'zai/glm-5.1 ended with a provider error: {"success":false,"code":"CE-011","message":"当前ak因违规请求被禁止访问该模型"}',
+      reason: "auth",
+      code: "embedded_error_payload",
+      rawError: '{"success":false,"code":"CE-011","message":"当前ak因违规请求被禁止访问该模型"}',
+    });
+  });
+
+  it("does not retry unclassified non-GPT error payloads", () => {
+    expect(
+      classifyEmbeddedPiRunResultForModelFallback({
+        provider: "custom",
+        model: "llama-3.1",
+        result: createContractRunResult({
+          payloads: [
+            {
+              isError: true,
+              text: "the model produced an application-level error",
+            },
+          ],
+        }),
+      }),
+    ).toBeNull();
+  });
 });
