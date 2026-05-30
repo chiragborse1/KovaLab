@@ -33,11 +33,11 @@ describe("packKovaPackageForDocker", () => {
       },
       runCaptureImpl: async (command: string, args: string[], cwd: string) => {
         calls.push(`${command}:${args.join(" ")}:${cwd}`);
-        return "kova-2.0.0.tgz\n";
+        return "getkova-2.0.0.tgz\n";
       },
     });
 
-    expect(tarball).toBe(path.join(outputDir, "kova-2.0.0.tgz"));
+    expect(tarball).toBe(path.join(outputDir, "getkova-2.0.0.tgz"));
     expect(calls).toEqual([
       `prepare:${sourceDir}`,
       `npm:pack --silent --ignore-scripts --pack-destination ${outputDir}:${sourceDir}`,

@@ -85,7 +85,7 @@ async function newestKovaTarball(outputDir, packOutput) {
   let fromOutput = "";
   for (const line of packOutput.split(/\r?\n/u)) {
     const trimmed = line.trim();
-    if (/^kova-.*\.tgz$/u.test(trimmed)) {
+    if (/^(?:getkova|kova)-.*\.tgz$/u.test(trimmed)) {
       fromOutput = trimmed;
     }
   }
@@ -95,7 +95,7 @@ async function newestKovaTarball(outputDir, packOutput) {
 
   const entries = await fs.readdir(outputDir);
   const packed = entries
-    .filter((entry) => /^kova-.*\.tgz$/u.test(entry))
+    .filter((entry) => /^(?:getkova|kova)-.*\.tgz$/u.test(entry))
     .toSorted()
     .at(-1);
   if (!packed) {
