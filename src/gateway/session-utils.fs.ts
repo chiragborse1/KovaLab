@@ -160,7 +160,7 @@ export type ReadSessionMessagesAsyncOptions =
 
 const RECENT_SESSION_MESSAGES_DEFAULT_MAX_BYTES = 8 * 1024 * 1024;
 
-function parseTranscriptLineToMessage(line: string, seq: number): unknown | null {
+function parseTranscriptLineToMessage(line: string, seq: number): unknown {
   try {
     const parsed = JSON.parse(line) as Record<string, unknown>;
     const message = parsed.message;
