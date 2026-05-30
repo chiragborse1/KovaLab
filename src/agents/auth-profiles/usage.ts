@@ -1,4 +1,8 @@
 import type { KovaConfig } from "../../config/types.kova.js";
+import {
+  positiveSecondsToSafeMilliseconds,
+  resolveExpiresAtMsFromEpochSeconds,
+} from "../../shared/number-coercion.js";
 import { normalizeProviderId } from "../provider-id.js";
 import { logAuthProfileFailureStateChange } from "./state-observation.js";
 import { saveAuthProfileStore, updateAuthProfileStoreWithLock } from "./store.js";
@@ -109,14 +113,15 @@ function resolveWhamResetMs(window: WhamUsageWindow | undefined, now: number): n
     Number.isFinite(window.reset_after_seconds) &&
     window.reset_after_seconds > 0
   ) {
-    return window.reset_after_seconds * 1000;
+    return positiveSecondsToSafeMilliseconds(window.reset_after_seconds) ?? null;
   }
   if (
     typeof window.reset_at === "number" &&
     Number.isFinite(window.reset_at) &&
     window.reset_at > 0
   ) {
-    return Math.max(0, window.reset_at * 1000 - now);
+    const resetAtMs = resolveExpiresAtMsFromEpochSeconds(window.reset_at);
+    return resetAtMs === undefined ? null : Math.max(0, resetAtMs - now);
   }
   return null;
 }
