@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PluginManifestRecord } from "./manifest-registry.js";
-import type { ProviderPlugin } from "./types.js";
+import type { ProviderCatalogContext, ProviderPlugin } from "./types.js";
 
 const mocks = vi.hoisted(() => ({
   loadManifestMetadataSnapshot: vi.fn(),
@@ -61,6 +61,19 @@ function createMetadataSnapshot(plugins: PluginManifestRecord[]) {
       plugins,
       diagnostics: [],
     },
+  };
+}
+
+function createCatalogContext(): ProviderCatalogContext {
+  return {
+    config: {},
+    env: {},
+    resolveProviderApiKey: () => ({ apiKey: undefined }),
+    resolveProviderAuth: () => ({
+      apiKey: undefined,
+      mode: "none",
+      source: "none",
+    }),
   };
 }
 
@@ -234,7 +247,7 @@ describe("resolvePluginDiscoveryProvidersRuntime", () => {
         staticCatalog: expect.any(Object),
       }),
     );
-    await expect(providers[0]?.staticCatalog?.run()).resolves.toMatchObject({
+    await expect(providers[0]?.staticCatalog?.run(createCatalogContext())).resolves.toMatchObject({
       providers: {
         "manifest-models": {
           baseUrl: "https://models.example/v1",

@@ -455,12 +455,11 @@ function setupSessionTouchStore(): void {
   state.sessionStoreMock = { "agent:main": sessionEntry };
 }
 
-async function runBasicAgentCommand(options: { skipInitialSessionTouch?: boolean } = {}) {
+async function runBasicAgentCommand() {
   await agentCommand({
     message: "hello",
     to: "+1234567890",
     senderIsOwner: true,
-    skipInitialSessionTouch: options.skipInitialSessionTouch,
   });
 }
 
@@ -526,7 +525,7 @@ describe("agentCommand – LiveSessionModelSwitchError retry", () => {
 
     state.runAgentAttemptMock.mockResolvedValue(makeSuccessResult("openai", "gpt-5.4"));
 
-    await runBasicAgentCommand({ skipInitialSessionTouch: true });
+    await runBasicAgentCommand();
 
     expect(state.runWithModelFallbackMock).toHaveBeenCalledTimes(2);
 
@@ -578,7 +577,7 @@ describe("agentCommand – LiveSessionModelSwitchError retry", () => {
       return makeSuccessResult("openai", "gpt-5.4");
     });
 
-    await runBasicAgentCommand({ skipInitialSessionTouch: true });
+    await runBasicAgentCommand();
 
     expect(capturedAuthProfileProvider).toBe("openai");
     expect(state.runWithModelFallbackMock).toHaveBeenCalledTimes(2);

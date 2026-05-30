@@ -55,6 +55,7 @@ import {
   type InstalledPluginIndex,
 } from "./installed-plugin-index.js";
 import type { PluginManifestRecord, PluginManifestRegistry } from "./manifest-registry.js";
+import type { PluginKind } from "./plugin-kind.types.js";
 
 function withManifestLoadPaths<T extends { id: string }>(plugin: T): T {
   return {
@@ -311,7 +312,7 @@ function listSortedUnique(values: readonly string[] | undefined): readonly strin
   );
 }
 
-function manifestHasKind(record: PluginManifestRecord, kind: string): boolean {
+function manifestHasKind(record: PluginManifestRecord, kind: PluginKind): boolean {
   const value = record.kind;
   return value === kind || (Array.isArray(value) && value.includes(kind));
 }

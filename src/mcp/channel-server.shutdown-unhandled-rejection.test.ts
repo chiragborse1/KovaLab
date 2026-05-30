@@ -99,12 +99,15 @@ describe("serveKovaChannelMcp shutdown", () => {
 
   it("does not leak unhandled rejections when shutdown close fails", async () => {
     process.on("unhandledRejection", onUnhandledRejection);
+    vi.resetModules();
     const { serveKovaChannelMcp } = await import("./channel-server.js");
 
     const servePromise = serveKovaChannelMcp({ verbose: false });
     await Promise.resolve();
 
-    transportState.lastTransport?.onclose?.();
+    const closeTransport = transportState.lastTransport?.onclose;
+    expect(closeTransport).toEqual(expect.any(Function));
+    closeTransport?.();
     await servePromise;
     await new Promise((resolve) => setTimeout(resolve, 0));
 

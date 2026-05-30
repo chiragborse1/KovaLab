@@ -16,7 +16,7 @@ import { handleWhoamiCommand } from "./commands-whoami.js";
 const buildContextReplyMock = vi.hoisted(() => vi.fn());
 const buildExportTrajectoryReplyMock = vi.hoisted(() => vi.fn(async () => ({ text: "exported" })));
 const listSkillCommandsForAgentsMock = vi.hoisted(() => vi.fn(() => []));
-const resolveSkillCommandInvocationMock = vi.hoisted(() => vi.fn(() => null));
+const resolveSkillCommandInvocationMock = vi.hoisted(() => vi.fn((): unknown => null));
 const buildCommandsMessagePaginatedMock = vi.hoisted(() =>
   vi.fn(() => ({ text: "/commands", currentPage: 1, totalPages: 1 })),
 );

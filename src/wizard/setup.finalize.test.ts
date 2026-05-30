@@ -4,7 +4,9 @@ import type { KovaConfig } from "../config/config.js";
 import type { PluginWebSearchProviderEntry } from "../plugins/types.js";
 import type { RuntimeEnv } from "../runtime.js";
 
-const launchTuiCli = vi.hoisted(() => vi.fn(async () => {}));
+const launchTuiCli = vi.hoisted(() =>
+  vi.fn(async (_opts?: unknown, _launchOptions?: unknown) => {}),
+);
 const restoreTerminalState = vi.hoisted(() => vi.fn());
 const probeGatewayReachable = vi.hoisted(() =>
   vi.fn<() => Promise<{ ok: boolean; detail?: string }>>(async () => ({ ok: true })),

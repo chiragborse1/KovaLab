@@ -974,7 +974,7 @@ describe("markAuthProfileFailure — WHAM-aware Codex cooldowns", () => {
     await markCodexFailureAt({ store, now });
 
     const stats = store.usageStats?.["openai-codex:default"];
-    expect(stats?.blockedUntil).toBeUndefined();
+    expect(stats?.disabledUntil).toBeUndefined();
     expect(stats?.cooldownUntil).toBe(now + 30_000);
     expect(stats?.cooldownReason).toBe("rate_limit");
   });

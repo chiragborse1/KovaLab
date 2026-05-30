@@ -25,7 +25,7 @@ async function loadCachedPluginJitiLoader(scope: string) {
   ) =>
     pluginJitiLoaderCache.getCachedPluginJitiLoader({
       ...params,
-      createLoader: params.createLoader ?? (createJiti as PluginJitiLoaderFactory),
+      createLoader: params.createLoader ?? (createJiti as unknown as PluginJitiLoaderFactory),
     });
 
   return { createJiti, getCachedPluginJitiLoader };
@@ -236,7 +236,7 @@ describe("getCachedPluginJitiLoader", () => {
       modulePath: "/repo/dist/extensions/demo/api.js",
       importerUrl: "file:///repo/src/plugins/public-surface-loader.ts",
       jitiFilename: "file:///repo/src/plugins/public-surface-loader.ts",
-      createLoader: createJiti as PluginJitiLoaderFactory,
+      createLoader: createJiti as unknown as PluginJitiLoaderFactory,
     });
 
     const result = loader("/repo/dist/extensions/demo/api.js") as { loadedFrom: string };
@@ -263,7 +263,7 @@ describe("getCachedPluginJitiLoader", () => {
       modulePath: "/repo/dist/extensions/demo/api.js",
       importerUrl: "file:///repo/src/plugins/public-surface-loader.ts",
       jitiFilename: "file:///repo/src/plugins/public-surface-loader.ts",
-      createLoader: createJiti as PluginJitiLoaderFactory,
+      createLoader: createJiti as unknown as PluginJitiLoaderFactory,
     });
 
     const result = loader("/repo/dist/extensions/demo/api.js") as { fromJiti: boolean };
@@ -290,7 +290,7 @@ describe("getCachedPluginJitiLoader", () => {
       importerUrl: "file:///C:/Users/alice/kova/dist/src/plugins/public-surface-loader.js",
       jitiFilename: "C:\\Users\\alice\\kova\\dist\\extensions\\feishu\\api.js",
       tryNative: true,
-      createLoader: createJiti as PluginJitiLoaderFactory,
+      createLoader: createJiti as unknown as PluginJitiLoaderFactory,
     });
 
     loader("C:\\Users\\alice\\kova\\dist\\extensions\\feishu\\api.js");
@@ -324,7 +324,7 @@ describe("getCachedPluginJitiLoader", () => {
       jitiFilename: "file:///repo/src/plugins/bundled-capability-runtime.ts",
       aliasMap: { "getkova/plugin-sdk": "/repo/shim.js" },
       tryNative: false,
-      createLoader: createJiti as PluginJitiLoaderFactory,
+      createLoader: createJiti as unknown as PluginJitiLoaderFactory,
     });
 
     const result = loader("/repo/dist/extensions/demo/api.js") as { fromJiti: boolean };
@@ -355,7 +355,7 @@ describe("getCachedPluginJitiLoader", () => {
       importerUrl: "file:///C:/Users/alice/kova/src/plugins/loader.ts",
       jitiFilename: "C:\\Users\\alice\\kova\\extensions\\feishu\\api.ts",
       tryNative: false,
-      createLoader: createJiti as PluginJitiLoaderFactory,
+      createLoader: createJiti as unknown as PluginJitiLoaderFactory,
     });
 
     loader("C:\\Users\\alice\\kova\\extensions\\feishu\\api.ts");
@@ -385,7 +385,7 @@ describe("getCachedPluginJitiLoader", () => {
       modulePath: "/repo/dist/extensions/demo/api.js",
       importerUrl: "file:///repo/src/plugins/public-surface-loader.ts",
       jitiFilename: "file:///repo/src/plugins/public-surface-loader.ts",
-      createLoader: createJiti as PluginJitiLoaderFactory,
+      createLoader: createJiti as unknown as PluginJitiLoaderFactory,
     });
 
     const loose = loader as unknown as (t: string, ...a: unknown[]) => unknown;
