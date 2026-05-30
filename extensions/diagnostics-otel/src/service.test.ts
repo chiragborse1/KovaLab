@@ -1191,6 +1191,20 @@ describe("diagnostics-otel service", () => {
         traceFlags: "01",
       },
     });
+    emitDiagnosticEvent({
+      type: "tool.execution.blocked",
+      runId: "run-1",
+      toolName: "exec",
+      paramsSummary: { kind: "object" },
+      deniedReason: "tool-loop",
+      reason: "blocked by loop guard",
+      trace: {
+        traceId: TRACE_ID,
+        spanId: GRANDCHILD_SPAN_ID,
+        parentSpanId: CHILD_SPAN_ID,
+        traceFlags: "01",
+      },
+    });
     await flushDiagnosticEvents();
 
     const spanNames = telemetryState.tracer.startSpan.mock.calls.map((call) => call[0]);
@@ -1200,6 +1214,7 @@ describe("diagnostics-otel service", () => {
         "kova.model.call",
         "kova.harness.run",
         "kova.tool.execution",
+        "kova.tool.execution.blocked",
       ]),
     );
 
@@ -1299,6 +1314,24 @@ describe("diagnostics-otel service", () => {
     });
     expect(toolCall?.[2]).toBeUndefined();
 
+    const blockedToolCall = telemetryState.tracer.startSpan.mock.calls.find(
+      (call) => call[0] === "kova.tool.execution.blocked",
+    );
+    expect(blockedToolCall?.[1]).toMatchObject({
+      attributes: {
+        "kova.toolName": "exec",
+        "gen_ai.tool.name": "exec",
+        "kova.deniedReason": "tool-loop",
+        "kova.tool.params.kind": "object",
+      },
+    });
+    expect(blockedToolCall?.[1]).toEqual({
+      attributes: expect.not.objectContaining({
+        "kova.runId": expect.anything(),
+      }),
+      startTime: expect.any(Number),
+    });
+
     expect(
       telemetryState.histograms.get("kova.model_call.duration_ms")?.record,
     ).toHaveBeenCalledWith(
@@ -1373,6 +1406,13 @@ describe("diagnostics-otel service", () => {
         "kova.runId": expect.anything(),
       }),
     );
+    expect(telemetryState.counters.get("kova.tool.execution.blocked")?.add).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({
+        "kova.toolName": "exec",
+        "kova.deniedReason": "tool-loop",
+      }),
+    );
 
     const toolSpan = telemetryState.spans.find((span) => span.name === "kova.tool.execution");
     expect(toolSpan?.setStatus).toHaveBeenCalledWith({
@@ -1380,6 +1420,14 @@ describe("diagnostics-otel service", () => {
       message: "TypeError",
     });
     expect(toolSpan?.end).toHaveBeenCalledWith(expect.any(Number));
+    const blockedToolSpan = telemetryState.spans.find(
+      (span) => span.name === "kova.tool.execution.blocked",
+    );
+    expect(blockedToolSpan?.setStatus).toHaveBeenCalledWith({
+      code: 2,
+      message: "tool-loop",
+    });
+    expect(blockedToolSpan?.end).toHaveBeenCalledWith(expect.any(Number));
     expect(telemetryState.tracer.setSpanContext).not.toHaveBeenCalled();
     await service.stop?.(ctx);
   });

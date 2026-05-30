@@ -814,6 +814,10 @@ export function createDiagnosticsOtelService(): KovaPluginService {
         unit: "1",
         description: "Detected repetitive tool-call loop events",
       });
+      const toolExecutionBlockedCounter = meter.createCounter("kova.tool.execution.blocked", {
+        unit: "1",
+        description: "Tool executions blocked before invocation",
+      });
       const skillUsedCounter = meter.createCounter("kova.skill.used", {
         unit: "1",
         description: "Skills activated by agent runs",
@@ -2007,6 +2011,33 @@ export function createDiagnosticsOtelService(): KovaPluginService {
         span.end(evt.ts);
       };
 
+      const recordToolExecutionBlocked = (
+        evt: Extract<DiagnosticEventPayload, { type: "tool.execution.blocked" }>,
+        metadata: DiagnosticEventMetadata,
+      ) => {
+        const attrs: Record<string, string | number | boolean> = {
+          "kova.toolName": evt.toolName,
+          "gen_ai.tool.name": evt.toolName,
+          "kova.deniedReason": lowCardinalityAttr(evt.deniedReason, "other"),
+          ...paramsSummaryAttrs(evt.paramsSummary),
+        };
+        toolExecutionBlockedCounter.add(1, attrs);
+        if (!tracesEnabled) {
+          return;
+        }
+        addRunAttrs(attrs, evt);
+        const span = spanWithDuration("kova.tool.execution.blocked", attrs, 0, {
+          parentContext: activeTrustedParentContext(evt, metadata),
+          endTimeMs: evt.ts,
+        });
+        setSpanAttrs(span, attrs);
+        span.setStatus({
+          code: SpanStatusCode.ERROR,
+          message: redactSensitiveText(evt.deniedReason),
+        });
+        span.end(evt.ts);
+      };
+
       const recordExecProcessCompleted = (
         evt: Extract<DiagnosticEventPayload, { type: "exec.process.completed" }>,
       ) => {
@@ -2162,6 +2193,9 @@ export function createDiagnosticsOtelService(): KovaPluginService {
               return;
             case "tool.execution.error":
               recordToolExecutionError(evt, metadata);
+              return;
+            case "tool.execution.blocked":
+              recordToolExecutionBlocked(evt, metadata);
               return;
             case "skill.used":
               recordSkillUsed(evt, metadata);
