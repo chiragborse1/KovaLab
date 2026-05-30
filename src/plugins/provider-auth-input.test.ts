@@ -281,7 +281,7 @@ describe("ensureApiKeyFromEnvOrPrompt", () => {
     expect(text).toHaveBeenCalledWith(
       expect.objectContaining({
         message: "Enter key",
-        sensitive: false,
+        sensitive: true,
       }),
     );
   });

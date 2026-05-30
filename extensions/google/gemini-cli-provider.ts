@@ -20,6 +20,7 @@ const ENV_VARS = [
   "GEMINI_CLI_OAUTH_CLIENT_ID",
   "GEMINI_CLI_OAUTH_CLIENT_SECRET",
 ] as const;
+const PROVIDER_AUTH_UNAVAILABLE_ERROR_CODE = "KOVA_PROVIDER_AUTH_UNAVAILABLE";
 
 const GOOGLE_GEMINI_CLI_PROVIDER_HOOKS = {
   ...GOOGLE_GEMINI_PROVIDER_HOOKS,
@@ -54,7 +55,9 @@ export function buildGoogleGeminiCliProvider(): ProviderPlugin {
               ].join("\n"),
               "Gemini CLI OAuth unavailable",
             );
-            return { profiles: [] };
+            const error = new Error(preflight.message);
+            (error as { code?: string }).code = PROVIDER_AUTH_UNAVAILABLE_ERROR_CODE;
+            throw error;
           }
 
           await ctx.prompter.note(

@@ -146,6 +146,7 @@ async function applyDefaultModelFromAuthChoice(params: {
 }
 
 type ProviderAuthChoiceRuntime = typeof import("./provider-auth-choice.runtime.js");
+const PROVIDER_AUTH_UNAVAILABLE_ERROR_CODE = "KOVA_PROVIDER_AUTH_UNAVAILABLE";
 
 const defaultProviderAuthChoiceDeps = {
   loadPluginProviderRuntime: async (): Promise<ProviderAuthChoiceRuntime> =>
@@ -174,6 +175,14 @@ function resolveManifestAuthChoiceScope(params: {
 
 function withProviderPluginId(provider: ProviderPlugin, pluginId: string): ProviderPlugin {
   return provider.pluginId === pluginId ? provider : { ...provider, pluginId };
+}
+
+function isProviderAuthUnavailableError(error: unknown): boolean {
+  return (
+    Boolean(error) &&
+    typeof error === "object" &&
+    (error as { code?: unknown }).code === PROVIDER_AUTH_UNAVAILABLE_ERROR_CODE
+  );
 }
 
 export const __testing = {
@@ -408,19 +417,27 @@ export async function applyAuthChoiceLoadedPluginProvider(
   }
   stopProgress("Provider setup ready.");
 
-  const applied = await runProviderPluginAuthMethod({
-    config: nextConfig,
-    env: params.env,
-    runtime: params.runtime,
-    prompter: params.prompter,
-    method: resolved.method,
-    agentDir: params.agentDir,
-    agentId: params.agentId,
-    workspaceDir,
-    secretInputMode: params.opts?.secretInputMode,
-    allowSecretRefPrompt: false,
-    opts: params.opts,
-  });
+  let applied: Awaited<ReturnType<typeof runProviderPluginAuthMethod>>;
+  try {
+    applied = await runProviderPluginAuthMethod({
+      config: nextConfig,
+      env: params.env,
+      runtime: params.runtime,
+      prompter: params.prompter,
+      method: resolved.method,
+      agentDir: params.agentDir,
+      agentId: params.agentId,
+      workspaceDir,
+      secretInputMode: params.opts?.secretInputMode,
+      allowSecretRefPrompt: false,
+      opts: params.opts,
+    });
+  } catch (error) {
+    if (isProviderAuthUnavailableError(error)) {
+      return { config: nextConfig, retrySelection: true };
+    }
+    throw error;
+  }
 
   nextConfig = applied.config;
   let agentModelOverride: string | undefined;

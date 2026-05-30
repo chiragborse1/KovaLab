@@ -226,6 +226,26 @@ describe("applyAuthChoiceLoadedPluginProvider", () => {
     expect(runProviderModelSelectedHook).not.toHaveBeenCalled();
   });
 
+  it("requests auth selection retry when a provider setup prerequisite is unavailable", async () => {
+    const provider = buildProvider();
+    const unavailableError = Object.assign(new Error("Missing provider CLI"), {
+      code: "KOVA_PROVIDER_AUTH_UNAVAILABLE",
+    });
+    const method: ProviderAuthMethod = {
+      ...provider.auth[0]!,
+      run: async () => {
+        throw unavailableError;
+      },
+    };
+    resolvePluginProviders.mockReturnValue([provider]);
+    resolveProviderPluginChoice.mockReturnValue({ provider, method });
+
+    const result = await applyAuthChoiceLoadedPluginProvider(buildParams());
+
+    expect(result).toEqual({ config: {}, retrySelection: true });
+    expect(runProviderModelSelectedHook).not.toHaveBeenCalled();
+  });
+
   it("keeps provider config patches when default model application is deferred", async () => {
     const provider: ProviderPlugin = {
       id: "remote-alpha",

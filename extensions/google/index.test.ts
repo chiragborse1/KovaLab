@@ -270,33 +270,36 @@ describe("Gemini CLI OAuth setup", () => {
     setOAuthCredentialsFsForTest();
   });
 
-  it("keeps onboarding alive when Gemini CLI OAuth prerequisites are missing", async () => {
+  it("fails Gemini CLI OAuth when prerequisites are missing", async () => {
     const provider = buildGoogleGeminiCliProvider();
     const method = provider.auth[0]!;
     const note = vi.fn(async () => undefined);
     const confirm = vi.fn(async () => true);
 
-    const result = await method.run({
-      config: {},
-      env: {},
-      agentDir: "/tmp/kova-agent",
-      workspaceDir: "/tmp/kova-workspace",
-      prompter: {
-        note,
-        confirm,
-        text: vi.fn(async () => ""),
-        select: vi.fn(),
-        multiselect: vi.fn(),
-        intro: vi.fn(),
-        outro: vi.fn(),
-        progress: () => ({ update: vi.fn(), stop: vi.fn() }),
-      },
-      runtime: { log: vi.fn() },
-      isRemote: false,
-      openUrl: vi.fn(),
-    } as never);
+    await expect(
+      method.run({
+        config: {},
+        env: {},
+        agentDir: "/tmp/kova-agent",
+        workspaceDir: "/tmp/kova-workspace",
+        prompter: {
+          note,
+          confirm,
+          text: vi.fn(async () => ""),
+          select: vi.fn(),
+          multiselect: vi.fn(),
+          intro: vi.fn(),
+          outro: vi.fn(),
+          progress: () => ({ update: vi.fn(), stop: vi.fn() }),
+        },
+        runtime: { log: vi.fn() },
+        isRemote: false,
+        openUrl: vi.fn(),
+      } as never),
+    ).rejects.toMatchObject({
+      code: "KOVA_PROVIDER_AUTH_UNAVAILABLE",
+    });
 
-    expect(result).toEqual({ profiles: [] });
     expect(confirm).not.toHaveBeenCalled();
     expect(note).toHaveBeenCalledWith(
       expect.stringContaining("npm install -g @google/gemini-cli"),
