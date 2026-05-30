@@ -4048,6 +4048,19 @@ module.exports = { id: "throws-after-import", register() {} };`,
         },
       };`,
     });
+    fs.writeFileSync(
+      path.join(plugin.dir, "kova.plugin.json"),
+      JSON.stringify(
+        {
+          id: "discovery-mode-test",
+          configSchema: EMPTY_PLUGIN_SCHEMA,
+          contracts: { tools: ["discovery_tool"] },
+        },
+        null,
+        2,
+      ),
+      "utf-8",
+    );
     const config = {
       plugins: {
         load: { paths: [plugin.file] },
@@ -6202,6 +6215,77 @@ module.exports = {
         preferSetupRuntimeForChannelPlugins: true,
       }),
     ).toBe(true);
+  });
+
+  it("prefers package-local dist artifacts for bundled source checkout plugins", () => {
+    const repoRoot = makeTempDir();
+    const sourceDir = path.join(repoRoot, "extensions", "startup-package-artifact-test");
+    const runtimeDir = path.join(sourceDir, "dist");
+    mkdirSafe(sourceDir);
+    mkdirSafe(runtimeDir);
+    fs.writeFileSync(
+      path.join(sourceDir, "kova.plugin.json"),
+      JSON.stringify(
+        {
+          id: "startup-package-artifact-test",
+          configSchema: EMPTY_PLUGIN_SCHEMA,
+        },
+        null,
+        2,
+      ),
+      "utf-8",
+    );
+    fs.writeFileSync(
+      path.join(sourceDir, "package.json"),
+      JSON.stringify(
+        {
+          kova: {
+            extensions: ["./index.ts"],
+          },
+        },
+        null,
+        2,
+      ),
+      "utf-8",
+    );
+    fs.writeFileSync(
+      path.join(sourceDir, "index.ts"),
+      'throw new Error("source TS should not load during gateway startup");\n',
+      "utf-8",
+    );
+    fs.writeFileSync(
+      path.join(runtimeDir, "index.js"),
+      'module.exports = { id: "startup-package-artifact-test", register() {} };\n',
+      "utf-8",
+    );
+
+    const registry = withEnv(
+      {
+        KOVA_BUNDLED_PLUGINS_DIR: path.join(repoRoot, "extensions"),
+        KOVA_TEST_TRUST_BUNDLED_PLUGINS_DIR: "1",
+        KOVA_DISABLE_BUNDLED_PLUGINS: undefined,
+      },
+      () =>
+        loadKovaPlugins({
+          cache: false,
+          preferBuiltPluginArtifacts: true,
+          onlyPluginIds: ["startup-package-artifact-test"],
+          config: {
+            plugins: {
+              allow: ["startup-package-artifact-test"],
+              entries: {
+                "startup-package-artifact-test": {
+                  enabled: true,
+                },
+              },
+            },
+          },
+        }),
+    );
+
+    expect(
+      registry.plugins.find((entry) => entry.id === "startup-package-artifact-test")?.status,
+    ).toBe("loaded");
   });
 
   it("blocks before_prompt_build but preserves legacy model overrides when prompt injection is disabled", async () => {
