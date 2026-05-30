@@ -92,7 +92,7 @@ For the plugin authoring guide, see [Plugin SDK overview](/plugins/sdk-overview)
     | `plugin-sdk/provider-setup` | Curated local/self-hosted provider setup helpers |
     | `plugin-sdk/self-hosted-provider-setup` | Focused OpenAI-compatible self-hosted provider setup helpers |
     | `plugin-sdk/cli-backend` | CLI backend defaults + watchdog constants |
-    | `plugin-sdk/provider-auth-runtime` | Runtime API-key resolution helpers for provider plugins |
+    | `plugin-sdk/provider-auth-runtime` | Runtime API-key and OAuth helpers for provider plugins |
     | `plugin-sdk/provider-auth-api-key` | API-key onboarding/profile-write helpers such as `upsertApiKeyProfile` |
     | `plugin-sdk/provider-auth-result` | Standard OAuth auth-result builder |
     | `plugin-sdk/provider-auth-login` | Shared interactive login helpers for provider plugins |

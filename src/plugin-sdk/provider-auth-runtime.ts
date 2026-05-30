@@ -6,6 +6,7 @@ import { createServer } from "node:http";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { resolveApiKeyForProvider as resolveModelApiKeyForProvider } from "../agents/model-auth.js";
+import { positiveSecondsToSafeMilliseconds } from "../shared/number-coercion.js";
 
 export { resolveEnvApiKey } from "../agents/model-auth-env.js";
 export {
@@ -22,6 +23,7 @@ export type { ProviderPreparedRuntimeAuth } from "../plugins/types.js";
 export type { ResolvedProviderRuntimeAuth } from "../plugins/runtime/model-auth-types.js";
 
 export type OAuthCallbackResult = { code: string; state: string };
+export type OAuthAuthorizationInput = { code?: string; state?: string };
 
 export function generateOAuthState(): string {
   return crypto.randomBytes(32).toString("hex");
@@ -53,6 +55,55 @@ export function parseOAuthCallbackInput(
   } catch {
     return { error: messages.invalidInput ?? "Paste the full redirect URL, not just the code." };
   }
+}
+
+export function parseOAuthAuthorizationInput(input: string): OAuthAuthorizationInput {
+  const value = input.trim();
+  if (!value) {
+    return {};
+  }
+
+  try {
+    const url = new URL(value);
+    return {
+      code: url.searchParams.get("code") ?? undefined,
+      state: url.searchParams.get("state") ?? undefined,
+    };
+  } catch {
+    // Plain pasted code or query-string input.
+  }
+
+  if (value.includes("#")) {
+    const [code, state] = value.split("#", 2);
+    return { code, state };
+  }
+
+  if (value.includes("code=")) {
+    const params = new URLSearchParams(value);
+    return {
+      code: params.get("code") ?? undefined,
+      state: params.get("state") ?? undefined,
+    };
+  }
+
+  return { code: value };
+}
+
+export function resolveOAuthTokenLifetimeMs(value: unknown): number | undefined {
+  return positiveSecondsToSafeMilliseconds(value);
+}
+
+export function resolveOAuthTokenExpiresAt(
+  value: unknown,
+  options: { nowMs?: number; refreshSkewMs?: number } = {},
+): number | undefined {
+  const lifetimeMs = resolveOAuthTokenLifetimeMs(value);
+  if (lifetimeMs === undefined) {
+    return undefined;
+  }
+
+  const expiresAt = (options.nowMs ?? Date.now()) + lifetimeMs - (options.refreshSkewMs ?? 0);
+  return Number.isSafeInteger(expiresAt) ? expiresAt : undefined;
 }
 
 export async function waitForLocalOAuthCallback(params: {

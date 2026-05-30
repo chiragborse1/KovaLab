@@ -363,7 +363,7 @@ releases.
   | `plugin-sdk/reply-payload` | Message reply types | Reply payload types |
   | `plugin-sdk/provider-setup` | Curated local/self-hosted provider setup helpers | Self-hosted provider discovery/config helpers |
   | `plugin-sdk/self-hosted-provider-setup` | Focused OpenAI-compatible self-hosted provider setup helpers | Same self-hosted provider discovery/config helpers |
-  | `plugin-sdk/provider-auth-runtime` | Provider runtime auth helpers | Runtime API-key resolution helpers |
+  | `plugin-sdk/provider-auth-runtime` | Provider runtime auth helpers | Runtime API-key and OAuth helpers |
   | `plugin-sdk/provider-auth-api-key` | Provider API-key setup helpers | API-key onboarding/profile-write helpers |
   | `plugin-sdk/provider-auth-result` | Provider auth-result helpers | Standard OAuth auth-result builder |
   | `plugin-sdk/provider-auth-login` | Provider interactive login helpers | Shared interactive login helpers |
