@@ -287,9 +287,7 @@ TRASH
   send_channels_flow() {
     # Configure channels via configure wizard. Use the remove-config branch for
     # a stable no-op smoke path when the config starts empty.
-    wait_for_log "Where will the Gateway run?" 120
-    send $'"'"'\r'"'"' 0.6
-    wait_for_log "Configure/link" 120
+    wait_for_log "Channels" 120
     send $'"'"'\e[B\r'"'"' 0.8
     # Keep stdin open until wizard exits.
     send "" 2.0
@@ -297,8 +295,6 @@ TRASH
 
   send_skills_flow() {
     # configure --section skills still runs the configure wizard.
-    wait_for_log "Where will the Gateway run?" 120
-    send $'"'"'\r'"'"' 0.6
     wait_for_log "Configure skills now?" 120
     send $'"'"'n\r'"'"' 0.8
     send "" 2.0

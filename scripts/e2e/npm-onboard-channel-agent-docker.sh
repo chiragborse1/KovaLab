@@ -112,7 +112,10 @@ package_tgz="${KOVA_CURRENT_PACKAGE_TGZ:?missing KOVA_CURRENT_PACKAGE_TGZ}"
 npm install -g "$package_tgz" --no-fund --no-audit >/tmp/kova-install.log 2>&1
 
 command -v kova >/dev/null
-package_root="$(npm root -g)/kova"
+package_root="$(npm root -g)/getkova"
+if [ ! -d "$package_root" ] && [ -d "$(npm root -g)/kova" ]; then
+  package_root="$(npm root -g)/kova"
+fi
 test -d "$package_root/dist/extensions/telegram"
 test -d "$package_root/dist/extensions/discord"
 

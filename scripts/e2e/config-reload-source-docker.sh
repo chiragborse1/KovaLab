@@ -32,7 +32,7 @@ docker run -d \
 entry=dist/index.mjs
 [ -f \"\$entry\" ] || entry=dist/index.js
 mkdir -p \"\$HOME/.kova\"
-cat > \"\$HOME/.chiragborse1/KovaLab.json\" <<'JSON'
+cat > \"\$HOME/.kova/kova.json\" <<'JSON'
 {
   \"gateway\": {
     \"port\": $PORT,
