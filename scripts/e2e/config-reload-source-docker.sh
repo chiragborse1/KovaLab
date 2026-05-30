@@ -9,11 +9,114 @@ SKIP_BUILD="${KOVA_CONFIG_RELOAD_E2E_SKIP_BUILD:-0}"
 PORT="18789"
 TOKEN="reload-e2e-token"
 CONTAINER_NAME="kova-config-reload-e2e-$$"
+STATUS_BEFORE_LOG="/tmp/config-reload-status-before-$$.log"
+STATUS_AFTER_LOG="/tmp/config-reload-status-after-$$.log"
 
 cleanup() {
+  rm -f "$STATUS_BEFORE_LOG" "$STATUS_AFTER_LOG"
   docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
 }
-trap cleanup EXIT
+
+dump_gateway_debug() {
+  if [ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER_NAME" 2>/dev/null || echo false)" = "true" ]; then
+    echo "--- config reload gateway log ---"
+    docker exec "$CONTAINER_NAME" bash -lc "tail -n 180 /tmp/config-reload-e2e.log" || true
+    echo "--- status before ---"
+    cat "$STATUS_BEFORE_LOG" 2>/dev/null || true
+    echo "--- status after ---"
+    cat "$STATUS_AFTER_LOG" 2>/dev/null || true
+  else
+    echo "--- config reload container logs ---"
+    docker logs "$CONTAINER_NAME" 2>&1 | tail -n 180 || true
+  fi
+}
+
+on_exit() {
+  local status=$?
+  if [ "$status" -ne 0 ]; then
+    dump_gateway_debug
+  fi
+  cleanup
+}
+trap on_exit EXIT
+
+assert_gateway_health() {
+  local label="$1"
+  docker exec "$CONTAINER_NAME" bash -lc "KOVA_E2E_LABEL='$label' KOVA_E2E_WS_URL='ws://127.0.0.1:$PORT' KOVA_E2E_TOKEN='$TOKEN' node --input-type=module - <<'NODE'
+import { WebSocket } from 'ws';
+
+const PROTOCOL_VERSION = 3;
+const label = process.env.KOVA_E2E_LABEL ?? 'gateway health';
+const url = process.env.KOVA_E2E_WS_URL;
+const token = process.env.KOVA_E2E_TOKEN;
+if (!url || !token) {
+  throw new Error('missing KOVA_E2E_WS_URL/KOVA_E2E_TOKEN');
+}
+
+const ws = new WebSocket(url);
+
+function waitForFrame(filter, timeoutMs = 15000) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      ws.off('message', onMessage);
+      reject(new Error(label + ' timeout'));
+    }, timeoutMs);
+    function onMessage(data) {
+      const frame = JSON.parse(String(data));
+      if (!filter(frame)) {
+        return;
+      }
+      clearTimeout(timer);
+      ws.off('message', onMessage);
+      resolve(frame);
+    }
+    ws.on('message', onMessage);
+  });
+}
+
+await new Promise((resolve, reject) => {
+  const timer = setTimeout(() => reject(new Error(label + ' open timeout')), 15000);
+  ws.once('open', () => {
+    clearTimeout(timer);
+    resolve();
+  });
+  ws.once('error', reject);
+});
+
+ws.send(
+  JSON.stringify({
+    type: 'req',
+    id: 'connect',
+    method: 'connect',
+    params: {
+      minProtocol: PROTOCOL_VERSION,
+      maxProtocol: PROTOCOL_VERSION,
+      client: {
+        id: 'config-reload-e2e',
+        displayName: 'config reload e2e',
+        version: 'dev',
+        platform: process.platform,
+        mode: 'test',
+      },
+      caps: [],
+      auth: { token },
+    },
+  }),
+);
+const connectRes = await waitForFrame((frame) => frame?.type === 'res' && frame?.id === 'connect');
+if (!connectRes.ok) {
+  throw new Error(label + ' connect failed: ' + (connectRes.error?.message ?? 'unknown'));
+}
+
+ws.send(JSON.stringify({ type: 'req', id: 'health', method: 'health', params: {} }));
+const healthRes = await waitForFrame((frame) => frame?.type === 'res' && frame?.id === 'health');
+ws.close();
+if (!healthRes.ok) {
+  throw new Error(label + ' health failed: ' + (healthRes.error?.message ?? 'unknown'));
+}
+console.log('ok');
+NODE"
+}
 
 docker_e2e_build_or_reuse "$IMAGE_NAME" config-reload "$ROOT_DIR/scripts/e2e/Dockerfile" "$ROOT_DIR" "" "$SKIP_BUILD"
 
@@ -91,11 +194,7 @@ if [ "$ready" -ne 1 ]; then
 fi
 
 echo "Checking initial RPC status..."
-docker exec "$CONTAINER_NAME" bash -lc "
-entry=dist/index.mjs
-[ -f \"\$entry\" ] || entry=dist/index.js
-node \"\$entry\" gateway status --url ws://127.0.0.1:$PORT --token '$TOKEN' --require-rpc --timeout 30000 >/tmp/config-reload-status-before.log
-"
+assert_gateway_health "initial gateway health" >"$STATUS_BEFORE_LOG"
 
 echo "Waiting for reload watcher readiness..."
 docker exec "$CONTAINER_NAME" bash -lc "
@@ -129,12 +228,24 @@ if [ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER_NAME" 2>/dev/null || 
   exit 1
 fi
 
-echo "Checking post-write RPC status..."
+echo "Waiting for reload application..."
 docker exec "$CONTAINER_NAME" bash -lc "
-entry=dist/index.mjs
-[ -f \"\$entry\" ] || entry=dist/index.js
-node \"\$entry\" gateway status --url ws://127.0.0.1:$PORT --token '$TOKEN' --require-rpc --timeout 30000 >/tmp/config-reload-status-after.log
+for _ in \$(seq 1 120); do
+  if grep -q 'config hot reload applied (gateway.channelHealthCheckMinutes)' /tmp/config-reload-e2e.log; then
+    exit 0
+  fi
+  if grep -q 'config change requires gateway restart' /tmp/config-reload-e2e.log; then
+    tail -n 160 /tmp/config-reload-e2e.log >&2 || true
+    exit 1
+  fi
+  sleep 0.5
+done
+tail -n 160 /tmp/config-reload-e2e.log >&2 || true
+exit 1
 "
+
+echo "Checking post-write RPC status..."
+assert_gateway_health "post-reload gateway health" >"$STATUS_AFTER_LOG"
 
 echo "Checking reload log..."
 docker exec "$CONTAINER_NAME" bash -lc "node --input-type=module - <<'NODE'
