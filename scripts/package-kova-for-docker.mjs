@@ -6,6 +6,7 @@ import { spawn } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { preparePackageChangelog, restorePackageChangelog } from "./package-changelog.mjs";
 
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -103,6 +104,25 @@ async function newestKovaTarball(outputDir, packOutput) {
   return path.join(outputDir, packed);
 }
 
+export async function packKovaPackageForDocker(sourceDir, outputDir, options = {}) {
+  const runCaptureImpl = options.runCaptureImpl ?? runCapture;
+  const prepareChangelog = options.prepareChangelog ?? preparePackageChangelog;
+  const restoreChangelog = options.restoreChangelog ?? restorePackageChangelog;
+  console.error("==> Packing Kova package");
+  await prepareChangelog(sourceDir);
+  let packOutput = "";
+  try {
+    packOutput = await runCaptureImpl(
+      "npm",
+      ["pack", "--silent", "--ignore-scripts", "--pack-destination", outputDir],
+      sourceDir,
+    );
+  } finally {
+    await restoreChangelog(sourceDir);
+  }
+  return await newestKovaTarball(outputDir, packOutput);
+}
+
 async function main() {
   const options = parseArgs(process.argv.slice(2));
   const sourceDir = path.resolve(ROOT_DIR, options.sourceDir || ROOT_DIR);
@@ -130,13 +150,7 @@ async function main() {
     sourceDir,
   );
 
-  console.error("==> Packing Kova package");
-  const packOutput = await runCapture(
-    "npm",
-    ["pack", "--silent", "--ignore-scripts", "--pack-destination", outputDir],
-    sourceDir,
-  );
-  let tarball = await newestKovaTarball(outputDir, packOutput);
+  let tarball = await packKovaPackageForDocker(sourceDir, outputDir);
 
   if (options.outputName) {
     const target = path.join(outputDir, options.outputName);
@@ -157,7 +171,9 @@ async function main() {
   process.stdout.write(`${tarball}\n`);
 }
 
-await main().catch((error) => {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exit(1);
-});
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  await main().catch((error) => {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  });
+}

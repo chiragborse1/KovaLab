@@ -4,6 +4,7 @@ import { existsSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import { formatErrorMessage } from "../src/infra/errors.ts";
 import { writePackageDistInventory } from "../src/infra/package-dist-inventory.ts";
+import { preparePackageChangelog } from "./package-changelog.mjs";
 const requiredPreparedPathGroups = [["dist/index.js", "dist/index.mjs"]];
 
 type PreparedFileReader = {
@@ -74,6 +75,7 @@ async function writeDistInventory(): Promise<void> {
 async function main(): Promise<void> {
   ensurePreparedArtifacts();
   await writeDistInventory();
+  await preparePackageChangelog();
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
