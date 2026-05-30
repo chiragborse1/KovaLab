@@ -149,18 +149,16 @@ the fast Matrix and Telegram lanes before release approval.
 - GitHub Actions also exposes `Package Acceptance` for side-run product proof
   against one candidate package. It accepts a trusted ref, published npm spec,
   HTTPS tarball URL plus SHA-256, or tarball artifact from another run, uploads
-  the normalized `kova-current.tgz` as `package-under-test`, then runs the
-  existing Docker E2E scheduler with smoke, package, product, full, or custom
-  lane profiles. Set `telegram_mode=mock-openai` or `live-frontier` to run the
-  Telegram QA workflow against the same `package-under-test` artifact.
+  the normalized `kova-current.tgz` as `package-under-test`, runs a fast
+  global-install CLI smoke, then runs the Docker E2E scheduler with smoke,
+  package, product, full, or custom lane profiles.
   - Latest beta product proof:
 
 ```bash
 gh workflow run package-acceptance.yml --ref main \
   -f source=npm \
   -f package_spec=getkova@beta \
-  -f suite_profile=product \
-  -f telegram_mode=mock-openai
+  -f suite_profile=product
 ```
 
 - Exact tarball URL proof requires a digest:
@@ -168,7 +166,7 @@ gh workflow run package-acceptance.yml --ref main \
 ```bash
 gh workflow run package-acceptance.yml --ref main \
   -f source=url \
-  -f package_url=https://registry.npmjs.org/kova/-/kova-VERSION.tgz \
+  -f package_url=https://registry.npmjs.org/getkova/-/getkova-VERSION.tgz \
   -f package_sha256=<sha256> \
   -f suite_profile=package
 ```

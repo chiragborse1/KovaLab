@@ -1,0 +1,349 @@
+name: Package Acceptance
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: Candidate source to test.
+        required: true
+        default: ref
+        type: choice
+        options:
+          - ref
+          - npm
+          - url
+          - artifact
+      workflow_ref:
+        description: Trusted ref containing the acceptance harness.
+        required: true
+        default: main
+        type: string
+      package_ref:
+        description: Branch, tag, or SHA to pack when source=ref.
+        required: false
+        default: main
+        type: string
+      package_spec:
+        description: npm spec to pack when source=npm.
+        required: false
+        default: getkova@beta
+        type: string
+      package_url:
+        description: HTTPS tarball URL when source=url.
+        required: false
+        default: ""
+        type: string
+      package_sha256:
+        description: Expected tarball SHA-256 for source=url or source=artifact.
+        required: false
+        default: ""
+        type: string
+      artifact_run_id:
+        description: Run id containing artifact_name when source=artifact.
+        required: false
+        default: ""
+        type: string
+      artifact_name:
+        description: Artifact containing a single .tgz when source=artifact.
+        required: false
+        default: package-under-test
+        type: string
+      suite_profile:
+        description: Docker lane profile.
+        required: true
+        default: smoke
+        type: choice
+        options:
+          - smoke
+          - package
+          - product
+          - full
+          - custom
+      docker_lanes:
+        description: Space/comma-separated Docker lane names. Required for custom; overrides profile when set.
+        required: false
+        default: ""
+        type: string
+      include_openwebui:
+        description: Include Open WebUI lanes for full/product-style coverage.
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: package-acceptance-${{ github.event.inputs.source }}-${{ github.event.inputs.package_ref || github.event.inputs.package_spec || github.run_id }}
+  cancel-in-progress: false
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  NODE_VERSION: "24.x"
+  PNPM_VERSION: "10.33.0"
+
+jobs:
+  resolve:
+    name: Resolve package candidate
+    runs-on: ubuntu-latest
+    outputs:
+      package_name: ${{ steps.resolve.outputs.package_name }}
+      package_version: ${{ steps.resolve.outputs.package_version }}
+      sha256: ${{ steps.resolve.outputs.sha256 }}
+      tarball: ${{ steps.resolve.outputs.tarball }}
+    steps:
+      - name: Checkout acceptance harness
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.workflow_ref }}
+          fetch-depth: 0
+
+      - name: Setup Node environment
+        uses: ./.github/actions/setup-node-env
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
+          install-bun: "true"
+
+      - name: Download package artifact
+        if: inputs.source == 'artifact' && inputs.artifact_run_id != ''
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.artifact_name }}
+          path: .artifacts/package-input
+          run-id: ${{ inputs.artifact_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Resolve package candidate
+        id: resolve
+        shell: bash
+        env:
+          SOURCE: ${{ inputs.source }}
+          PACKAGE_REF: ${{ inputs.package_ref }}
+          PACKAGE_SPEC: ${{ inputs.package_spec }}
+          PACKAGE_URL: ${{ inputs.package_url }}
+          PACKAGE_SHA256: ${{ inputs.package_sha256 }}
+          ARTIFACT_RUN_ID: ${{ inputs.artifact_run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p .artifacts/docker-e2e-package
+
+          args=(
+            --output-dir .artifacts/docker-e2e-package
+            --output-name kova-current.tgz
+            --metadata .artifacts/docker-e2e-package/package-metadata.json
+            --github-output "$GITHUB_OUTPUT"
+          )
+
+          case "$SOURCE" in
+            ref)
+              args+=(--source ref --package-ref "${PACKAGE_REF:-main}")
+              ;;
+            npm)
+              args+=(--source npm --package-spec "${PACKAGE_SPEC:-getkova@beta}")
+              ;;
+            url)
+              if [[ -z "$PACKAGE_URL" || -z "$PACKAGE_SHA256" ]]; then
+                echo "source=url requires package_url and package_sha256." >&2
+                exit 1
+              fi
+              args+=(--source url --package-url "$PACKAGE_URL" --package-sha256 "$PACKAGE_SHA256")
+              ;;
+            artifact)
+              if [[ -z "$ARTIFACT_RUN_ID" ]]; then
+                echo "source=artifact requires artifact_run_id." >&2
+                exit 1
+              fi
+              args+=(--source artifact --artifact-dir .artifacts/package-input)
+              if [[ -n "$PACKAGE_SHA256" ]]; then
+                args+=(--package-sha256 "$PACKAGE_SHA256")
+              fi
+              ;;
+            *)
+              echo "Unsupported source: $SOURCE" >&2
+              exit 1
+              ;;
+          esac
+
+          node scripts/resolve-kova-package-candidate.mjs "${args[@]}"
+
+          package_name="$(node -e "const fs=require('node:fs'); const m=JSON.parse(fs.readFileSync('.artifacts/docker-e2e-package/package-metadata.json','utf8')); process.stdout.write(m.name)")"
+          package_version="$(node -e "const fs=require('node:fs'); const m=JSON.parse(fs.readFileSync('.artifacts/docker-e2e-package/package-metadata.json','utf8')); process.stdout.write(m.version)")"
+          package_digest="$(node -e "const fs=require('node:fs'); const m=JSON.parse(fs.readFileSync('.artifacts/docker-e2e-package/package-metadata.json','utf8')); process.stdout.write(m.sha256)")"
+          {
+            echo "Package: \`${package_name}@${package_version}\`"
+            echo "SHA-256: \`${package_digest}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload package under test
+        uses: actions/upload-artifact@v7
+        with:
+          name: package-under-test
+          path: |
+            .artifacts/docker-e2e-package/kova-current.tgz
+            .artifacts/docker-e2e-package/package-metadata.json
+          if-no-files-found: error
+
+  install_smoke:
+    name: Installable package smoke
+    needs: resolve
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download package under test
+        uses: actions/download-artifact@v8
+        with:
+          name: package-under-test
+          path: .artifacts/docker-e2e-package
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install package globally in temp prefix
+        shell: bash
+        run: |
+          set -euo pipefail
+          prefix="$RUNNER_TEMP/kova-prefix"
+          mkdir -p "$prefix"
+          npm install -g --prefix "$prefix" .artifacts/docker-e2e-package/kova-current.tgz --no-fund --no-audit
+          echo "$prefix/bin" >> "$GITHUB_PATH"
+
+      - name: Verify CLI entrypoints
+        shell: bash
+        env:
+          EXPECTED_VERSION: ${{ needs.resolve.outputs.package_version }}
+        run: |
+          set -euo pipefail
+          installed="$(kova --version)"
+          echo "$installed"
+          if [[ "$installed" != *"$EXPECTED_VERSION"* ]]; then
+            echo "Expected kova --version to contain $EXPECTED_VERSION." >&2
+            exit 1
+          fi
+          kova --help >/tmp/kova-help.txt
+          kova onboard --help >/tmp/kova-onboard-help.txt
+          kova doctor --help >/tmp/kova-doctor-help.txt
+          grep -qi "kova" /tmp/kova-help.txt
+          grep -qi "onboard" /tmp/kova-onboard-help.txt
+          grep -qi "doctor" /tmp/kova-doctor-help.txt
+
+  docker_acceptance:
+    name: Docker product lanes
+    needs: resolve
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_BASE_URL: ${{ secrets.OPENAI_BASE_URL }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      ANTHROPIC_API_TOKEN: ${{ secrets.ANTHROPIC_API_TOKEN }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+      GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      KOVA_CURRENT_PACKAGE_TGZ: .artifacts/docker-e2e-package/kova-current.tgz
+      KOVA_DOCKER_ALL_LOG_DIR: .artifacts/package-acceptance/docker
+      KOVA_DOCKER_ALL_TIMINGS_FILE: .artifacts/package-acceptance/docker-timings.json
+      KOVA_DOCKER_ALL_STATUS_INTERVAL_MS: "60000"
+      KOVA_DOCKER_ALL_FAIL_FAST: "0"
+    steps:
+      - name: Checkout acceptance harness
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.workflow_ref }}
+          fetch-depth: 1
+
+      - name: Setup Node environment
+        uses: ./.github/actions/setup-node-env
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          pnpm-version: ${{ env.PNPM_VERSION }}
+          install-bun: "true"
+
+      - name: Download package under test
+        uses: actions/download-artifact@v8
+        with:
+          name: package-under-test
+          path: .artifacts/docker-e2e-package
+
+      - name: Select Docker acceptance lanes
+        id: lanes
+        shell: bash
+        env:
+          SUITE_PROFILE: ${{ inputs.suite_profile }}
+          DOCKER_LANES: ${{ inputs.docker_lanes }}
+          INCLUDE_OPENWEBUI: ${{ inputs.include_openwebui }}
+        run: |
+          set -euo pipefail
+
+          if [[ -n "$DOCKER_LANES" ]]; then
+            lanes="$DOCKER_LANES"
+          else
+            case "$SUITE_PROFILE" in
+              smoke)
+                lanes="onboard npm-onboard-channel-agent gateway-network config-reload"
+                ;;
+              package)
+                lanes="npm-onboard-channel-agent doctor-switch update-channel-switch plugin-update bundled-channel-deps-compat plugins-offline"
+                ;;
+              product)
+                lanes="onboard npm-onboard-channel-agent gateway-network config-reload mcp-channels cron-mcp-cleanup pi-bundle-mcp-tools"
+                if [[ "$INCLUDE_OPENWEBUI" == "true" ]]; then
+                  lanes="$lanes openwebui"
+                fi
+                ;;
+              full)
+                lanes="$(INCLUDE_OPENWEBUI="$INCLUDE_OPENWEBUI" node --input-type=module - <<'NODE'
+          import { allReleasePathLanes } from "./scripts/lib/docker-e2e-scenarios.mjs";
+          const includeOpenWebUI = process.env.INCLUDE_OPENWEBUI === "true";
+          console.log(allReleasePathLanes({ includeOpenWebUI }).map((lane) => lane.name).join(" "));
+          NODE
+          )"
+                ;;
+              custom)
+                echo "suite_profile=custom requires docker_lanes." >&2
+                exit 1
+                ;;
+              *)
+                echo "Unsupported suite_profile: $SUITE_PROFILE" >&2
+                exit 1
+                ;;
+            esac
+          fi
+
+          echo "lanes=$lanes" >> "$GITHUB_OUTPUT"
+          echo "Docker lanes: \`$lanes\`" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run Docker acceptance lanes
+        shell: bash
+        env:
+          SELECTED_LANES: ${{ steps.lanes.outputs.lanes }}
+        run: |
+          set -euo pipefail
+          export KOVA_DOCKER_ALL_LANES="$SELECTED_LANES"
+          export KOVA_DOCKER_ALL_PNPM_COMMAND="$(command -v pnpm)"
+          export KOVA_DOCKER_ALL_PARALLELISM=2
+          export KOVA_DOCKER_ALL_TAIL_PARALLELISM=2
+          pnpm test:docker:all
+
+      - name: Summarize Docker acceptance
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          summary=".artifacts/package-acceptance/docker/summary.json"
+          if [[ ! -f "$summary" ]]; then
+            echo "Docker acceptance summary missing: \`$summary\`" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          node scripts/docker-e2e.mjs summary "$summary" "Package Acceptance Docker lanes" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Docker acceptance artifacts
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: package-acceptance-docker
+          path: .artifacts/package-acceptance/
+          if-no-files-found: ignore
