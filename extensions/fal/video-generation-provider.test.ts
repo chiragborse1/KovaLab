@@ -1,3 +1,4 @@
+import { MAX_TIMER_TIMEOUT_MS } from "getkova/plugin-sdk/infra-runtime";
 import * as providerAuth from "getkova/plugin-sdk/provider-auth-runtime";
 import * as providerHttp from "getkova/plugin-sdk/provider-http";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -289,6 +290,40 @@ describe("fal video generation provider", () => {
       image_url: "https://example.com/start-frame.png",
       duration: "6",
     });
+  });
+
+  it("caps oversized fal queue operation deadlines", async () => {
+    mockFalProviderRuntime();
+    const nowSpy = vi.spyOn(Date, "now");
+    nowSpy
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(0)
+      .mockReturnValueOnce(MAX_TIMER_TIMEOUT_MS + 1);
+    fetchGuardMock
+      .mockResolvedValueOnce(
+        releasedJson({
+          request_id: "req-oversized",
+          status_url: "https://queue.fal.run/fal-ai/minimax/requests/req-oversized/status",
+          response_url: "https://queue.fal.run/fal-ai/minimax/requests/req-oversized",
+        }),
+      )
+      .mockResolvedValueOnce(releasedJson({ status: "IN_PROGRESS" }));
+
+    try {
+      const provider = buildFalVideoGenerationProvider();
+      await expect(
+        provider.generateVideo({
+          provider: "fal",
+          model: "fal-ai/minimax/video-01-live",
+          prompt: "huge timeout",
+          cfg: {},
+          timeoutMs: Number.MAX_SAFE_INTEGER,
+        }),
+      ).rejects.toThrow("fal video generation did not finish in time (last status: IN_PROGRESS)");
+      expect(fetchGuardMock).toHaveBeenCalledTimes(2);
+    } finally {
+      nowSpy.mockRestore();
+    }
   });
 
   it("submits Seedance 2 reference-to-video requests with image, video, and audio URLs", async () => {

@@ -3,6 +3,7 @@ import fs from "node:fs";
 import fsp from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { resolveTimerTimeoutMs } from "getkova/plugin-sdk/infra-runtime";
 import { loadOutboundMediaFromUrl } from "getkova/plugin-sdk/outbound-media";
 import { resolveStateDir as resolvePluginStateDir } from "getkova/plugin-sdk/state-paths";
 import {
@@ -1395,7 +1396,7 @@ export async function startZaloQrLogin(params: {
     return { message: "Failed to initialize Zalo QR login." };
   }
 
-  const timeoutMs = Math.max(params.timeoutMs ?? DEFAULT_QR_START_TIMEOUT_MS, 3000);
+  const timeoutMs = resolveTimerTimeoutMs(params.timeoutMs, DEFAULT_QR_START_TIMEOUT_MS, 3000);
   const deadline = Date.now() + timeoutMs;
 
   while (Date.now() < deadline) {
@@ -1448,7 +1449,7 @@ export async function waitForZaloQrLogin(params: {
     };
   }
 
-  const timeoutMs = Math.max(params.timeoutMs ?? DEFAULT_QR_WAIT_TIMEOUT_MS, 1000);
+  const timeoutMs = resolveTimerTimeoutMs(params.timeoutMs, DEFAULT_QR_WAIT_TIMEOUT_MS, 1000);
   const deadline = Date.now() + timeoutMs;
 
   while (Date.now() < deadline) {

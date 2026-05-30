@@ -1,8 +1,11 @@
+import { resolvePositiveTimerTimeoutMs } from "getkova/plugin-sdk/infra-runtime";
 import { isProviderApiKeyConfigured } from "getkova/plugin-sdk/provider-auth";
 import { resolveApiKeyForProvider } from "getkova/plugin-sdk/provider-auth-runtime";
 import {
   assertOkOrThrowHttpError,
+  createProviderOperationDeadline,
   resolveProviderHttpRequestConfig,
+  type ProviderOperationDeadline,
 } from "getkova/plugin-sdk/provider-http";
 import {
   fetchWithSsrFGuard,
@@ -364,20 +367,24 @@ async function waitForFalQueueResult(params: {
   statusUrl: string;
   responseUrl: string;
   headers: Headers;
-  timeoutMs: number;
+  deadline: ProviderOperationDeadline;
   policy: SsrFPolicy | undefined;
   dispatcherPolicy: Parameters<typeof fetchWithSsrFGuard>[0]["dispatcherPolicy"];
 }): Promise<FalQueueResponse> {
-  const deadline = Date.now() + params.timeoutMs;
   let lastStatus = "unknown";
-  while (Date.now() < deadline) {
+  for (;;) {
+    const requestTimeoutMs = resolveFalQueueRemainingMs(
+      params.deadline,
+      lastStatus,
+      DEFAULT_HTTP_TIMEOUT_MS,
+    );
     const payload = (await fetchFalJson({
       url: params.statusUrl,
       init: {
         method: "GET",
         headers: params.headers,
       },
-      timeoutMs: DEFAULT_HTTP_TIMEOUT_MS,
+      timeoutMs: requestTimeoutMs,
       policy: params.policy,
       dispatcherPolicy: params.dispatcherPolicy,
       auditContext: "fal-video-status",
@@ -394,7 +401,7 @@ async function waitForFalQueueResult(params: {
           method: "GET",
           headers: params.headers,
         },
-        timeoutMs: DEFAULT_HTTP_TIMEOUT_MS,
+        timeoutMs: resolveFalQueueRemainingMs(params.deadline, lastStatus, DEFAULT_HTTP_TIMEOUT_MS),
         policy: params.policy,
         dispatcherPolicy: params.dispatcherPolicy,
         auditContext: "fal-video-result",
@@ -408,9 +415,25 @@ async function waitForFalQueueResult(params: {
           `fal video generation ${normalizeLowercaseStringOrEmpty(status)}`,
       );
     }
-    await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS));
+    const pollDelayMs = resolveFalQueueRemainingMs(params.deadline, lastStatus, POLL_INTERVAL_MS);
+    await new Promise((resolve) => setTimeout(resolve, pollDelayMs));
   }
-  throw new Error(`fal video generation did not finish in time (last status: ${lastStatus})`);
+}
+
+function resolveFalQueueRemainingMs(
+  deadline: ProviderOperationDeadline,
+  lastStatus: string,
+  defaultTimeoutMs: number,
+): number {
+  const defaultMs = resolvePositiveTimerTimeoutMs(defaultTimeoutMs, 1);
+  if (typeof deadline.deadlineAtMs !== "number") {
+    return defaultMs;
+  }
+  const remainingMs = deadline.deadlineAtMs - Date.now();
+  if (remainingMs <= 0) {
+    throw new Error(`fal video generation did not finish in time (last status: ${lastStatus})`);
+  }
+  return Math.max(1, Math.min(defaultMs, remainingMs));
 }
 
 function extractFalVideoPayload(payload: FalQueueResponse): FalVideoResponse {
@@ -526,11 +549,19 @@ export function buildFalVideoGenerationProvider(): VideoGenerationProvider {
       if (!statusUrl || !responseUrl) {
         throw new Error("fal video generation response missing queue URLs");
       }
+      const operationTimeoutMs = resolvePositiveTimerTimeoutMs(
+        req.timeoutMs,
+        DEFAULT_OPERATION_TIMEOUT_MS,
+      );
+      const operationDeadline = createProviderOperationDeadline({
+        timeoutMs: operationTimeoutMs,
+        label: "fal video generation",
+      });
       const payload = await waitForFalQueueResult({
         statusUrl,
         responseUrl,
         headers,
-        timeoutMs: req.timeoutMs ?? DEFAULT_OPERATION_TIMEOUT_MS,
+        deadline: operationDeadline,
         policy,
         dispatcherPolicy,
       });

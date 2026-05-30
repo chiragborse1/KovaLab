@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  clampPositiveTimerTimeoutMs,
   clampTimerTimeoutMs,
   finiteSecondsToTimerSafeMilliseconds,
   MAX_TIMER_TIMEOUT_MS,
@@ -9,6 +10,7 @@ import {
   resolveExpiresAtMsFromDurationSeconds,
   resolveExpiresAtMsFromDurationOrEpoch,
   resolveExpiresAtMsFromEpochSeconds,
+  resolvePositiveTimerTimeoutMs,
   resolveTimerTimeoutMs,
   parseStrictInteger,
   parseStrictNonNegativeInteger,
@@ -47,8 +49,13 @@ describe("safe seconds helpers", () => {
     expect(MAX_TIMER_TIMEOUT_SECONDS).toBe(Math.floor(MAX_TIMER_TIMEOUT_MS / 1000));
     expect(clampTimerTimeoutMs(Number.MAX_SAFE_INTEGER)).toBe(MAX_TIMER_TIMEOUT_MS);
     expect(clampTimerTimeoutMs(0, 10)).toBe(10);
+    expect(clampPositiveTimerTimeoutMs(0)).toBeUndefined();
+    expect(clampPositiveTimerTimeoutMs(Number.MAX_SAFE_INTEGER)).toBe(MAX_TIMER_TIMEOUT_MS);
     expect(resolveTimerTimeoutMs(undefined, 5_000)).toBe(5_000);
     expect(resolveTimerTimeoutMs(Number.MAX_SAFE_INTEGER, 5_000)).toBe(MAX_TIMER_TIMEOUT_MS);
+    expect(resolvePositiveTimerTimeoutMs(undefined, Number.MAX_SAFE_INTEGER)).toBe(
+      MAX_TIMER_TIMEOUT_MS,
+    );
     expect(finiteSecondsToTimerSafeMilliseconds(Number.MAX_SAFE_INTEGER)).toBe(
       MAX_TIMER_TIMEOUT_MS,
     );

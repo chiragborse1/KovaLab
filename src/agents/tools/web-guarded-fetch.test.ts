@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { fetchWithSsrFGuard, GUARDED_FETCH_MODE } from "../../infra/net/fetch-guard.js";
+import { MAX_TIMER_TIMEOUT_MS } from "../../shared/number-coercion.js";
 import { withStrictWebToolsEndpoint, withTrustedWebToolsEndpoint } from "./web-guarded-fetch.js";
 
 vi.mock("../../infra/net/fetch-guard.js", () => {
@@ -64,5 +65,20 @@ describe("web-guarded-fetch", () => {
     const call = vi.mocked(fetchWithSsrFGuard).mock.calls[0]?.[0];
     expect(call?.policy).toBeUndefined();
     expect(call?.mode).toBe(GUARDED_FETCH_MODE.STRICT);
+  });
+
+  it("caps oversized timeoutSeconds before guarded fetch dispatch", async () => {
+    vi.mocked(fetchWithSsrFGuard).mockResolvedValue({
+      response: new Response("ok", { status: 200 }),
+      finalUrl: "https://example.com",
+      release: async () => {},
+    });
+
+    await withStrictWebToolsEndpoint(
+      { url: "https://example.com", timeoutSeconds: Number.MAX_SAFE_INTEGER },
+      async () => undefined,
+    );
+
+    expect(vi.mocked(fetchWithSsrFGuard).mock.calls[0]?.[0].timeoutMs).toBe(MAX_TIMER_TIMEOUT_MS);
   });
 });

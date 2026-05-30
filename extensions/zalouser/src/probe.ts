@@ -1,5 +1,6 @@
 import type { BaseProbeResult } from "getkova/plugin-sdk/channel-contract";
 import { formatErrorMessage } from "getkova/plugin-sdk/error-runtime";
+import { resolveTimerTimeoutMs } from "getkova/plugin-sdk/infra-runtime";
 import type { ZcaUserInfo } from "./types.js";
 import { getZaloUserInfo } from "./zalo-js.js";
 
@@ -16,7 +17,7 @@ export async function probeZalouser(
       ? await Promise.race([
           getZaloUserInfo(profile),
           new Promise<null>((resolve) =>
-            setTimeout(() => resolve(null), Math.max(timeoutMs, 1000)),
+            setTimeout(() => resolve(null), resolveTimerTimeoutMs(timeoutMs, 1000, 1000)),
           ),
         ])
       : await getZaloUserInfo(profile);

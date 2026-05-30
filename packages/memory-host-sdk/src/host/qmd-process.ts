@@ -3,6 +3,7 @@ import {
   materializeWindowsSpawnProgram,
   resolveWindowsSpawnProgram,
 } from "../../../../src/plugin-sdk/windows-spawn.js";
+import { resolveTimerTimeoutMs } from "../../../../src/shared/number-coercion.js";
 
 export type CliSpawnInvocation = {
   command: string;
@@ -72,13 +73,14 @@ export async function checkQmdBinaryAvailability(params: {
       windowsHide: spawnInvocation.windowsHide,
       stdio: "ignore",
     });
+    const timeoutMs = resolveTimerTimeoutMs(params.timeoutMs, 2_000, 0);
     const timer = setTimeout(() => {
       child.kill("SIGKILL");
       finish({
         available: false,
-        error: `spawn ${params.command} timed out after ${params.timeoutMs ?? 2_000}ms`,
+        error: `spawn ${params.command} timed out after ${timeoutMs}ms`,
       });
-    }, params.timeoutMs ?? 2_000);
+    }, timeoutMs);
 
     child.once("error", (err) => {
       finish({ available: false, error: formatQmdAvailabilityError(err) });
@@ -118,11 +120,13 @@ export async function runCliCommand(params: {
     let stdoutTruncated = false;
     let stderrTruncated = false;
     const discardStdout = params.discardStdout === true;
-    const timer = params.timeoutMs
+    const timeoutMs =
+      params.timeoutMs === undefined ? undefined : resolveTimerTimeoutMs(params.timeoutMs, 1);
+    const timer = timeoutMs
       ? setTimeout(() => {
           child.kill("SIGKILL");
-          reject(new Error(`${params.commandSummary} timed out after ${params.timeoutMs}ms`));
-        }, params.timeoutMs)
+          reject(new Error(`${params.commandSummary} timed out after ${timeoutMs}ms`));
+        }, timeoutMs)
       : null;
     child.stdout.on("data", (data) => {
       if (discardStdout) {

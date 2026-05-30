@@ -1,5 +1,6 @@
 import os from "node:os";
 import path from "node:path";
+import { readJsonFileWithFallback, writeJsonFileAtomically } from "getkova/plugin-sdk/json-store";
 import { createPersistentDedupe } from "./dedup-runtime-api.js";
 import {
   releaseFeishuMessageProcessing,
@@ -37,6 +38,10 @@ const persistentDedupe = createPersistentDedupe({
 function normalizeMessageId(messageId: string | undefined | null): string | null {
   const trimmed = messageId?.trim();
   return trimmed ? trimmed : null;
+}
+
+function normalizeNamespace(namespace?: string): string {
+  return namespace?.trim() || "global";
 }
 
 export { releaseFeishuMessageProcessing, tryBeginFeishuMessageProcessing };
@@ -91,6 +96,32 @@ export async function recordProcessedFeishuMessage(
     return false;
   }
   return await tryRecordMessagePersistent(normalizedMessageId, namespace, log);
+}
+
+export async function forgetProcessedFeishuMessage(
+  messageId: string | undefined | null,
+  namespace = "global",
+  log?: (...args: unknown[]) => void,
+): Promise<boolean> {
+  const normalizedNamespace = normalizeNamespace(namespace);
+  const normalizedMessageId = normalizeMessageId(messageId);
+  if (!normalizedMessageId) {
+    return false;
+  }
+  persistentDedupe.clearMemory();
+  const filePath = resolveNamespaceFilePath(normalizedNamespace);
+  try {
+    const { value } = await readJsonFileWithFallback<Record<string, number>>(filePath, {});
+    if (!Object.hasOwn(value, normalizedMessageId)) {
+      return false;
+    }
+    delete value[normalizedMessageId];
+    await writeJsonFileAtomically(filePath, value);
+    return true;
+  } catch (error) {
+    log?.(`feishu-dedup: persistent delete failed: ${String(error)}`);
+    return false;
+  }
 }
 
 export async function hasProcessedFeishuMessage(

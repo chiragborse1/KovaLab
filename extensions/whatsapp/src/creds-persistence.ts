@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { resolveTimerTimeoutMs } from "getkova/plugin-sdk/infra-runtime";
 import { resolveWebCredsPath } from "./creds-files.js";
 
 const CREDS_FILE_MODE = 0o600;
@@ -88,11 +89,12 @@ export async function waitForCredsSaveQueueWithTimeout(
   authDir: string,
   timeoutMs = CREDS_SAVE_FLUSH_TIMEOUT_MS,
 ): Promise<CredsQueueWaitResult> {
+  const boundedTimeoutMs = resolveTimerTimeoutMs(timeoutMs, CREDS_SAVE_FLUSH_TIMEOUT_MS, 0);
   let flushTimeout: ReturnType<typeof setTimeout> | undefined;
   return await Promise.race([
     waitForCredsSaveQueue(authDir).then(() => "drained" as const),
     new Promise<CredsQueueWaitResult>((resolve) => {
-      flushTimeout = setTimeout(() => resolve("timed_out"), timeoutMs);
+      flushTimeout = setTimeout(() => resolve("timed_out"), boundedTimeoutMs);
     }),
   ]).finally(() => {
     if (flushTimeout) {

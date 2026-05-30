@@ -6,6 +6,7 @@ import {
   withTrustedEnvProxyGuardedFetchMode,
 } from "../../infra/net/fetch-guard.js";
 import type { SsrFPolicy } from "../../infra/net/ssrf.js";
+import { finiteSecondsToTimerSafeMilliseconds } from "../../shared/number-coercion.js";
 
 const WEB_TOOLS_TRUSTED_NETWORK_SSRF_POLICY: SsrFPolicy = {
   dangerouslyAllowPrivateNetwork: true,
@@ -29,7 +30,7 @@ function resolveTimeoutMs(params: {
     return params.timeoutMs;
   }
   if (typeof params.timeoutSeconds === "number" && Number.isFinite(params.timeoutSeconds)) {
-    return params.timeoutSeconds * 1000;
+    return finiteSecondsToTimerSafeMilliseconds(params.timeoutSeconds, { floorSeconds: true });
   }
   return undefined;
 }

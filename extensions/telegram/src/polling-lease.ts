@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { resolveTimerTimeoutMs } from "getkova/plugin-sdk/infra-runtime";
 
 const TELEGRAM_POLLING_LEASES_KEY = Symbol.for("kova.telegram.pollingLeases");
 const DEFAULT_TELEGRAM_POLLING_LEASE_WAIT_MS = 5_000;
@@ -75,8 +76,9 @@ async function waitForPreviousRelease(params: {
   let timer: ReturnType<typeof setTimeout> | undefined;
   let abortListener: (() => void) | undefined;
   try {
+    const waitMs = resolveTimerTimeoutMs(params.waitMs, DEFAULT_TELEGRAM_POLLING_LEASE_WAIT_MS, 0);
     const timeout = new Promise<"timeout">((resolve) => {
-      timer = setTimeout(() => resolve("timeout"), Math.max(0, params.waitMs));
+      timer = setTimeout(() => resolve("timeout"), waitMs);
       timer.unref?.();
     });
     const aborted = new Promise<"aborted">((resolve) => {
