@@ -389,6 +389,7 @@ export function buildAfterTurnRuntimeContext(params: {
     | "extraSystemPrompt"
     | "ownerNumbers"
     | "authProfileId"
+    | "agentHarnessId"
   >;
   workspaceDir: string;
   agentDir: string;
@@ -406,6 +407,7 @@ export function buildAfterTurnRuntimeContext(params: {
       currentThreadTs: params.attempt.currentThreadTs,
       currentMessageId: params.attempt.currentMessageId,
       authProfileId: params.attempt.authProfileId,
+      agentHarnessId: params.attempt.agentHarnessId,
       workspaceDir: params.workspaceDir,
       agentDir: params.agentDir,
       config: params.attempt.config,

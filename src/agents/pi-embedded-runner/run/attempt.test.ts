@@ -3173,6 +3173,7 @@ describe("buildAfterTurnRuntimeContext", () => {
         messageProvider: "slack",
         agentAccountId: "acct-1",
         authProfileId: "openai:p1",
+        agentHarnessId: "codex",
         config: {} as KovaConfig,
         skillsSnapshot: undefined,
         senderIsOwner: true,
@@ -3190,6 +3191,7 @@ describe("buildAfterTurnRuntimeContext", () => {
     expect(legacy).toMatchObject({
       provider: "openai-codex",
       model: "gpt-5.4",
+      agentHarnessId: "codex",
     });
   });
 

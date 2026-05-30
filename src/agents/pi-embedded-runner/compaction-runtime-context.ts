@@ -12,6 +12,7 @@ export type EmbeddedCompactionRuntimeContext = {
   currentThreadTs?: string;
   currentMessageId?: string | number;
   authProfileId?: string;
+  agentHarnessId?: string;
   workspaceDir: string;
   agentDir: string;
   config?: KovaConfig;
@@ -77,6 +78,7 @@ export function buildEmbeddedCompactionRuntimeContext(params: {
   currentThreadTs?: string | null;
   currentMessageId?: string | number | null;
   authProfileId?: string | null;
+  agentHarnessId?: string | null;
   workspaceDir: string;
   agentDir: string;
   config?: KovaConfig;
@@ -106,6 +108,7 @@ export function buildEmbeddedCompactionRuntimeContext(params: {
     currentThreadTs: params.currentThreadTs ?? undefined,
     currentMessageId: params.currentMessageId ?? undefined,
     authProfileId: resolved.authProfileId,
+    agentHarnessId: params.agentHarnessId?.trim() || undefined,
     workspaceDir: params.workspaceDir,
     agentDir: params.agentDir,
     config: params.config,

@@ -935,6 +935,7 @@ describe("compactEmbeddedPiSession hooks (ownsCompaction engine)", () => {
         provider: "openai-codex",
         model: "gpt-5.4",
         authProfileId: "openai:p1",
+        agentHarnessId: "codex",
         currentTokenCount: 333,
       }),
     );
@@ -950,6 +951,7 @@ describe("compactEmbeddedPiSession hooks (ownsCompaction engine)", () => {
           provider: "openai-codex",
           model: "gpt-5.4",
           authProfileId: "openai:p1",
+          agentHarnessId: "codex",
           currentTokenCount: 333,
         }),
       }),

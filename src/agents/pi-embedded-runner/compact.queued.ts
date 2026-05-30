@@ -330,6 +330,7 @@ function buildCompactionContextEngineRuntimeContext(params: {
       currentThreadTs: params.params.currentThreadTs,
       currentMessageId: params.params.currentMessageId,
       authProfileId: params.params.authProfileId,
+      agentHarnessId: params.params.agentHarnessId,
       workspaceDir: params.params.workspaceDir,
       agentDir: params.agentDir,
       config: params.params.config,
