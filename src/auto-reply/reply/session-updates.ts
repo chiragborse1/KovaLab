@@ -1,4 +1,5 @@
 import crypto from "node:crypto";
+import path from "node:path";
 import { resolveSessionAgentId } from "../../agents/agent-scope.js";
 import { canExecRequestNode } from "../../agents/exec-defaults.js";
 import { buildWorkspaceSkillSnapshot, type SkillSnapshot } from "../../agents/skills.js";

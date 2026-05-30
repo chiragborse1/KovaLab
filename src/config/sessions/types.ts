@@ -132,6 +132,10 @@ export type SessionEntry = {
   sessionId: string;
   updatedAt: number;
   sessionFile?: string;
+  /** Stable usage family key that links compacted/rotated physical session ids. */
+  usageFamilyKey?: string;
+  /** Physical session ids that belong to the same usage family after rotation. */
+  usageFamilySessionIds?: string[];
   /** Parent session key that spawned this session (used for sandbox session-tool scoping). */
   spawnedBy?: string;
   /** Workspace inherited by spawned sessions and reused on later turns for the same child session. */
