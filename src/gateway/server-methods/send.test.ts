@@ -27,6 +27,8 @@ const mocks = vi.hoisted(() => ({
   getChannelPlugin: vi.fn(),
   loadKovaPlugins: vi.fn(),
   applyPluginAutoEnable: vi.fn(),
+  getRuntimeConfigSnapshot: vi.fn(),
+  getRuntimeConfigSourceSnapshot: vi.fn(),
 }));
 
 vi.mock("../../config/config.js", async () => {
@@ -73,6 +75,17 @@ vi.mock("../../config/plugin-auto-enable.js", () => ({
   applyPluginAutoEnable: ({ config, env }: { config: unknown; env?: unknown }) =>
     mocks.applyPluginAutoEnable({ config, env }),
 }));
+
+vi.mock("../../config/runtime-snapshot.js", async () => {
+  const actual = await vi.importActual<typeof import("../../config/runtime-snapshot.js")>(
+    "../../config/runtime-snapshot.js",
+  );
+  return {
+    ...actual,
+    getRuntimeConfigSnapshot: mocks.getRuntimeConfigSnapshot,
+    getRuntimeConfigSourceSnapshot: mocks.getRuntimeConfigSourceSnapshot,
+  };
+});
 
 vi.mock("../../plugins/loader.js", () => ({
   loadKovaPlugins: mocks.loadKovaPlugins,
@@ -207,6 +220,32 @@ function mockDeliverySuccess(messageId: string) {
   mocks.deliverOutboundPayloads.mockResolvedValue([{ messageId, channel: "slack" }]);
 }
 
+function createActionPlugin(params: {
+  channel: string;
+  handleAction: NonNullable<NonNullable<ChannelPlugin["actions"]>["handleAction"]>;
+}): ChannelPlugin {
+  return {
+    id: params.channel,
+    meta: {
+      id: params.channel,
+      label: params.channel,
+      selectionLabel: params.channel,
+      docsPath: `/channels/${params.channel}`,
+      blurb: `${params.channel} action test plugin.`,
+    },
+    capabilities: { chatTypes: ["direct"] },
+    config: {
+      listAccountIds: () => ["default"],
+      resolveAccount: () => ({ enabled: true }),
+      isConfigured: () => true,
+    },
+    actions: {
+      describeMessageTool: () => ({ actions: ["channel-info"] }),
+      handleAction: params.handleAction,
+    },
+  };
+}
+
 describe("gateway send mirroring", () => {
   let registrySeq = 0;
 
@@ -223,6 +262,8 @@ describe("gateway send mirroring", () => {
       changes: [],
       autoEnabledReasons: {},
     }));
+    mocks.getRuntimeConfigSnapshot.mockReturnValue(null);
+    mocks.getRuntimeConfigSourceSnapshot.mockReturnValue(null);
     mocks.resolveOutboundTarget.mockReturnValue({ ok: true, to: "resolved" });
     mocks.resolveOutboundSessionRoute.mockImplementation(
       async ({ agentId, channel }: { agentId?: string; channel?: string }) => ({
@@ -238,6 +279,271 @@ describe("gateway send mirroring", () => {
     });
     mocks.sendPoll.mockResolvedValue({ messageId: "poll-1" });
     mocks.getChannelPlugin.mockReturnValue({ outbound: { sendPoll: mocks.sendPoll } });
+  });
+
+  it("uses the resolved runtime config for message.action when the source snapshot matches", async () => {
+    const sourceConfig = {
+      channels: {
+        discord: {
+          accounts: {
+            default: {
+              token: {
+                source: "env",
+                provider: "default",
+                id: "DISCORD_BOT_TOKEN",
+              },
+            },
+          },
+        },
+      },
+    };
+    const runtimeConfig = {
+      channels: {
+        discord: {
+          accounts: {
+            default: {
+              token: "resolved-token",
+            },
+          },
+        },
+      },
+    };
+    let handledCfg: unknown;
+    const actionPlugin = createActionPlugin({
+      channel: "discord",
+      handleAction: async (ctx) => {
+        handledCfg = ctx.cfg;
+        return jsonResult({ ok: true });
+      },
+    });
+    mocks.getChannelPlugin.mockReturnValue(actionPlugin);
+    mocks.getRuntimeConfigSnapshot.mockReturnValue(runtimeConfig);
+    mocks.getRuntimeConfigSourceSnapshot.mockReturnValue(sourceConfig);
+
+    const context = {
+      ...makeContext(),
+      getRuntimeConfig: () => sourceConfig,
+    } as unknown as GatewayRequestContext;
+    const respond = vi.fn();
+    await sendHandlers["message.action"]({
+      params: {
+        channel: "discord",
+        action: "channel-info",
+        params: { channelId: "123", accountId: "default" },
+        idempotencyKey: "idem-action-runtime-config",
+      } as never,
+      respond,
+      context,
+      req: { type: "req", id: "1", method: "message.action" },
+      client: null as never,
+      isWebchatConnect: () => false,
+    });
+
+    expect(mocks.getRuntimeConfigSnapshot).toHaveBeenCalledTimes(1);
+    expect(mocks.getRuntimeConfigSourceSnapshot).toHaveBeenCalledTimes(1);
+    expect(handledCfg).toBe(runtimeConfig);
+    expect(respond).toHaveBeenCalledWith(true, { ok: true }, undefined, {
+      channel: "discord",
+    });
+  });
+
+  it("matches message.action runtime config against the canonical pre-auto-enable source config", async () => {
+    const sourceConfig = {
+      channels: {
+        discord: {
+          accounts: {
+            default: {
+              token: {
+                source: "env",
+                provider: "default",
+                id: "DISCORD_BOT_TOKEN",
+              },
+            },
+          },
+        },
+      },
+    };
+    const autoEnabledSourceConfig = {
+      channels: {
+        discord: {
+          enabled: true,
+          accounts: {
+            default: {
+              token: {
+                source: "env",
+                provider: "default",
+                id: "DISCORD_BOT_TOKEN",
+              },
+            },
+          },
+        },
+      },
+      plugins: { allow: ["discord"] },
+    };
+    const autoEnabledRuntimeConfig = {
+      channels: {
+        discord: {
+          enabled: true,
+          accounts: {
+            default: {
+              token: "resolved-token",
+            },
+          },
+        },
+      },
+      plugins: { allow: ["discord"] },
+    };
+    let handledCfg: unknown;
+    const actionPlugin = createActionPlugin({
+      channel: "discord",
+      handleAction: async (ctx) => {
+        handledCfg = ctx.cfg;
+        return jsonResult({ ok: true });
+      },
+    });
+    mocks.getChannelPlugin.mockReturnValue(actionPlugin);
+    mocks.applyPluginAutoEnable
+      .mockReturnValueOnce({
+        config: autoEnabledSourceConfig,
+        changes: [{ path: "channels.discord.enabled", value: true }],
+        autoEnabledReasons: {},
+      })
+      .mockReturnValueOnce({
+        config: autoEnabledRuntimeConfig,
+        changes: [{ path: "channels.discord.enabled", value: true }],
+        autoEnabledReasons: {},
+      });
+    mocks.getRuntimeConfigSnapshot.mockReturnValue(autoEnabledRuntimeConfig);
+    mocks.getRuntimeConfigSourceSnapshot.mockReturnValue(sourceConfig);
+
+    const context = {
+      ...makeContext(),
+      getRuntimeConfig: () => sourceConfig,
+    } as unknown as GatewayRequestContext;
+    await sendHandlers["message.action"]({
+      params: {
+        channel: "discord",
+        action: "channel-info",
+        params: { channelId: "123", accountId: "default" },
+        idempotencyKey: "idem-action-runtime-config-auto-enabled",
+      } as never,
+      respond: vi.fn(),
+      context,
+      req: { type: "req", id: "1", method: "message.action" },
+      client: null as never,
+      isWebchatConnect: () => false,
+    });
+
+    expect(handledCfg).toBe(autoEnabledRuntimeConfig);
+    expect(mocks.applyPluginAutoEnable).toHaveBeenNthCalledWith(1, {
+      config: sourceConfig,
+      env: process.env,
+    });
+    expect(mocks.applyPluginAutoEnable).toHaveBeenNthCalledWith(2, {
+      config: autoEnabledRuntimeConfig,
+      env: process.env,
+    });
+  });
+
+  it("keeps the post-auto-enable request config for message.action when the runtime source snapshot does not match", async () => {
+    const sourceConfig = {
+      channels: {
+        discord: {
+          accounts: {
+            default: {
+              token: {
+                source: "env",
+                provider: "default",
+                id: "DISCORD_BOT_TOKEN",
+              },
+            },
+          },
+        },
+      },
+    };
+    const autoEnabledRequestConfig = {
+      channels: {
+        discord: {
+          enabled: true,
+          accounts: {
+            default: {
+              token: {
+                source: "env",
+                provider: "default",
+                id: "DISCORD_BOT_TOKEN",
+              },
+            },
+          },
+        },
+      },
+      plugins: { allow: ["discord"] },
+    };
+    let handledCfg: unknown;
+    const actionPlugin = createActionPlugin({
+      channel: "discord",
+      handleAction: async (ctx) => {
+        handledCfg = ctx.cfg;
+        return jsonResult({ ok: true });
+      },
+    });
+    mocks.getChannelPlugin.mockReturnValue(actionPlugin);
+    mocks.applyPluginAutoEnable.mockReturnValue({
+      config: autoEnabledRequestConfig,
+      changes: [{ path: "channels.discord.enabled", value: true }],
+      autoEnabledReasons: {},
+    });
+    mocks.getRuntimeConfigSnapshot.mockReturnValue({
+      channels: {
+        discord: {
+          accounts: {
+            default: { token: "stale-runtime-token" },
+          },
+        },
+      },
+    });
+    mocks.getRuntimeConfigSourceSnapshot.mockReturnValue({
+      channels: {
+        discord: {
+          accounts: {
+            other: { token: "different-source" },
+          },
+        },
+      },
+    });
+
+    const context = {
+      ...makeContext(),
+      getRuntimeConfig: () => sourceConfig,
+    } as unknown as GatewayRequestContext;
+    await sendHandlers["message.action"]({
+      params: {
+        channel: "discord",
+        action: "channel-info",
+        params: { channelId: "123", accountId: "default" },
+        idempotencyKey: "idem-action-stale-runtime-config",
+      } as never,
+      respond: vi.fn(),
+      context,
+      req: { type: "req", id: "1", method: "message.action" },
+      client: null as never,
+      isWebchatConnect: () => false,
+    });
+
+    expect(handledCfg).toBe(autoEnabledRequestConfig);
+  });
+
+  it("does not read the runtime config snapshot for send requests", async () => {
+    mockDeliverySuccess("m-no-runtime-config-read");
+
+    await runSend({
+      to: "channel:C1",
+      message: "hi",
+      channel: "slack",
+      idempotencyKey: "idem-send-no-runtime-config-read",
+    });
+
+    expect(mocks.getRuntimeConfigSnapshot).not.toHaveBeenCalled();
+    expect(mocks.getRuntimeConfigSourceSnapshot).not.toHaveBeenCalled();
   });
 
   it("dedupes concurrent send requests while inflight", async () => {

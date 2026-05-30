@@ -133,6 +133,17 @@ describe("discordMessageActions", () => {
     ).toBeNull();
   });
 
+  it("routes credential-only actions through the gateway and send-style actions locally", () => {
+    expect(discordMessageActions.resolveExecutionMode?.({ action: "send" })).toBe("local");
+    expect(discordMessageActions.resolveExecutionMode?.({ action: "thread-reply" })).toBe("local");
+    expect(discordMessageActions.resolveExecutionMode?.({ action: "emoji-upload" })).toBe("local");
+    expect(discordMessageActions.resolveExecutionMode?.({ action: "channel-info" })).toBe(
+      "gateway",
+    );
+    expect(discordMessageActions.resolveExecutionMode?.({ action: "search" })).toBe("gateway");
+    expect(discordMessageActions.resolveExecutionMode?.({ action: "permissions" })).toBe("gateway");
+  });
+
   it("delegates action handling to the Discord action handler", async () => {
     const cfg = {
       channels: {
