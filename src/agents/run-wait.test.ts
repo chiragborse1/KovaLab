@@ -187,6 +187,44 @@ describe("waitForAgentRun", () => {
       endedAt: 200,
     });
   });
+
+  it("preserves provider timeout attribution from agent.wait", async () => {
+    callGatewayMock.mockResolvedValue({
+      status: "error",
+      error: "provider request timed out",
+      timeoutPhase: "provider",
+      providerStarted: true,
+      startedAt: 100,
+      endedAt: 200,
+    });
+
+    const result = await waitForAgentRun({ runId: "run-provider-timeout", timeoutMs: 500 });
+
+    expect(result).toEqual({
+      status: "timeout",
+      error: "provider request timed out",
+      startedAt: 100,
+      endedAt: 200,
+    });
+  });
+
+  it("projects blocked liveness as an error", async () => {
+    callGatewayMock.mockResolvedValue({
+      status: "ok",
+      livenessState: "blocked",
+      startedAt: 100,
+      endedAt: 200,
+    });
+
+    const result = await waitForAgentRun({ runId: "run-blocked", timeoutMs: 500 });
+
+    expect(result).toEqual({
+      status: "error",
+      error: "Agent run blocked before producing a usable result.",
+      startedAt: 100,
+      endedAt: 200,
+    });
+  });
 });
 
 describe("waitForAgentRunAndReadUpdatedAssistantReply", () => {

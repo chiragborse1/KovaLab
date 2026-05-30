@@ -1,3 +1,8 @@
+import {
+  buildAgentRunTerminalOutcome,
+  type AgentRunTerminalOutcome,
+} from "../../agents/agent-run-terminal-outcome.js";
+import { normalizeBlockedLivenessWaitStatus } from "../../shared/agent-liveness.js";
 import { setSafeTimeout } from "../../utils/timer-delay.js";
 import type { DedupeEntry } from "../server-shared.js";
 
@@ -6,9 +11,25 @@ export type AgentWaitTerminalSnapshot = {
   startedAt?: number;
   endedAt?: number;
   error?: string;
+  stopReason?: string;
+  livenessState?: string;
+  yielded?: boolean;
+  pendingError?: boolean;
+  timeoutPhase?: AgentRunTerminalOutcome["timeoutPhase"];
+  providerStarted?: boolean;
 };
 
 const AGENT_WAITERS_BY_RUN_ID = new Map<string, Set<() => void>>();
+
+function normalizeTerminalOutcomeForWaitSnapshot(outcome: AgentRunTerminalOutcome): {
+  status: AgentWaitTerminalSnapshot["status"];
+  error?: string;
+} {
+  if (outcome.reason === "hard_timeout") {
+    return { status: outcome.status, error: outcome.error };
+  }
+  return normalizeBlockedLivenessWaitStatus(outcome);
+}
 
 function parseRunIdFromDedupeKey(key: string): string | null {
   if (key.startsWith("agent:")) {
@@ -73,6 +94,12 @@ export function readTerminalSnapshotFromDedupeEntry(
         endedAt?: unknown;
         error?: unknown;
         summary?: unknown;
+        stopReason?: unknown;
+        livenessState?: unknown;
+        yielded?: unknown;
+        pendingError?: unknown;
+        timeoutPhase?: unknown;
+        providerStarted?: unknown;
       }
     | undefined;
   const status = typeof payload?.status === "string" ? payload.status : undefined;
@@ -90,19 +117,67 @@ export function readTerminalSnapshotFromDedupeEntry(
         : entry.error?.message;
 
   if (status === "ok" || status === "timeout") {
-    return {
+    const terminalOutcome = buildAgentRunTerminalOutcome({
       status,
+      error: errorMessage,
+      stopReason: payload?.stopReason,
+      livenessState: payload?.livenessState,
+      timeoutPhase: payload?.timeoutPhase,
+      providerStarted: payload?.providerStarted,
       startedAt,
       endedAt,
-      error: status === "timeout" ? errorMessage : undefined,
+    });
+    const normalized = normalizeTerminalOutcomeForWaitSnapshot(terminalOutcome);
+    return {
+      status: normalized.status,
+      startedAt,
+      endedAt,
+      error:
+        normalized.status === "error"
+          ? normalized.error
+          : normalized.status === "timeout"
+            ? terminalOutcome.error
+            : undefined,
+      ...(terminalOutcome.stopReason ? { stopReason: terminalOutcome.stopReason } : {}),
+      ...(terminalOutcome.livenessState ? { livenessState: terminalOutcome.livenessState } : {}),
+      ...(payload?.yielded === true ? { yielded: true } : {}),
+      ...(payload?.pendingError === true ? { pendingError: true } : {}),
+      ...(terminalOutcome.timeoutPhase ? { timeoutPhase: terminalOutcome.timeoutPhase } : {}),
+      ...(terminalOutcome.providerStarted !== undefined
+        ? { providerStarted: terminalOutcome.providerStarted }
+        : {}),
     };
   }
   if (status === "error" || !entry.ok) {
-    return {
+    const terminalOutcome = buildAgentRunTerminalOutcome({
       status: "error",
+      error: errorMessage,
+      stopReason: payload?.stopReason,
+      livenessState: payload?.livenessState,
+      timeoutPhase: payload?.timeoutPhase,
+      providerStarted: payload?.providerStarted,
       startedAt,
       endedAt,
-      error: errorMessage,
+    });
+    const normalized = normalizeTerminalOutcomeForWaitSnapshot(terminalOutcome);
+    return {
+      status: normalized.status,
+      startedAt,
+      endedAt,
+      error:
+        normalized.status === "error"
+          ? normalized.error
+          : normalized.status === "timeout"
+            ? terminalOutcome.error
+            : undefined,
+      ...(terminalOutcome.stopReason ? { stopReason: terminalOutcome.stopReason } : {}),
+      ...(terminalOutcome.livenessState ? { livenessState: terminalOutcome.livenessState } : {}),
+      ...(payload?.yielded === true ? { yielded: true } : {}),
+      ...(payload?.pendingError === true ? { pendingError: true } : {}),
+      ...(terminalOutcome.timeoutPhase ? { timeoutPhase: terminalOutcome.timeoutPhase } : {}),
+      ...(terminalOutcome.providerStarted !== undefined
+        ? { providerStarted: terminalOutcome.providerStarted }
+        : {}),
     };
   }
   return null;

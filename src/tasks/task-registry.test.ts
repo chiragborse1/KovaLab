@@ -380,6 +380,43 @@ describe("task-registry", () => {
     });
   });
 
+  it("records provider-attributed lifecycle errors as timed out tasks", async () => {
+    await withTaskRegistryTempDir(async (root) => {
+      process.env.KOVA_STATE_DIR = root;
+      resetTaskRegistryForTests();
+
+      createTaskRecord({
+        runtime: "cli",
+        ownerKey: "agent:main:main",
+        scopeKind: "session",
+        childSessionKey: "agent:main:main",
+        runId: "run-provider-timeout-task",
+        task: "Do the thing",
+        status: "running",
+        deliveryStatus: "not_applicable",
+        startedAt: 100,
+      });
+
+      emitAgentEvent({
+        runId: "run-provider-timeout-task",
+        stream: "lifecycle",
+        data: {
+          phase: "error",
+          endedAt: 200,
+          error: "provider request timed out",
+          timeoutPhase: "provider",
+          providerStarted: true,
+        },
+      });
+
+      expect(findTaskByRunId("run-provider-timeout-task")).toMatchObject({
+        status: "timed_out",
+        endedAt: 200,
+        error: "provider request timed out",
+      });
+    });
+  });
+
   it("does not downgrade failed run-scoped tasks when a late success arrives", async () => {
     await withTaskRegistryTempDir(async (root) => {
       process.env.KOVA_STATE_DIR = root;

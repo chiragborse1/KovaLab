@@ -258,6 +258,41 @@ describe("agent wait dedupe helper", () => {
     });
   });
 
+  it("preserves provider timeout attribution from terminal dedupe entries", () => {
+    const runId = "run-provider-timeout-dedupe";
+    const dedupe = new Map();
+
+    setRunEntry({
+      dedupe,
+      kind: "agent",
+      runId,
+      ok: false,
+      payload: {
+        runId,
+        status: "error",
+        error: "provider request timed out",
+        timeoutPhase: "provider",
+        providerStarted: true,
+        startedAt: 10,
+        endedAt: 20,
+      },
+    });
+
+    expect(
+      readTerminalSnapshotFromGatewayDedupe({
+        dedupe,
+        runId,
+      }),
+    ).toEqual({
+      status: "timeout",
+      startedAt: 10,
+      endedAt: 20,
+      error: "provider request timed out",
+      timeoutPhase: "provider",
+      providerStarted: true,
+    });
+  });
+
   it("resolves multiple waiters for the same run id", async () => {
     const dedupe = new Map();
     const runId = "run-multi";

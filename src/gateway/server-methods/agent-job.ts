@@ -1,3 +1,8 @@
+import {
+  buildAgentRunTerminalOutcome,
+  mergeAgentRunTerminalOutcome,
+  type AgentRunTerminalOutcome,
+} from "../../agents/agent-run-terminal-outcome.js";
 import { onAgentEvent } from "../../infra/agent-events.js";
 import { setSafeTimeout } from "../../utils/timer-delay.js";
 
@@ -29,6 +34,12 @@ type AgentRunSnapshot = {
   startedAt?: number;
   endedAt?: number;
   error?: string;
+  stopReason?: string;
+  livenessState?: string;
+  yielded?: boolean;
+  pendingError?: boolean;
+  timeoutPhase?: AgentRunTerminalOutcome["timeoutPhase"];
+  providerStarted?: boolean;
   ts: number;
 };
 
@@ -50,7 +61,36 @@ function pruneAgentRunCache(now = Date.now()) {
 
 function recordAgentRunSnapshot(entry: AgentRunSnapshot) {
   pruneAgentRunCache(entry.ts);
+  const existing = agentRunCache.get(entry.runId);
+  if (existing && shouldPreserveTerminalSnapshot(existing, entry)) {
+    agentRunCache.set(entry.runId, {
+      ...existing,
+      ts: entry.ts,
+    });
+    return;
+  }
   agentRunCache.set(entry.runId, entry);
+}
+
+function shouldPreserveTerminalSnapshot(
+  existing: AgentRunSnapshot,
+  incoming: AgentRunSnapshot,
+): boolean {
+  const existingOutcome = terminalOutcomeFromSnapshot(existing);
+  const incomingOutcome = terminalOutcomeFromSnapshot(incoming);
+  if (!existingOutcome || !incomingOutcome) {
+    return false;
+  }
+  return mergeAgentRunTerminalOutcome(existingOutcome, incomingOutcome) === existingOutcome;
+}
+
+function terminalOutcomeFromSnapshot(
+  snapshot: AgentRunSnapshot,
+): AgentRunTerminalOutcome | undefined {
+  if (snapshot.pendingError) {
+    return undefined;
+  }
+  return buildAgentRunTerminalOutcome(snapshot);
 }
 
 function clearPendingAgentRunError(runId: string) {
@@ -72,6 +112,10 @@ function clearPendingAgentRunTimeout(runId: string) {
 }
 
 function schedulePendingAgentRunError(snapshot: AgentRunSnapshot) {
+  const pendingTimeout = pendingAgentRunTimeouts.get(snapshot.runId);
+  if (pendingTimeout && shouldPreserveTerminalSnapshot(pendingTimeout.snapshot, snapshot)) {
+    return;
+  }
   clearPendingAgentRunTimeout(snapshot.runId);
   clearPendingAgentRunError(snapshot.runId);
   const dueAt = Date.now() + AGENT_RUN_ERROR_RETRY_GRACE_MS;
@@ -88,6 +132,10 @@ function schedulePendingAgentRunError(snapshot: AgentRunSnapshot) {
 }
 
 function schedulePendingAgentRunTimeout(snapshot: AgentRunSnapshot) {
+  const pendingTimeout = pendingAgentRunTimeouts.get(snapshot.runId);
+  if (pendingTimeout && shouldPreserveTerminalSnapshot(pendingTimeout.snapshot, snapshot)) {
+    return;
+  }
   clearPendingAgentRunError(snapshot.runId);
   clearPendingAgentRunTimeout(snapshot.runId);
   const dueAt = Date.now() + AGENT_RUN_TIMEOUT_RETRY_GRACE_MS;
@@ -125,6 +173,20 @@ function getPendingAgentRunTimeout(runId: string) {
   };
 }
 
+function createPendingErrorTimeoutSnapshot(snapshot: AgentRunSnapshot): AgentRunSnapshot {
+  return {
+    runId: snapshot.runId,
+    status: "timeout",
+    startedAt: snapshot.startedAt,
+    error: snapshot.error,
+    pendingError: true,
+    ...(snapshot.providerStarted !== undefined
+      ? { providerStarted: snapshot.providerStarted }
+      : {}),
+    ts: Date.now(),
+  };
+}
+
 function createSnapshotFromLifecycleEvent(params: {
   runId: string;
   phase: "end" | "error";
@@ -135,12 +197,32 @@ function createSnapshotFromLifecycleEvent(params: {
     typeof data?.startedAt === "number" ? data.startedAt : agentRunStarts.get(runId);
   const endedAt = typeof data?.endedAt === "number" ? data.endedAt : undefined;
   const error = typeof data?.error === "string" ? data.error : undefined;
-  return {
-    runId,
-    status: phase === "error" ? "error" : data?.aborted ? "timeout" : "ok",
+  const stopReason = typeof data?.stopReason === "string" ? data.stopReason : undefined;
+  const livenessState = typeof data?.livenessState === "string" ? data.livenessState : undefined;
+  const status = phase === "error" ? "error" : data?.aborted ? "timeout" : "ok";
+  const terminalOutcome = buildAgentRunTerminalOutcome({
+    status,
+    error,
+    stopReason,
+    livenessState,
+    timeoutPhase: data?.timeoutPhase,
+    providerStarted: data?.providerStarted,
     startedAt,
     endedAt,
-    error,
+  });
+  return {
+    runId,
+    status: terminalOutcome.status,
+    startedAt,
+    endedAt,
+    error: terminalOutcome.error,
+    ...(stopReason ? { stopReason } : {}),
+    ...(livenessState ? { livenessState } : {}),
+    ...(data?.yielded === true ? { yielded: true } : {}),
+    ...(terminalOutcome.timeoutPhase ? { timeoutPhase: terminalOutcome.timeoutPhase } : {}),
+    ...(terminalOutcome.providerStarted !== undefined
+      ? { providerStarted: terminalOutcome.providerStarted }
+      : {}),
     ts: Date.now(),
   };
 }
@@ -183,6 +265,10 @@ function ensureAgentRunListener() {
     }
     if (snapshot.status === "timeout") {
       schedulePendingAgentRunTimeout(snapshot);
+      return;
+    }
+    const pendingTimeout = pendingAgentRunTimeouts.get(evt.runId);
+    if (pendingTimeout && shouldPreserveTerminalSnapshot(pendingTimeout.snapshot, snapshot)) {
       return;
     }
     clearPendingAgentRunError(evt.runId);
@@ -233,6 +319,7 @@ export async function waitForAgentJob(params: {
     let settled = false;
     let pendingErrorTimer: NodeJS.Timeout | undefined;
     let pendingTimeoutTimer: NodeJS.Timeout | undefined;
+    let pendingTimeoutSnapshot: AgentRunSnapshot | undefined;
     let onAbort: (() => void) | undefined;
     let removeWaiter = () => {};
 
@@ -250,6 +337,7 @@ export async function waitForAgentJob(params: {
       }
       clearTimeout(pendingTimeoutTimer);
       pendingTimeoutTimer = undefined;
+      pendingTimeoutSnapshot = undefined;
     };
 
     const finish = (entry: AgentRunSnapshot | null) => {
@@ -273,6 +361,12 @@ export async function waitForAgentJob(params: {
       snapshot: AgentRunSnapshot,
       delayMs: number,
     ) => {
+      if (
+        pendingTimeoutSnapshot &&
+        shouldPreserveTerminalSnapshot(pendingTimeoutSnapshot, snapshot)
+      ) {
+        return;
+      }
       clearPendingErrorTimer();
       clearPendingTimeoutTimer();
       const timerRef = setSafeTimeout(() => {
@@ -289,6 +383,7 @@ export async function waitForAgentJob(params: {
         pendingErrorTimer = timerRef;
       } else {
         pendingTimeoutTimer = timerRef;
+        pendingTimeoutSnapshot = snapshot;
       }
     };
 
@@ -335,6 +430,12 @@ export async function waitForAgentJob(params: {
       }
       const latest = ignoreCachedSnapshot ? undefined : getCachedAgentRun(runId);
       if (latest) {
+        if (
+          pendingTimeoutSnapshot &&
+          shouldPreserveTerminalSnapshot(pendingTimeoutSnapshot, latest)
+        ) {
+          return;
+        }
         finish(latest);
         return;
       }
@@ -351,12 +452,21 @@ export async function waitForAgentJob(params: {
         scheduleTimeoutFinish(snapshot);
         return;
       }
+      if (
+        pendingTimeoutSnapshot &&
+        shouldPreserveTerminalSnapshot(pendingTimeoutSnapshot, snapshot)
+      ) {
+        return;
+      }
       recordAgentRunSnapshot(snapshot);
       finish(snapshot);
     });
     removeWaiter = addAgentRunWaiter(runId);
 
-    const timer = setSafeTimeout(() => finish(null), timeoutMs);
+    const timer = setSafeTimeout(() => {
+      const pendingError = getPendingAgentRunError(runId);
+      finish(pendingError ? createPendingErrorTimeoutSnapshot(pendingError.snapshot) : null);
+    }, timeoutMs);
     onAbort = () => finish(null);
     signal?.addEventListener("abort", onAbort, { once: true });
   });

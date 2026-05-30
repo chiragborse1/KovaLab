@@ -1,5 +1,9 @@
 import crypto from "node:crypto";
 import { createRequire } from "node:module";
+import {
+  buildAgentRunTerminalOutcome,
+  type AgentRunTerminalOutcome,
+} from "../agents/agent-run-terminal-outcome.js";
 import type { KovaConfig } from "../config/types.kova.js";
 import { onAgentEvent } from "../infra/agent-events.js";
 import { formatErrorMessage } from "../infra/errors.js";
@@ -424,6 +428,44 @@ function resolveTaskTerminalOutcome(params: {
     return normalized;
   }
   return params.status === "succeeded" ? "succeeded" : undefined;
+}
+
+function mapAgentRunTerminalOutcomeToTaskStatus(
+  outcome: AgentRunTerminalOutcome,
+): Extract<TaskStatus, "succeeded" | "failed" | "timed_out" | "cancelled"> {
+  switch (outcome.reason) {
+    case "completed":
+      return "succeeded";
+    case "hard_timeout":
+    case "timed_out":
+      return "timed_out";
+    case "cancelled":
+    case "aborted":
+      return "cancelled";
+    case "blocked":
+    case "failed":
+      return "failed";
+    default:
+      return outcome.reason satisfies never;
+  }
+}
+
+function buildTaskLifecycleTerminalOutcome(params: {
+  phase: "end" | "error";
+  data?: Record<string, unknown>;
+  startedAt?: number;
+  endedAt?: number;
+}): AgentRunTerminalOutcome {
+  return buildAgentRunTerminalOutcome({
+    status: params.phase === "error" ? "error" : params.data?.aborted === true ? "timeout" : "ok",
+    error: params.data?.error,
+    stopReason: params.data?.stopReason,
+    livenessState: params.data?.livenessState,
+    timeoutPhase: params.data?.timeoutPhase,
+    providerStarted: params.data?.providerStarted,
+    startedAt: params.startedAt,
+    endedAt: params.endedAt,
+  });
 }
 
 function appendTaskEvent(event: {
@@ -1409,12 +1451,27 @@ function ensureListener() {
         if (phase === "start") {
           patch.status = "running";
         } else if (phase === "end") {
-          patch.status = evt.data?.aborted === true ? "timed_out" : "succeeded";
-          patch.endedAt = endedAt ?? now;
+          const terminal = buildTaskLifecycleTerminalOutcome({
+            phase,
+            data: evt.data,
+            startedAt,
+            endedAt: endedAt ?? now,
+          });
+          patch.status = mapAgentRunTerminalOutcomeToTaskStatus(terminal);
+          patch.endedAt = terminal.endedAt ?? now;
+          if (terminal.error) {
+            patch.error = terminal.error;
+          }
         } else if (phase === "error") {
-          patch.status = "failed";
-          patch.endedAt = endedAt ?? now;
-          patch.error = typeof evt.data?.error === "string" ? evt.data.error : current.error;
+          const terminal = buildTaskLifecycleTerminalOutcome({
+            phase,
+            data: evt.data,
+            startedAt,
+            endedAt: endedAt ?? now,
+          });
+          patch.status = mapAgentRunTerminalOutcomeToTaskStatus(terminal);
+          patch.endedAt = terminal.endedAt ?? now;
+          patch.error = terminal.error ?? current.error;
         }
       } else if (evt.stream === "error") {
         patch.error = typeof evt.data?.error === "string" ? evt.data.error : current.error;
