@@ -556,7 +556,8 @@ function formatMemoryHelpText(): string {
 
 function formatMemoryTerminalCommand(args: string): string {
   const trimmed = args.trim();
-  const [actionRaw, ...rest] = trimmed.split(/\s+/).filter(Boolean);
+  const parts = trimmed ? trimmed.split(/\s+/) : [];
+  const [actionRaw, ...rest] = parts;
   const action = normalizeLowercaseStringOrEmpty(actionRaw ?? "status");
   if (!trimmed || action === "status") {
     return [
@@ -1234,7 +1235,9 @@ export function createCommandHandlers(context: CommandHandlerContext) {
   };
 
   const showPersona = async (args: string) => {
-    const [actionRaw, ...rest] = args.trim().split(/\s+/).filter(Boolean);
+    const trimmed = args.trim();
+    const parts = trimmed ? trimmed.split(/\s+/) : [];
+    const [actionRaw, ...rest] = parts;
     const action = normalizeLowercaseStringOrEmpty(actionRaw ?? "status");
     if (action === "help" || action === "?") {
       chatLog.addSystem(formatPersonaHelpText());

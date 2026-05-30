@@ -499,7 +499,7 @@ function createPluginJitiLoader(options: Pick<PluginLoadOptions, "pluginSdkResol
           import.meta.url,
           options.pluginSdkResolution,
         ),
-        ...(runtimeAliasMap ?? {}),
+        ...runtimeAliasMap,
       },
       pluginSdkResolution: options.pluginSdkResolution,
       // Source .ts runtime shims import sibling ".js" specifiers that only exist

@@ -193,7 +193,6 @@ vi.mock("../plugins/web-search-providers.runtime.js", () => ({
 
 import {
   getAgentRuntimeCommandSecretTargetIds,
-  getCapabilityWebFetchCommandSecretTargets,
   getCapabilityWebFetchCommandSecretTargetIds,
   getCapabilityWebSearchCommandSecretTargets,
   getCapabilityWebSearchCommandSecretTargetIds,

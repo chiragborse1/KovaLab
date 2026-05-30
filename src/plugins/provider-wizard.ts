@@ -78,33 +78,6 @@ function listMethodWizardSetups(provider: ProviderPlugin): Array<{
     );
 }
 
-function buildSetupOptionForMethod(params: {
-  provider: ProviderPlugin;
-  wizard: ProviderPluginWizardSetup;
-  method: ProviderAuthMethod;
-  value: string;
-}): ProviderWizardOption {
-  const normalizedGroupId = normalizeOptionalString(params.wizard.groupId) || params.provider.id;
-  return {
-    value: normalizeOptionalString(params.value) ?? "",
-    label:
-      normalizeOptionalString(params.wizard.choiceLabel) ||
-      (params.provider.auth.length === 1 ? params.provider.label : params.method.label),
-    hint: normalizeOptionalString(params.wizard.choiceHint) || params.method.hint,
-    groupId: normalizedGroupId,
-    groupLabel: normalizeOptionalString(params.wizard.groupLabel) || params.provider.label,
-    groupHint: normalizeOptionalString(params.wizard.groupHint),
-    ...(params.wizard.onboardingScopes ? { onboardingScopes: params.wizard.onboardingScopes } : {}),
-    ...(typeof params.wizard.assistantPriority === "number" &&
-    Number.isFinite(params.wizard.assistantPriority)
-      ? { assistantPriority: params.wizard.assistantPriority }
-      : {}),
-    ...(params.wizard.assistantVisibility
-      ? { assistantVisibility: params.wizard.assistantVisibility }
-      : {}),
-  };
-}
-
 export function buildProviderPluginMethodChoice(providerId: string, methodId: string): string {
   return `${PROVIDER_PLUGIN_CHOICE_PREFIX}${normalizeOptionalString(providerId) ?? ""}:${normalizeOptionalString(methodId) ?? ""}`;
 }
@@ -134,19 +107,30 @@ export function resolveProviderWizardOptions(params: {
     workspaceDir: params.workspaceDir,
     env: params.env,
     includeUntrustedWorkspacePlugins: false,
-  }).map((choice) => ({
-    value: choice.choiceId,
-    label: choice.choiceLabel,
-    ...(choice.choiceHint ? { hint: choice.choiceHint } : {}),
-    groupId: choice.groupId ?? choice.providerId,
-    groupLabel: choice.groupLabel ?? choice.choiceLabel,
-    ...(choice.groupHint ? { groupHint: choice.groupHint } : {}),
-    ...(choice.onboardingScopes ? { onboardingScopes: choice.onboardingScopes } : {}),
-    ...(typeof choice.assistantPriority === "number"
-      ? { assistantPriority: choice.assistantPriority }
-      : {}),
-    ...(choice.assistantVisibility ? { assistantVisibility: choice.assistantVisibility } : {}),
-  }));
+  }).map((choice) => {
+    const option: ProviderWizardOption = {
+      value: choice.choiceId,
+      label: choice.choiceLabel,
+      groupId: choice.groupId ?? choice.providerId,
+      groupLabel: choice.groupLabel ?? choice.choiceLabel,
+    };
+    if (choice.choiceHint) {
+      option.hint = choice.choiceHint;
+    }
+    if (choice.groupHint) {
+      option.groupHint = choice.groupHint;
+    }
+    if (choice.onboardingScopes) {
+      option.onboardingScopes = choice.onboardingScopes;
+    }
+    if (typeof choice.assistantPriority === "number") {
+      option.assistantPriority = choice.assistantPriority;
+    }
+    if (choice.assistantVisibility) {
+      option.assistantVisibility = choice.assistantVisibility;
+    }
+    return option;
+  });
 }
 
 function resolveModelPickerChoiceValue(

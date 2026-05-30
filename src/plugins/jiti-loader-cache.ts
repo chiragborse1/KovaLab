@@ -1,5 +1,4 @@
 import { createRequire } from "node:module";
-import path from "node:path";
 import { pathToFileURL } from "node:url";
 import type { createJiti } from "jiti";
 import { toSafeImportPath } from "../shared/import-specifier.js";

@@ -562,7 +562,7 @@ export async function startGatewaySidecars(params: {
       startupTrace: params.startupTrace,
       name: "sidecars.gmail-watch",
       log: params.log,
-      run: async (isStopped, signal) => {
+      run: async (isStopped, _signal) => {
         const { startGmailWatcherWithLogs } = await import("../hooks/gmail-watcher-lifecycle.js");
         if (isStopped()) {
           return;

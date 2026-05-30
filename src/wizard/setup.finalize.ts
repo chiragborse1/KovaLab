@@ -526,19 +526,18 @@ export async function finalizeSetupWizard(
         restoreTerminalState("post-setup tui", { resumeStdinIfPaused: true });
       }
       return { launchedTui: true };
-    } else {
-      await prompter.note(
-        [
-          `Start terminal chat: ${formatCliCommand("kova")}`,
-          `Inspect readiness: ${formatCliCommand("kova status --all")}`,
-          `Tune persona: ${formatCliCommand("kova persona edit")}`,
-          `Check memory: ${formatCliCommand("kova memory status")}`,
-        ]
-          .filter(Boolean)
-          .join("\n"),
-        "Launch later",
-      );
     }
+    await prompter.note(
+      [
+        `Start terminal chat: ${formatCliCommand("kova")}`,
+        `Inspect readiness: ${formatCliCommand("kova status --all")}`,
+        `Tune persona: ${formatCliCommand("kova persona edit")}`,
+        `Check memory: ${formatCliCommand("kova memory status")}`,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+      "Launch later",
+    );
   } else if (opts.skipUi) {
     await prompter.note(
       [

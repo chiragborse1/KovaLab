@@ -129,10 +129,12 @@ function setManifestChoices(
   }>
 ) {
   resolveManifestProviderAuthChoices.mockReturnValue(
-    choices.map((choice) => ({
-      pluginId: choice.pluginId ?? choice.providerId,
-      ...choice,
-    })),
+    choices.map((choice) => {
+      const normalized: ProviderAuthChoiceMetadata = Object.assign({}, choice, {
+        pluginId: choice.pluginId ?? choice.providerId,
+      });
+      return normalized;
+    }),
   );
 }
 
@@ -143,7 +145,7 @@ function expectSingleWizardChoice(params: {
   expectedWizard: unknown;
 }) {
   setResolvedProviders(params.provider);
-  const method = params.provider.auth[0]!;
+  const method = params.provider.auth[0];
   const wizard = method.wizard ?? params.provider.wizard?.setup;
   setManifestChoices({
     providerId: params.provider.id,
@@ -365,7 +367,7 @@ describe("provider wizard boundaries", () => {
     resolvePluginSetupProvider.mockReturnValue(provider);
     setManifestChoices({
       providerId: provider.id,
-      methodId: provider.auth[0]!.id,
+      methodId: provider.auth[0].id,
       choiceId: "sglang-server",
       choiceLabel: "SGLang setup",
       groupId: "sglang",
